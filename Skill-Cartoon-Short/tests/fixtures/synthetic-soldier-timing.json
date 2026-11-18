@@ -1,0 +1,9 @@
+{
+  "fixtureId": "synthetic-soldier-timing-fixture-v1",
+  "purpose": "Technical pipeline verification when authentic example/soldier/voice.mp3 is absent from cartoon-short-kit.zip",
+  "authenticVoiceover": false,
+  "fps": 30,
+  "expectedFrames": 592,
+  "expectedDurationSec": 19.7333,
+  "phraseCount": 9
+}

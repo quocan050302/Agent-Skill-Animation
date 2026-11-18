@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cartoon Short Renderer — SHORT-01 Real-Engine Test Viewer (9:16)</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #11161d;
+      --panel: #19212c;
+      --border: #2c394b;
+      --accent: #4ecdc4;
+      --text: #eef3f8;
+      --muted: #9aa8b8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: 100vh;
+    }
+    aside {
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    h1 { font-size: 16px; margin: 0; line-height: 1.35; }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #223244;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    select, input[type="range"], input[type="number"] {
+      width: 100%;
+      background: #0f141b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+    }
+    .row { display: flex; gap: 8px; align-items: center; }
+    main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+    .stage-wrap {
+      width: 360px;
+      height: 640px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+    }
+    iframe {
+      width: 1080px;
+      height: 1920px;
+      border: 0;
+      transform: scale(0.333333);
+      transform-origin: 0 0;
+      pointer-events: none;
+    }
+    pre {
+      margin: 0;
+      padding: 10px;
+      background: #0d1218;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      overflow: auto;
+      max-height: 240px;
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <div>
+      <span class="badge">9:16 LOCKED • 1080×1920 • 30 FPS</span>
+      <h1 style="margin-top:8px;">Cartoon Short Renderer — Real-Engine Test Viewer</h1>
+    </div>
+
+    <div>
+      <label for="projectSelect">Hydrated Project</label>
+      <select id="projectSelect"></select>
+    </div>
+
+    <div>
+      <label for="passSelect">Render Pass Output</label>
+      <select id="passSelect">
+        <option value="">Final (Color + Ink + Grade + DOF)</option>
+        <option value="#nd">Normal + Depth Target (#nd)</option>
+        <option value="#e">Screen-Space Ink Edge Mask (#e)</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="frameRange">Frame Index (<span id="frameLabel">0</span> / <span id="totalLabel">-</span>)</label>
+      <input id="frameRange" type="range" min="0" max="591" value="0" />
+      <div class="row" style="margin-top:8px;">
+        <input id="frameNumber" type="number" min="0" max="591" value="0" />
+      </div>
+    </div>
+
+    <div>
+      <label>Live Engine Telemetry</label>
+      <pre id="statusBox">Initializing Three.js WebGL renderer...</pre>
+    </div>
+  </aside>
+
+  <main>
+    <div class="stage-wrap">
+      <iframe id="engineFrame" title="Three.js 1080x1920 Engine"></iframe>
+    </div>
+  </main>
+
+  <script type="module">
+    const projectSelect = document.getElementById('projectSelect');
+    const passSelect = document.getElementById('passSelect');
+    const frameRange = document.getElementById('frameRange');
+    const frameNumber = document.getElementById('frameNumber');
+    const frameLabel = document.getElementById('frameLabel');
+    const totalLabel = document.getElementById('totalLabel');
+    const statusBox = document.getElementById('statusBox');
+    const engineFrame = document.getElementById('engineFrame');
+
+    const contractRes = await fetch('/api/contract');
+    const contract = await contractRes.json();
+
+    for (const p of contract.projects) {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.title;
+      projectSelect.appendChild(opt);
+    }
+
+    let currentFrame = 0;
+
+    function evaluateFrame(f) {
+      const win = engineFrame.contentWindow;
+      if (!win || !win.ready || typeof win.renderFrame !== 'function') return;
+      const hash = passSelect.value;
+      win.DEBUG_ND = hash === '#nd' ? 1 : 0;
+      win.DEBUG_E = hash === '#e' ? 1 : 0;
+      const t0 = performance.now();
+      win.renderFrame(f);
+      const dt = (performance.now() - t0).toFixed(2);
+      const total = Number(win.TOTAL || 1);
+      frameRange.max = String(total - 1);
+      frameNumber.max = String(total - 1);
+      totalLabel.textContent = String(total - 1);
+      frameLabel.textContent = String(f);
+      statusBox.textContent = JSON.stringify(
+        {
+          projectId: projectSelect.value,
+          frame: f,
+          totalFrames: total,
+          pass: hash || 'final',
+          renderMs: Number(dt),
+          canvas: `${win.document.getElementById('c')?.width}x${win.document.getElementById('c')?.height}`,
+          engineReady: Boolean(win.ready),
+        },
+        null,
+        2
+      );
+      window.__viewerReady = true;
+    }
+
+    function loadProject() {
+      window.__viewerReady = false;
+      const pid = projectSelect.value;
+      const hash = passSelect.value;
+      statusBox.textContent = `Loading ${pid}...`;
+      engineFrame.src = `/engine/${pid}/index.html${hash}`;
+    }
+
+    engineFrame.addEventListener('load', () => {
+      const poll = setInterval(() => {
+        const win = engineFrame.contentWindow;
+        if (win?.err) {
+          clearInterval(poll);
+          statusBox.textContent = `ENGINE ERROR: ${win.err}`;
+          return;
+        }
+        if (win?.ready && typeof win.renderFrame === 'function') {
+          clearInterval(poll);
+          currentFrame = 0;
+          frameRange.value = '0';
+          frameNumber.value = '0';
+          evaluateFrame(0);
+        }
+      }, 40);
+    });
+
+    projectSelect.addEventListener('change', loadProject);
+    passSelect.addEventListener('change', () => evaluateFrame(currentFrame));
+    frameRange.addEventListener('input', () => {
+      currentFrame = Number(frameRange.value);
+      frameNumber.value = String(currentFrame);
+      evaluateFrame(currentFrame);
+    });
+    frameNumber.addEventListener('change', () => {
+      const max = Number(frameRange.max || 0);
+      currentFrame = Math.max(0, Math.min(max, Number(frameNumber.value) || 0));
+      frameRange.value = String(currentFrame);
+      frameNumber.value = String(currentFrame);
+      evaluateFrame(currentFrame);
+    });
+
+    if (contract.projects.length > 0) {
+      loadProject();
+    } else {
+      statusBox.textContent = 'No hydrated projects found. Run npm run setup first.';
+    }
+  </script>
+</body>
+</html>

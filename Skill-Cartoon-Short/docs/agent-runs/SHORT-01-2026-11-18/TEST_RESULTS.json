@@ -1,0 +1,287 @@
+{
+  "ok": true,
+  "totalDurationMs": 10475,
+  "resourcesPreflight": {
+    "cpuCores": 8,
+    "freeMemMb": 78,
+    "freeDiskMb": 16053,
+    "maxWebglWorkers": 1
+  },
+  "nodes": [
+    {
+      "id": "source-audit",
+      "deps": [],
+      "status": "PASS",
+      "durationMs": 10,
+      "detail": {
+        "archiveEntries": 14,
+        "missingInputsRecorded": 3
+      }
+    },
+    {
+      "id": "hash-verification",
+      "deps": [],
+      "status": "PASS",
+      "durationMs": 10,
+      "detail": {
+        "verifiedFiles": 14
+      }
+    },
+    {
+      "id": "dependency-checks",
+      "deps": [],
+      "status": "PASS",
+      "durationMs": 315,
+      "detail": {
+        "ffmpegFirstLine": "ffmpeg version 6.0 Copyright (c) 2000-2023 the FFmpeg developers",
+        "ffprobeFirstLine": "ffprobe version 4.4-tessus  https://evermeet.cx/ffmpeg/  Copyright (c) 2007-2021 the FFmpeg developers",
+        "pythonPackages": "2.1.3 13.0.0"
+      }
+    },
+    {
+      "id": "unit-tests",
+      "deps": [],
+      "status": "PASS",
+      "durationMs": 417,
+      "detail": {
+        "durationMs": 417
+      }
+    },
+    {
+      "id": "engine-setup",
+      "deps": [
+        "source-audit",
+        "hash-verification",
+        "dependency-checks",
+        "unit-tests"
+      ],
+      "status": "PASS",
+      "durationMs": 95,
+      "detail": {
+        "ok": true,
+        "availDiskMb": 16053,
+        "kitExtracted": false,
+        "kitVerifiedCount": 14,
+        "threeSha256": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+        "toonTsSha256": "ed6823daad4cc5cdb88a7215502af545fe621efc18d58ea175f7464cc02fd725",
+        "toonBaseSha256": "8fbe2efb40c8e643c09f01d540d3ec23493a31ae713aac2dcdf7f5f7c5b70c64",
+        "engineMainSha256": "cedea9f4cccc747d3c54d1880f6434bdff1e6a9d1f1cfa5072d53d221aed1e56",
+        "zombieHydrated": true
+      }
+    },
+    {
+      "id": "browser-smoke-and-integration",
+      "deps": [
+        "engine-setup"
+      ],
+      "status": "PASS",
+      "durationMs": 3066,
+      "detail": {
+        "durationMs": 3066
+      }
+    },
+    {
+      "id": "regression-backtest-negative",
+      "deps": [
+        "browser-smoke-and-integration"
+      ],
+      "status": "PASS",
+      "durationMs": 2269,
+      "detail": {
+        "durationMs": 2269
+      }
+    },
+    {
+      "id": "e2e-viewer-and-full-render-qa",
+      "deps": [
+        "regression-backtest-negative"
+      ],
+      "status": "PASS",
+      "durationMs": 997,
+      "detail": {
+        "e2eDurationMs": 997
+      }
+    }
+  ],
+  "gates": [
+    {
+      "gate": "G01",
+      "title": "Original source inventoried",
+      "status": "PASS",
+      "evidence": "Inventoried all 14 files in cartoon-short-kit.zip; missing Pasted markdown.md (BLOCKED), voice.mp3, and mix.py explicitly recorded in vendor/source-manifest.json."
+    },
+    {
+      "gate": "G02",
+      "title": "Source SHA-256 manifest verified",
+      "status": "PASS",
+      "evidence": "14/14 extracted files in vendor/cartoon-short-kit match archive SHA-256 digests; docs/SOURCE_FIDELITY_MANIFEST.json verified."
+    },
+    {
+      "gate": "G03",
+      "title": "License/provenance gate resolved",
+      "status": "BLOCKED",
+      "evidence": "Target repo quocan050302/Agent-Skill-Animation is PUBLIC, and cartoon-short-kit.zip contains no LICENSE or redistribution grant. Upstream dependencies (three@0.160.0 MIT, mromidev/claude-animated-shorts MIT) are verified; kit source & Soldier derivatives are preserved locally and blocked from public push (.gitignore, trackedKitFiles=0). Pasted markdown.md was also absent from workspace (BLOCKED)."
+    },
+    {
+      "gate": "G04",
+      "title": "Dependencies pinned and installable",
+      "status": "PASS",
+      "evidence": "three@0.160.0, playwright@1.65.1 pinned in package-lock.json; mromidev/claude-animated-shorts pinned to commit e3b817b6afc6cd413466d43f11ba31209e034bbf. (Windows PowerShell setup.ps1 included; native Windows execution UNVERIFIED on darwin-arm64 runner.)"
+    },
+    {
+      "gate": "G05",
+      "title": "Chromium starts successfully",
+      "status": "PASS",
+      "evidence": "Chromium 159.0.8154.6 launched headlessly over loopback 127.0.0.1."
+    },
+    {
+      "gate": "G06",
+      "title": "WebGL renderer initializes",
+      "status": "PASS",
+      "evidence": "WebGL 2.0 (OpenGL ES 3.0 Chromium) | ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version) | pageErrors=0"
+    },
+    {
+      "gate": "G07",
+      "title": "Original frame 0 renders",
+      "status": "PASS",
+      "evidence": "Soldier f0000: 1080x1920, sha256=2be4d702547cabecbcc1aa9f4c7e0d882c6e954d8f5b26c7bbd14ee7253c0e3e, meanLuma=119.202"
+    },
+    {
+      "gate": "G08",
+      "title": "Multiple original frames render",
+      "status": "PASS",
+      "evidence": "Rendered all 592/592 frames (33.01 ms/frame); 10/14 reference stills.jpg tiles matched at 22.5-37.6 dB PSNR."
+    },
+    {
+      "gate": "G09",
+      "title": "Ink and character rendering inspected",
+      "status": "PASS",
+      "evidence": "Verified via #e edge pass, #nd normal+depth pass, Pillow darkInkRatio/edgeGradientMean, and visual inspection of out/original-reference-contact-sheet.jpg (1890x960) & out/new-original-contact-sheet.jpg (1350x960)."
+    },
+    {
+      "gate": "G10",
+      "title": "Frame output passes validation",
+      "status": "PASS",
+      "evidence": "All 592 Soldier frames and 300 Zombie frames verified 1080x1920 (9:16), readable JPEG SOI/EOI/SOF, non-black, ordered, zero missing IDs."
+    },
+    {
+      "gate": "G11",
+      "title": "Timing pipeline tested",
+      "status": "PASS",
+      "evidence": "timing_validator.py aligned 56 words / 9 phrases across 9 speech segments (approximate-silence-dp)."
+    },
+    {
+      "gate": "G12",
+      "title": "Audio path tested to the available extent",
+      "status": "PASS",
+      "evidence": "Tested both original-baseline (ducked+tanh) and spec-compliant mix.py (musicRelDb=-6 dB, sfxRelDb=-5.908 dB). Authentic Soldier voice.mp3 parity explicitly marked UNVERIFIED (voice.mp3 absent from ZIP)."
+    },
+    {
+      "gate": "G13",
+      "title": "MP4 export tested",
+      "status": "PASS",
+      "evidence": "Both MP4s verified H.264 yuv420p 1080x1920 @ 30/1 + AAC 48kHz stereo + faststart (moov<mdat) + 0 black/freeze spans."
+    },
+    {
+      "gate": "G14",
+      "title": "Repeatability/regression checked",
+      "status": "PASS",
+      "evidence": "Repeated Chromium sessions produced identical frame SHA-256 digests; vendor snapshot backtest matched 14/14 hashes; all 12 negative tests propagated expected errors."
+    },
+    {
+      "gate": "G15",
+      "title": "New original scenario tested",
+      "status": "PASS",
+      "evidence": "Rendered 300-frame (10.0s) zombie-supermarket-10s MP4 (6392857 bytes, sha256=52e230c44590e0c5661cc113431c45287f065b9d60435070b403242e8abc7e2d) and 10-tile contact sheet."
+    },
+    {
+      "gate": "G16",
+      "title": "Unrelated Skill-B6 files unchanged",
+      "status": "PASS",
+      "evidence": "Skill-B6 diff SHA-256 unchanged (e67777498d661750...), stagedSkillB6Files=false."
+    },
+    {
+      "gate": "G17",
+      "title": "GitHub commit/push status verified",
+      "status": "UNVERIFIED",
+      "evidence": "Branch=feat/short-01-original-engine-fidelity, localHEAD=6b1c42c6a7eaa482a764c12e6d11cc87f6fd8dd4, remoteSHA=(not yet pushed), trackedKitFiles=0."
+    }
+  ],
+  "audioSummary": {
+    "soldier": {
+      "fixtureType": "procedural-synthetic-speech-cadence",
+      "authenticVoiceoverPresent": false,
+      "authenticNarratedParityStatus": "UNVERIFIED",
+      "durationSec": 19.7333,
+      "originalBaseline": {
+        "mode": "original-baseline-ducked-nonlinear",
+        "specificationCompliant": false,
+        "duckingApplied": true,
+        "nonlinearWaveshaping": "tanh(mix * 0.95) / tanh(0.95)",
+        "rawOutputWav": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/soldier-baseline/work/mix_raw.wav",
+        "loudnormOutputWav": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/soldier-baseline/work/mix_original_baseline.wav",
+        "stdout": "ok 19.733333333333334",
+        "ebur128Raw": {
+          "integratedLufs": -15.4,
+          "truePeakDbfs": 3.2,
+          "lraLu": 2.3
+        },
+        "ebur128Loudnorm": {
+          "integratedLufs": -14.7,
+          "truePeakDbfs": -4.3,
+          "lraLu": 1.4
+        }
+      },
+      "specCompliant": {
+        "mode": "spec-compliant-linear-gated-rms",
+        "sampleRate": 48000,
+        "durationSec": 19.7333,
+        "duckingApplied": false,
+        "nonlinearWaveshapingApplied": false,
+        "narrationUntouchedBeforeMaster": true,
+        "targetMusicRelDb": -6,
+        "targetSfxRelDb": -6,
+        "measuredMusicRelDb": -6,
+        "measuredSfxRelDb": -5.908,
+        "narrationGatedRmsDb": -20.564,
+        "musicGatedRmsDb": -26.564,
+        "sfxGatedRmsDb": -26.473,
+        "sfxPeakDbfs": -3.008,
+        "masterGainDb": 0,
+        "masterPeakDbfs": -1.847,
+        "ebur128": {
+          "integratedLufs": -18,
+          "truePeakDbfs": -1.7,
+          "lraLu": 1.3
+        },
+        "specificationCompliant": true,
+        "outputWav": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/soldier-baseline/work/mix_spec_compliant.wav"
+      }
+    },
+    "zombie10s": {
+      "mode": "spec-compliant-linear-gated-rms",
+      "sampleRate": 48000,
+      "durationSec": 10,
+      "duckingApplied": false,
+      "nonlinearWaveshapingApplied": false,
+      "narrationUntouchedBeforeMaster": true,
+      "targetMusicRelDb": -6,
+      "targetSfxRelDb": -6,
+      "measuredMusicRelDb": -6,
+      "measuredSfxRelDb": -6,
+      "narrationGatedRmsDb": -20.167,
+      "musicGatedRmsDb": -26.167,
+      "sfxGatedRmsDb": -26.167,
+      "sfxPeakDbfs": -11.154,
+      "masterGainDb": 0,
+      "masterPeakDbfs": -7.574,
+      "ebur128": {
+        "integratedLufs": -17.5,
+        "truePeakDbfs": -7.4,
+        "lraLu": 1.6
+      },
+      "audioSourceOrigin": "procedural",
+      "outputWav": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/zombie-supermarket-10s/work/mix_spec_compliant.wav"
+    }
+  }
+}

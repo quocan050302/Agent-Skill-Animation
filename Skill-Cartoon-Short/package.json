@@ -1,0 +1,25 @@
+{
+  "name": "skill-cartoon-short",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cartoon Short Renderer (9:16, 1080x1920, 30 FPS) — SHORT-01 Original Engine Fidelity Baseline",
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "scripts": {
+    "setup": "node tools/setup/hydrate.mjs",
+    "render": "node tools/render/render-cli.mjs",
+    "viewer": "node app/server/viewer-server.mjs",
+    "test": "node tests/run-dag.mjs",
+    "test:unit": "node --test tests/unit/*.test.mjs",
+    "test:integration": "node --test tests/integration/*.test.mjs",
+    "test:regression": "node --test tests/regression/*.test.mjs",
+    "test:e2e": "node --test tests/e2e/*.test.mjs",
+    "qa": "node tools/qa/verify-gates.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.65.1",
+    "three": "0.160.0"
+  }
+}

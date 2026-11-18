@@ -1,0 +1,152 @@
+{
+  "schema": "cartoon-short-source-manifest/1.0",
+  "archive": {
+    "filename": "cartoon-short-kit.zip",
+    "size": 444936,
+    "sha256": "784c07e36df5e91ddf93c78a1dde6b98b3aa3e3c37cadff03c5603d3971ce788",
+    "license": null,
+    "publicRedistributionAllowed": false,
+    "provenanceNote": "Supplied ZIP lacks a package-level LICENSE or explicit redistribution grant; preserved locally and excluded from public Git push under Gate G03."
+  },
+  "missingInputs": [
+    {
+      "name": "Pasted markdown.md",
+      "role": "Cartoon Audio Short SKILL specification",
+      "status": "BLOCKED",
+      "reason": "Referenced ChatGPT attachment was not present in the Antigravity workspace or local user directories."
+    },
+    {
+      "name": "example/soldier/voice.mp3",
+      "role": "Original Soldier example voiceover audio (19.72 s referenced in story.js)",
+      "status": "MISSING_IN_ARCHIVE",
+      "reason": "Not included inside cartoon-short-kit.zip; authentic voiceover-dependent parity is marked UNVERIFIED."
+    },
+    {
+      "name": "tools/mix.py",
+      "role": "Linear gated-RMS audio mixer referenced by SKILL specification",
+      "status": "MISSING_IN_ARCHIVE",
+      "reason": "Not included inside cartoon-short-kit.zip; implemented separately as NEW CODE in tools/audio/mix.py."
+    }
+  ],
+  "upstreamDependencies": {
+    "three": {
+      "package": "three",
+      "version": "0.160.0",
+      "license": "MIT",
+      "moduleFile": "node_modules/three/build/three.module.js",
+      "moduleSize": 1272972,
+      "moduleSha256": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
+      "licenseSha256": "852e0e8699169bf9f6fdc6bda3e682d078dcbc738b5d33e74df594721bff271d"
+    },
+    "claudeAnimatedShorts": {
+      "repository": "https://github.com/mromidev/claude-animated-shorts.git",
+      "pinnedCommit": "e3b817b6afc6cd413466d43f11ba31209e034bbf",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Mr omi",
+      "toonTsPath": "templates/bridge/toon.ts",
+      "toonTsSize": 54503,
+      "toonTsSha256": "ed6823daad4cc5cdb88a7215502af545fe621efc18d58ea175f7464cc02fd725",
+      "licenseSha256": "0c88b6c1afe23ba94a2326eb289868fa4bb24edfd6994ad0c6bb7f2f2ed517e2"
+    }
+  },
+  "entries": [
+    {
+      "archivePath": "cartoon-short-kit/README.md",
+      "relativePath": "README.md",
+      "size": 956,
+      "crc32": "39b8ae33",
+      "sha256": "574f1a91094120ba90048494113c24be8a9c039b3c7263451eec97e498f86179"
+    },
+    {
+      "archivePath": "cartoon-short-kit/engine/index.html",
+      "relativePath": "engine/index.html",
+      "size": 361,
+      "crc32": "cafe29b2",
+      "sha256": "1f0bf31a7ac6b8768d308e076b0f08bbd2135287b535cf3a535c786c0c06812b"
+    },
+    {
+      "archivePath": "cartoon-short-kit/engine/main.js",
+      "relativePath": "engine/main.js",
+      "size": 31418,
+      "crc32": "aff50a1b",
+      "sha256": "cedea9f4cccc747d3c54d1880f6434bdff1e6a9d1f1cfa5072d53d221aed1e56"
+    },
+    {
+      "archivePath": "cartoon-short-kit/engine/motion.js",
+      "relativePath": "engine/motion.js",
+      "size": 3826,
+      "crc32": "a1848910",
+      "sha256": "d895b4d0531fbd1126596e8a558801660edab305c7bfd2d0544dcb64c4e4ffcd"
+    },
+    {
+      "archivePath": "cartoon-short-kit/engine/paint.js",
+      "relativePath": "engine/paint.js",
+      "size": 11477,
+      "crc32": "dfd5cf55",
+      "sha256": "90b342fc03a632aa192dc98debf2bcc2d6f8e33f5d3ffc2093360c1a90d65a71"
+    },
+    {
+      "archivePath": "cartoon-short-kit/engine/roman.js",
+      "relativePath": "engine/roman.js",
+      "size": 18980,
+      "crc32": "9aec231d",
+      "sha256": "8d53a82332f8974289ccc07fef67ff42b1caee39c10f88480f56dab798b7a4bc"
+    },
+    {
+      "archivePath": "cartoon-short-kit/example/soldier/audio.py",
+      "relativePath": "example/soldier/audio.py",
+      "size": 9194,
+      "crc32": "937fe48b",
+      "sha256": "2384466df631d999e5f93550d8f5e26ce0b15a4092d8c703b19621eff1019b2e"
+    },
+    {
+      "archivePath": "cartoon-short-kit/example/soldier/stills.jpg",
+      "relativePath": "example/soldier/stills.jpg",
+      "size": 406429,
+      "crc32": "7ab56020",
+      "sha256": "8a6791234ec3cbe82291e7804b32626979391a729bac30780b198d1425e3cf96"
+    },
+    {
+      "archivePath": "cartoon-short-kit/example/soldier/story.js",
+      "relativePath": "example/soldier/story.js",
+      "size": 14033,
+      "crc32": "fa9442f5",
+      "sha256": "5ba77a6a909b84e69d19ea656a24bfc7cea33ef32ead14e748dd9e91eaa96322"
+    },
+    {
+      "archivePath": "cartoon-short-kit/tools/finish.sh",
+      "relativePath": "tools/finish.sh",
+      "size": 888,
+      "crc32": "5542ad1c",
+      "sha256": "43672c85845dd6d4e84c77bde34f92fc2bc4170154a5545fd269ec9fed082bbc"
+    },
+    {
+      "archivePath": "cartoon-short-kit/tools/render.mjs",
+      "relativePath": "tools/render.mjs",
+      "size": 2163,
+      "crc32": "f8a07072",
+      "sha256": "ca0dbd27b5cd8b8e3cb6a97117d2c6b48b86451c40d9516dce06676579d792ba"
+    },
+    {
+      "archivePath": "cartoon-short-kit/tools/setup.sh",
+      "relativePath": "tools/setup.sh",
+      "size": 2085,
+      "crc32": "62f13407",
+      "sha256": "799cff19c0b6f302970794e220cd6f250f1a7e5c59ed609f837e825eda91877e"
+    },
+    {
+      "archivePath": "cartoon-short-kit/tools/sheet.py",
+      "relativePath": "tools/sheet.py",
+      "size": 516,
+      "crc32": "0f5fecc9",
+      "sha256": "49090c5391cda0dc8b66522900684aac39ed50180e60228a7cd168c103037c04"
+    },
+    {
+      "archivePath": "cartoon-short-kit/tools/timing.py",
+      "relativePath": "tools/timing.py",
+      "size": 5983,
+      "crc32": "cb08a880",
+      "sha256": "7bcb23376156d013a1c0255c2c7036eea16ada775444deb44f3368e4551eb450"
+    }
+  ]
+}

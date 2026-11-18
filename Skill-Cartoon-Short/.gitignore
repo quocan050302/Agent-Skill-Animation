@@ -1,0 +1,52 @@
+# License & Provenance Gate (G03 BLOCKED for public redistribution):
+# Preserve supplied cartoon-short-kit snapshot and hydrated copies locally for testing,
+# never stage or push unverified third-party kit source or derivative Soldier media to public GitHub.
+vendor/cartoon-short-kit/
+engine/web/index.html
+engine/web/main.js
+engine/web/motion.js
+engine/web/paint.js
+engine/web/roman.js
+engine/web/story.js
+engine/web/toon.js
+engine/web/toonbase.js
+engine/web/lib/
+
+# Dependencies & Python caches
+node_modules/
+**/node_modules/
+.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Isolated runtime workspaces, caches, jobs, and rendered frame sequences
+workspace/cache/
+workspace/jobs/
+workspace/temp/
+workspace/projects/soldier-baseline/
+workspace/projects/*/frames/
+workspace/projects/*/work/
+workspace/projects/*/out/
+workspace/projects/*/web/
+
+# Local rendered media outputs (unverified Soldier derivatives & large binaries)
+out/*.mp4
+out/*.jpg
+out/original-*
+out/frames/
+docs/agent-runs/*/evidence/soldier-*
+docs/agent-runs/*/*.mp4
+docs/agent-runs/*/original-*
+
+# Logs & Playwright artifacts
+*.log
+npm-debug.log*
+playwright-report/
+test-results/
+
+# Local environment & secrets
+.env
+.env.*
+!.env.example

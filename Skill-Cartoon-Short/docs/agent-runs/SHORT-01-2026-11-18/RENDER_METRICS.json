@@ -1,0 +1,362 @@
+{
+  "generatedAt": "2026-11-18T16:36:26.362Z",
+  "soldierBaseline": {
+    "metadata": {
+      "webDir": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/soldier-baseline/web",
+      "mainJsSha256": "cedea9f4cccc747d3c54d1880f6434bdff1e6a9d1f1cfa5072d53d221aed1e56",
+      "storyJsSha256": "5ba77a6a909b84e69d19ea656a24bfc7cea33ef32ead14e748dd9e91eaa96322",
+      "toonJsSha256": "b8d907dee9b5f7be06fbd04ef96c074359c35335af0b0b89c018f6d80df07e56",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "totalFrames": 592,
+      "chromiumVersion": "159.0.8154.6",
+      "glVendor": "Google Inc. (Apple)",
+      "glRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+      "glVersion": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "backendMode": "auto",
+      "hostPlatform": "darwin-arm64",
+      "nodeVersion": "v22.22.3",
+      "loopbackUrl": "http://127.0.0.1:57589",
+      "initialized": true,
+      "disposed": false,
+      "framesRendered": 592,
+      "peakRssMb": 157.31,
+      "consoleCount": 0,
+      "pageErrors": [],
+      "httpErrors": []
+    },
+    "summary": {
+      "frameCount": 592,
+      "renderedCount": 592,
+      "resumedCount": 0,
+      "elapsedMs": 19539,
+      "msPerFrame": 33.01,
+      "peakRssMb": 157.31,
+      "outputDir": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/soldier-baseline/frames"
+    },
+    "sampleFrameHashes": [
+      {
+        "frame": 0,
+        "sha256": "2be4d702547cabecbcc1aa9f4c7e0d882c6e954d8f5b26c7bbd14ee7253c0e3e",
+        "meanLuma": 119.202
+      },
+      {
+        "frame": 44,
+        "sha256": "1af58ffff08e175e9db776960cf1c5cb117397b232eb58ca11a3db8c6806c01b",
+        "meanLuma": 129.365
+      },
+      {
+        "frame": 87,
+        "sha256": "65714ceb63e03aa78515bcca6a7d361ff2b09b7817136fa2e1eadccab3b37827",
+        "meanLuma": 127.207
+      },
+      {
+        "frame": 88,
+        "sha256": "0054cb5fe24076e2444d4302668fe268ef205d87f121033d698189bd83c51102",
+        "meanLuma": 134.891
+      },
+      {
+        "frame": 160,
+        "sha256": "e5b0b644476d8b8e6ea649574d14433811bcd248c441934f70126e7cdcc413f0",
+        "meanLuma": 101.234
+      },
+      {
+        "frame": 215,
+        "sha256": "8f44d41aeb4316bf2b6cc8e57a2960b96a46856f39f235c971a8b65285b7b799",
+        "meanLuma": 101.516
+      },
+      {
+        "frame": 278,
+        "sha256": "b98b8e116661cc064b1a1434dd04f1c4d3e285e3cde28ee4a8ffc4952997c9de",
+        "meanLuma": 242.09
+      },
+      {
+        "frame": 340,
+        "sha256": "4012a108103eea4b1d88331dda273ec581ab46c069372ca08dba837ba04fd889",
+        "meanLuma": 126.57
+      },
+      {
+        "frame": 401,
+        "sha256": "b0d9bc7dc48b1a3dc3236ab79f192520a48cd23afe9ce1df26b5bd6e193ad4e7",
+        "meanLuma": 109.303
+      },
+      {
+        "frame": 470,
+        "sha256": "6e0c0a23f0af95d34976baaf1bd4690ae7a42d3ab9f8093b42dcd32413a58010",
+        "meanLuma": 126.647
+      },
+      {
+        "frame": 520,
+        "sha256": "2785e1a182e022128357783b014b4e768c20eda222eb8afe7234fc4bda018375",
+        "meanLuma": 62.857
+      },
+      {
+        "frame": 591,
+        "sha256": "945433b4a13977bda5914fdedb5d00fff367784abe409b571cf6db39eac1280d",
+        "meanLuma": 86.75
+      }
+    ],
+    "stillsReferenceComparison": {
+      "tileCount": 14,
+      "matches": [
+        {
+          "tileIndex": 0,
+          "matchedFrame": 5,
+          "mae0to255": 3.39,
+          "psnrDb": 32.86
+        },
+        {
+          "tileIndex": 1,
+          "matchedFrame": 68,
+          "mae0to255": 41.393,
+          "psnrDb": 12.74
+        },
+        {
+          "tileIndex": 2,
+          "matchedFrame": 61,
+          "mae0to255": 38.139,
+          "psnrDb": 13.06
+        },
+        {
+          "tileIndex": 3,
+          "matchedFrame": 354,
+          "mae0to255": 48.039,
+          "psnrDb": 12.37
+        },
+        {
+          "tileIndex": 4,
+          "matchedFrame": 160,
+          "mae0to255": 1.931,
+          "psnrDb": 37.64
+        },
+        {
+          "tileIndex": 5,
+          "matchedFrame": 215,
+          "mae0to255": 3.206,
+          "psnrDb": 33.11
+        },
+        {
+          "tileIndex": 6,
+          "matchedFrame": 267,
+          "mae0to255": 36.233,
+          "psnrDb": 13.22
+        },
+        {
+          "tileIndex": 7,
+          "matchedFrame": 300,
+          "mae0to255": 3.15,
+          "psnrDb": 30.51
+        },
+        {
+          "tileIndex": 8,
+          "matchedFrame": 340,
+          "mae0to255": 3.671,
+          "psnrDb": 29.22
+        },
+        {
+          "tileIndex": 9,
+          "matchedFrame": 401,
+          "mae0to255": 2.699,
+          "psnrDb": 31.3
+        },
+        {
+          "tileIndex": 10,
+          "matchedFrame": 450,
+          "mae0to255": 4.738,
+          "psnrDb": 25.98
+        },
+        {
+          "tileIndex": 11,
+          "matchedFrame": 470,
+          "mae0to255": 3.961,
+          "psnrDb": 27.91
+        },
+        {
+          "tileIndex": 12,
+          "matchedFrame": 520,
+          "mae0to255": 3.926,
+          "psnrDb": 28
+        },
+        {
+          "tileIndex": 13,
+          "matchedFrame": 575,
+          "mae0to255": 6.159,
+          "psnrDb": 22.54
+        }
+      ]
+    },
+    "mp4": {
+      "valid": true,
+      "checks": {
+        "hasVideo": true,
+        "hasAudio": true,
+        "codecVideoH264": true,
+        "codecAudioAac": true,
+        "width1080": true,
+        "height1920": true,
+        "pixFmtYuv420p": true,
+        "fps30": true,
+        "fastStart": true,
+        "noBlackSpans": true
+      },
+      "sha256": "73cd436b073a410093f83701147d7ec086a60138d09b2dd45910196a86f34e60",
+      "byteSize": 15125902,
+      "durationSec": 19.734,
+      "formatName": "mov,mp4,m4a,3gp,3g2,mj2",
+      "video": {
+        "codec": "h264",
+        "profile": "High",
+        "width": 1080,
+        "height": 1920,
+        "pixFmt": "yuv420p",
+        "rFrameRate": "30/1",
+        "nbFrames": 592
+      },
+      "audio": {
+        "codec": "aac",
+        "sampleRate": 48000,
+        "channels": 2,
+        "integratedLufs": -18.1,
+        "truePeakDbfs": -2.5
+      },
+      "fastStart": {
+        "moovOffset": 32,
+        "mdatOffset": 22676,
+        "fastStartVerified": true
+      },
+      "blackEvents": [],
+      "freezeEvents": []
+    }
+  },
+  "zombieSupermarket10s": {
+    "metadata": {
+      "webDir": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/zombie-supermarket-10s/web",
+      "mainJsSha256": "6cf8d85918ded59fd597ea877db5d6aeef34f39d8332bebb49724b883094e908",
+      "storyJsSha256": "6e7d5d32c50e96ed0250ee0a715fd6baaf1d835faeda366d28a9f113eb9bf149",
+      "toonJsSha256": "dbb561bc27cfa936e52b09bcf661fb415b83ad7ca998ce00877d549970491246",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "totalFrames": 300,
+      "chromiumVersion": "159.0.8154.6",
+      "glVendor": "Google Inc. (Apple)",
+      "glRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version)",
+      "glVersion": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "backendMode": "auto",
+      "hostPlatform": "darwin-arm64",
+      "nodeVersion": "v22.22.3",
+      "loopbackUrl": "http://127.0.0.1:57656",
+      "initialized": true,
+      "disposed": false,
+      "framesRendered": 300,
+      "peakRssMb": 126.55,
+      "consoleCount": 0,
+      "pageErrors": [],
+      "httpErrors": []
+    },
+    "summary": {
+      "frameCount": 300,
+      "renderedCount": 300,
+      "resumedCount": 0,
+      "elapsedMs": 10726,
+      "msPerFrame": 35.75,
+      "peakRssMb": 126.55,
+      "outputDir": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/zombie-supermarket-10s/frames"
+    },
+    "sampleFrameHashes": [
+      {
+        "frame": 0,
+        "sha256": "996012cf38fbbd0f83594cec4ea40deda57c7de55f2c86bc87010a7df1877afe",
+        "meanLuma": 143.801
+      },
+      {
+        "frame": 36,
+        "sha256": "6426dd59242e169311b973e62b555bb105bee0ae4ad792b61b81ff54906684c9",
+        "meanLuma": 142.974
+      },
+      {
+        "frame": 70,
+        "sha256": "33bb2f25b2e12b080bb070932ddcca8cad17ebe5a44fb6baf6e63e8f66937fa1",
+        "meanLuma": 138.299
+      },
+      {
+        "frame": 90,
+        "sha256": "21a5c0df662cd99827fb241f8bd373b3dd78c1e31cd2d9ea21f20f3bde5138bc",
+        "meanLuma": 122.329
+      },
+      {
+        "frame": 108,
+        "sha256": "d0688fb9b3d209ae2d84fd0d4b4be2a9e7fd756a6bd7ba89779e70925033dfe2",
+        "meanLuma": 112.13
+      },
+      {
+        "frame": 146,
+        "sha256": "04121c7b053153db9233ae34adade27c3d23e84ba2d1fd2a2f84dea73c3ee3bd",
+        "meanLuma": 209.068
+      },
+      {
+        "frame": 175,
+        "sha256": "d54f5ea68859415bf4e8756aa94a5a4a8b3d07896ea3eda3f545cfa5c25b2f41",
+        "meanLuma": 84.81
+      },
+      {
+        "frame": 218,
+        "sha256": "957ddec451678efcdd4bd5a871f8f2e623955246bb1091d4ebdffe60bfdc6676",
+        "meanLuma": 101.894
+      },
+      {
+        "frame": 262,
+        "sha256": "c4c39d94b53150782c204e77e4ae102288df7ab29d94a66215cb32de81181f6c",
+        "meanLuma": 114.597
+      },
+      {
+        "frame": 299,
+        "sha256": "0862f98a643e666f2899b8614bb7b623d8a4f0b625a74bcb8cfdf395742cbe9b",
+        "meanLuma": 125.55
+      }
+    ],
+    "mp4": {
+      "valid": true,
+      "checks": {
+        "hasVideo": true,
+        "hasAudio": true,
+        "codecVideoH264": true,
+        "codecAudioAac": true,
+        "width1080": true,
+        "height1920": true,
+        "pixFmtYuv420p": true,
+        "fps30": true,
+        "fastStart": true,
+        "noBlackSpans": true
+      },
+      "sha256": "52e230c44590e0c5661cc113431c45287f065b9d60435070b403242e8abc7e2d",
+      "byteSize": 6392857,
+      "durationSec": 10,
+      "formatName": "mov,mp4,m4a,3gp,3g2,mj2",
+      "video": {
+        "codec": "h264",
+        "profile": "High",
+        "width": 1080,
+        "height": 1920,
+        "pixFmt": "yuv420p",
+        "rFrameRate": "30/1",
+        "nbFrames": 300
+      },
+      "audio": {
+        "codec": "aac",
+        "sampleRate": 48000,
+        "channels": 2,
+        "integratedLufs": -17.5,
+        "truePeakDbfs": -7.6
+      },
+      "fastStart": {
+        "moovOffset": 32,
+        "mdatOffset": 12316,
+        "fastStartVerified": true
+      },
+      "blackEvents": [],
+      "freezeEvents": []
+    }
+  }
+}
