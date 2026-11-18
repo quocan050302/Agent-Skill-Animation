@@ -113,3 +113,45 @@ Chạy trên Chromium headless qua production server `node ../../scripts/dev-run
   - **Technical Check**: **PASS** (`outputs/preview-01/report.json`).
   - **Visual Motion Review (35 mục)**: **PENDING** — `outputs/review-01/index.html` & `motion-review.json` đã tạo sẵn; chưa chấm `pass` cho 35 mục vì agent không nghe trực tiếp playback 1x qua loa trình duyệt của người dùng.
   - **User Approval**: **PENDING (`Chờ phê duyệt`)** — `approval-9x16.json` **không tồn tại**; nút `Xuất Video Full MP4` tiếp tục được khóa đúng quy tắc.
+
+---
+
+## 5. Cập nhật `B6-LOCAL-STUDIO-02` — QA Truth, Real Editor Binding, Clean-Clone & Phim Mới Cao Bồi 10s (`cowboy-hat-10s`)
+
+### 5.1 Bounded-Parallel Orchestrator & Benchmark (`node scripts/verify-all.mjs --benchmark-workers --max-workers 2`)
+Chạy sau lần chỉnh sửa code cuối cùng (cô lập Playwright tại `B6_STUDIO_PORT=4399` với `node ../server/dist/index.js`, `heavyRenderSemaphore = 1`, khóa theo từng project):
+- **Overall**: `ok: true`, **`parityOk: true`**, **`speedupRatio: 1.16`** (`workers=1`: `86,992 ms` vs `workers=2`: `75,233 ms`).
+- **Từng tác vụ trên cả hai pass (100% `succeeded`, code `0`)**:
+  - `upstream_doctor_checkpack`: `1,151 ms` (`w=1`) / `1,512 ms` (`w=2`) — `autopilot.mjs doctor` (`b6_complete_pack: true`, `gemini_key_present: false`, `network_checked: false`) + `check-pack`.
+  - `workspace_build`: `14,254 ms` / `16,730 ms` — `@b6-studio/shared` + `@b6-studio/server` (`tsc --noEmit` đã kiểm riêng exit `0`) + `@b6-studio/frontend` Vite bundle (`332.44 kB` JS, `9.89 kB` CSS).
+  - `hydrate_verify_existing`: `2,385 ms` / `939 ms` — Xác minh `upstream-lock.json` (`833e277cab230f22e6d9c24b31a1baccaae0e22d`), `roman-gladiator-10s` và `cowboy-hat-10s` (`already_hydrated`, `0` lỗi).
+  - `frontend_typecheck`: `4,263 ms` / `4,680 ms` — `tsc -b --noEmit` sạch lỗi.
+  - `server_vitest`: `21,526 ms` / `24,337 ms` — **13/13 PASS** (`test/api.test.ts`), bổ sung:
+    11. `blocks transactional invalid patches, enforces 409 revision lock, and marks narration edits voiceStale` — xác nhận rollback nguyên vẹn file cũ khi payload sai, trả `409 Conflict` khi sai `expectedRevision`, và đánh `VOICE_NEEDS_REGENERATION` khi đổi narration sau khi tạo SAPI WAV.
+    12. `rejects all fake, missing, SHA-mismatched, wrong-ratio, tampered-35, and stale QA artifacts` — bẫy âm tính cho video thiếu, MP4 hỏng/sai SHA, fake approval, sai ratio `16:9`, tampered `<35` subchecks, `JobQueue` exit-0 không có output, `POST /render` bị khóa `400`, `DiskGuard` chặn khi thiếu dung lượng.
+    13. `proves UI edits to camera/prop flow into rendered pixels and mark stale QA honestly` — sửa thật `cameraKeys` & `propKeyframes` qua `PATCH /api/projects/:id`, render 2 đoạn draft trước/sau qua `scene-control.json -> scene_runtime.py -> scene.py`, tính pixel MAD (`sharp` + `ffmpeg`) `> 2.5`.
+  - `cowboy_preflight_validate`: `1,058 ms` / `1,532 ms` — `run.py preflight` + `run.py validate` (`valid: true`, `protected_inputs: []`, fingerprint `262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c`).
+  - `roman_baseline_sandbox_replay`: `12,080 ms` / `22,814 ms` — copy `roman-gladiator-10s` vào `os.tmpdir()` (không chạm bản tracked gốc), chạy `preflight`, `validate`, và draft `1.5s` (`45` frames, `90` arm/leg checks, `max_prop_contact_error_px: 6.355e-14`).
+  - `clean_clone_hydrate_test`: `3,606 ms` / `4,847 ms` — copy bản sạch loại bỏ `vendor/`, `node_modules/`, `.venv/`, `dist/`, `outputs/`, `engine/`, `fonts/`, `reference/`, xác nhận thiếu trước khi hydrate, chạy `hydrate-project.mjs --all`, `--verify-only` và `run.py validate` trên `cowboy-hat-10s` đạt `valid: true`.
+  - `playwright_e2e`: `2/2 PASS` (`25,216 ms` tại `w=1` và `21,802 ms` tại `w=2`), xuất ảnh kiểm chứng mới vào `docs/agent-runs/B6-LOCAL-STUDIO-02/screenshots/` (`desktop-1440-projects.png`, `desktop-1440-studio-cowboy.png`, `desktop-1440-qa-cowboy.png`, `mobile-375-studio.png`) với `runtimeErrors: []` và `0` horizontal overflow.
+
+### 5.2 Upstream Regression Spot-Check (Không sửa `vendor/stickman-video-director`)
+- `vendor/stickman-video-director` `git status --short`: sạch hoàn toàn, pin tại `833e277cab230f22e6d9c24b31a1baccaae0e22d`.
+- `b6_production_test.py`: **34/34 OK** (`15.64s`).
+- `b6_puppet_test.py` + `b6_actions_test.py` + `b6_space_test.py` + `b6_iteration_test.py` + `b6_character_preflight_test.py`: **93/93 OK** (trong đợt chạy Python unittest; `b6_caption_test.py` chạy cùng `PYTHONPATH=tests` đạt **7 OK, 2 skipped** do không có `Arial Black` gốc trên máy nên giữ Open Fallback).
+- `b6-fonts.test.mjs`: **8/8 PASS**; `b6-production.test.mjs`: **1/1 PASS**; `b6-runtime.test.mjs`: trong đợt chạy gộp `b6-fonts + b6-production + b6-runtime` đạt **19/20 PASS**, **1 FAIL** tại `b6-runtime.test.mjs:58` (`Error: EPERM: operation not permitted, symlink` do Windows không ở Developer Mode). `b6_motion_review_test.py` vẫn giữ nguyên hành vi upstream đã biết trên Windows (3 FAIL / 23 ERROR `Previous review history changed`).
+
+### 5.3 Phim Cao Bồi 10s Mới — `workspace/projects/cowboy-hat-10s` (`9:16` Native Portrait)
+- **Tài nguyên mới 100% (`assets/production/`, `characters/jesse/`)**: Tranh nền đường phố miền Tây `western_wide_bg.png`, tiền cảnh hàng rào & xương rồng `western_fg_frame.png`, mũ cao bồi `cowboy_hat.png`, nhân vật `jesse` (cuffs + 4 đầu biểu cảm `head.png`, `head-shocked.png`, `head-determined.png`, `head-deadpan.png`), không tái sử dụng ảnh/video/audio từ Eiffel V44, Hong Kong V90 hay La Mã (`protected_inputs: []`, `external_media_reads: []`).
+- **Âm thanh (`audio/narration_mix.wav`)**: Local Windows SAPI (`Microsoft David Desktop`, `voice_speed: 1`) + lớp gió sa mạc & bước chạy procedural (`10.000s`, `44100 Hz`, mono, SHA-256 `8d8769396aa7084dd96146bdad2ae520b905de9323dd525b6f8ea650620af203`).
+- **Real Editor Binding**: Kịch bản, shot easing, `actorStart -> actorEnd`, `cameraKeys` và `propKeyframes` nằm trong `scene-control.json` và được `scene_runtime.py` cấp trực tiếp cho `scene.py` ở cả `draft` lẫn native `preview`.
+- **Native Preview Metrics (`outputs/preview-01/preview.mp4` & bản lưu `docs/agent-runs/B6-LOCAL-STUDIO-02/cowboy-preview-10s.mp4`)**:
+  - `ffprobe`: `h264` High (`yuv420p`), `720x1280`, `30/1 fps`, `300 frames`, `10.000000s`, audio `aac` LC `44100 Hz` mono, dung lượng `3,505,764 bytes` (`3.343 MiB`).
+  - SHA-256 MP4: `cf41b7aed3852ba9aeb8af1f283afca890e03eeaa00c97d4d264c430bc6a9c15`.
+  - Report: `checked_frames: 300`, `arm_poses_checked: 600`, `straight_legs_checked: 600`, `max_prop_contact_error_px: 1.271e-13`, `total_seconds: 174.5116`.
+  - Inspect trực tiếp 6 khung hình decoded (`0.40s`, `1.50s`, `3.80s`, `5.60s`, `6.60s`, `8.80s`) và `cowboy-contact-sheet.jpg`: bố cục chân đứng sạch trên mặt đường phía trên vùng phụ đề Archivo Black 1 dòng (`baseline: 914`), tay trái bắt mép mũ khít ở `5.60s`, gió xoáy + bụi cartoon và biểu cảm hài hước rõ ràng ở payoff `8.80s`.
+- **Gate & Gait Honesty (Chưa tự ý phê duyệt)**:
+  - **Character Gait**: `gaitStatus: unsupported_needs_authoring` — UI tab Character cảnh báo rõ chưa có procedural gait cycle đầy đủ (`stride_cycles` chỉ phối hợp nhún chân giới hạn `ankle_targets` + trượt đường và parallax tiền cảnh).
+  - **Technical Check**: **PASS** (`outputs/preview-01/report.json`, khớp fingerprint nguồn `262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c`).
+  - **Visual Motion Review (35 mục)**: **PENDING** (`Pass: 0/35 · Pending: 35 · Needs repair: 0` trong `outputs/review-01/motion-review.json`).
+  - **User Approval & Render Gate**: **PENDING · EXPORT ĐANG KHÓA** (`NO_APPROVAL_RECORD`, nút `Xuất Video Full MP4` disabled và route `POST /render` trả `400`).

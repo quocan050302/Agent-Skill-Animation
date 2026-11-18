@@ -4,11 +4,12 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 export B6_PYTHON="$ROOT_DIR/.venv/bin/python3"
+export PYTHONUTF8=1
 export PYTHONDONTWRITEBYTECODE=1
 export PYTHONPYCACHEPREFIX="$ROOT_DIR/workspace/cache/pycache"
-SKILL_DIR="$ROOT_DIR/vendor/stickman-video-director/skills/directing-stickman-videos"
 
-(cd "$SKILL_DIR" && node scripts/autopilot.mjs doctor --style B6 --python "$B6_PYTHON" && node scripts/b6-dynamic-meme.mjs check-pack)
-npm run build
-npm --workspace=app/server run test
-npm --workspace=app/frontend run test:e2e
+if [ "$#" -gt 0 ]; then
+  node "$ROOT_DIR/scripts/verify-all.mjs" "$@"
+else
+  node "$ROOT_DIR/scripts/verify-all.mjs" --max-workers 2
+fi

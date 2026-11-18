@@ -2,9 +2,11 @@ import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
+import type { Ratio } from '@b6-studio/shared';
 import { resolveRealFfprobe } from '../config.js';
 import { readJsonFile, resolveInsideRoot, sha256File } from '../utils/fs-safe.js';
 import type { ProjectService } from './project-service.js';
+import { QaEvidenceResolver } from './qa-evidence-service.js';
 
 export interface OutputArtifactInfo {
   id: string;
@@ -21,6 +23,8 @@ export interface OutputArtifactInfo {
   technicalStatus: string;
   creativeStatus: string;
   userAcceptance: string;
+  verificationStatus: 'current' | 'historical' | 'stale' | 'corrupt';
+  verificationReasons: string[];
   fingerprint: string;
   ffprobe: {
     width: number;
@@ -36,7 +40,10 @@ export interface OutputArtifactInfo {
 }
 
 export class OutputService {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(
+    private readonly projectService: ProjectService,
+    private readonly qaResolver: QaEvidenceResolver = new QaEvidenceResolver(),
+  ) {}
 
   async listOutputs(projectId: string): Promise<OutputArtifactInfo[]> {
     const dir = this.projectService.getProjectDir(projectId);
@@ -55,6 +62,10 @@ export class OutputService {
       try {
         const rep = await readJsonFile<Record<string, unknown>>(reportPath);
         const stat = fs.statSync(reportPath);
+        const ratio = (rep.ratio === '16:9' ? '16:9' : '9:16') as Ratio;
+        const reportRel = `outputs/${entry.name}/report.json`;
+        const fpInfo = await this.qaResolver.resolveCurrentProjectFingerprint(dir, ratio);
+        const verified = await this.qaResolver.loadAndVerifyPreviewReport(dir, reportRel, fpInfo, ratio);
         const videoRel = typeof rep.video === 'string' ? rep.video.replace(/\\/g, '/') : null;
         let ffprobeInfo: OutputArtifactInfo['ffprobe'] = null;
 
@@ -69,23 +80,35 @@ export class OutputService {
         const srt = path.join(subDir, 'captions.srt');
         const vtt = path.join(subDir, 'captions.vtt');
 
+        const kind = String(rep.kind ?? 'unknown');
+        const verificationStatus: OutputArtifactInfo['verificationStatus'] =
+          verified.status === 'fail'
+            ? 'corrupt'
+            : kind === 'draft'
+            ? 'historical'
+            : verified.status === 'pass'
+            ? 'current'
+            : 'stale';
+
         list.push({
           id: entry.name,
-          kind: String(rep.kind ?? 'unknown'),
+          kind,
           ratio: String(rep.ratio ?? '9:16'),
           outputDirRel: `outputs/${entry.name}`,
-          reportRel: `outputs/${entry.name}/report.json`,
+          reportRel,
           createdAt: stat.mtime.toISOString(),
           videoRel,
-          videoUrl: videoRel ? `/api/media/${projectId}/${videoRel}` : null,
+          videoUrl: videoRel && verified.ffprobe ? `/api/media/${projectId}/${videoRel}` : null,
           contactSheetUrl: fs.existsSync(contactSheet)
             ? `/api/media/${projectId}/outputs/${entry.name}/contact-sheet.jpg`
             : null,
           srtUrl: fs.existsSync(srt) ? `/api/media/${projectId}/outputs/${entry.name}/captions.srt` : null,
           vttUrl: fs.existsSync(vtt) ? `/api/media/${projectId}/outputs/${entry.name}/captions.vtt` : null,
-          technicalStatus: String(rep.technical_status ?? 'unknown'),
+          technicalStatus: kind === 'draft' ? String(rep.technical_status ?? 'unknown') : verified.status,
           creativeStatus: String(rep.creative_status ?? 'pending'),
           userAcceptance: String(rep.user_acceptance ?? 'not_inferred'),
+          verificationStatus,
+          verificationReasons: verified.reasonCodes,
           fingerprint: String(rep.fingerprint ?? ''),
           ffprobe: ffprobeInfo,
           timings: (rep.timings as Record<string, number>) ?? null,

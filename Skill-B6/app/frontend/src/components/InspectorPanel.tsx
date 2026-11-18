@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { AlertTriangle, CheckCircle2, Code2, Copy, FolderOpen, Play, Plus, RefreshCw, ShieldAlert, Trash2, Undo2, Save } from 'lucide-react';
-import type { CaptionCue, JobRecord, Ratio, ShotItem } from '@b6-studio/shared';
-import type { CharacterActorDto, OutputArtifactDto, ProjectDetailDto, ReviewStateDto } from '../api/client';
+import type { ActorPoseState, CaptionCue, JobRecord, PropKeyframe, Ratio, ShotEasing, ShotItem } from '@b6-studio/shared';
+import type {
+  CharacterActorDto,
+  EditorBindingStatusDto,
+  OutputArtifactDto,
+  ProjectDetailDto,
+  ReviewStateDto,
+} from '../api/client';
 
 export type InspectorTab = 'story' | 'shot' | 'camera' | 'character' | 'export';
 
@@ -43,6 +49,10 @@ interface InspectorPanelProps {
   onUpdateRig: (actorId: string, viewId: string, patch: Record<string, unknown>) => Promise<void>;
   outputs: OutputArtifactDto[];
   reviewState: ReviewStateDto | null;
+  editorBinding?: EditorBindingStatusDto | null;
+  onSynthesizeLocalVoice?: (opts?: { voiceHint?: string }) => Promise<void>;
+  onVerifyChanges?: () => Promise<void>;
+  onReloadConflict?: () => Promise<void>;
   trustedCode: boolean;
   onToggleTrustedCode: (v: boolean) => void;
   onRunValidate: () => Promise<void>;
@@ -93,6 +103,10 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   onUpdateRig,
   outputs,
   reviewState,
+  editorBinding,
+  onSynthesizeLocalVoice,
+  onVerifyChanges,
+  onReloadConflict,
   trustedCode,
   onToggleTrustedCode,
   onRunValidate,
@@ -117,6 +131,30 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   const [rigActorIdx, setRigActorIdx] = useState(0);
   const [rigViewId, setRigViewId] = useState('three_quarter');
   const [headAnchorInput, setHeadAnchorInput] = useState('');
+  const [voiceBusy, setVoiceBusy] = useState(false);
+  const [verifyBusy, setVerifyBusy] = useState(false);
+
+  const defaultActorPose = (): ActorPoseState => ({
+    x: 0,
+    y: 0,
+    scale: 1,
+    headAngleDeg: 0,
+    leftArmAction: 'rest',
+    leftArmPhase: 0.5,
+    rightArmAction: 'rest',
+    rightArmPhase: 0.5,
+    strideCycles: 0,
+  });
+
+  const syncModeBadge = () => {
+    const st = editorBinding?.syncState ?? reviewState?.editorSyncState;
+    if (st === 'applied_to_renderer') return <span className="badge badge-success">Applied to renderer</span>;
+    if (st === 'bound_current') return <span className="badge badge-success">Bound</span>;
+    if (st === 'preview_stale') return <span className="badge badge-warning">Preview stale</span>;
+    if (st === 'voice_needs_regeneration') return <span className="badge badge-warning">Voice stale</span>;
+    if (st === 'manual_scene_only') return <span className="badge badge-neutral">Manual scene</span>;
+    return <span className="badge badge-neutral">Editable</span>;
+  };
 
   const busy = Boolean(activeJob && (activeJob.status === 'running' || activeJob.status === 'queued'));
 
@@ -164,8 +202,12 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           background: 'var(--surface-subtle)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {saveBadge()}
+          {syncModeBadge()}
+          <span style={{ fontSize: 11, color: 'var(--muted)' }}>
+            rev {project.meta.revision ?? 1}
+          </span>
           {canUndo && (
             <button type="button" className="btn btn-sm" onClick={onUndo} title="Hoàn tác thao tác gần nhất">
               <Undo2 size={13} />
@@ -173,10 +215,18 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
             </button>
           )}
         </div>
-        <button type="button" className="btn btn-sm btn-primary" onClick={onForceSave}>
-          <Save size={13} />
-          <span>Lưu (Ctrl+S)</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {saveStatus === 'error' && onReloadConflict && (
+            <button type="button" className="btn btn-sm" onClick={() => void onReloadConflict()}>
+              <RefreshCw size={13} />
+              <span>Tải lại</span>
+            </button>
+          )}
+          <button type="button" className="btn btn-sm btn-primary" onClick={onForceSave}>
+            <Save size={13} />
+            <span>Lưu (Ctrl+S)</span>
+          </button>
+        </div>
       </div>
 
       {saveError && (
@@ -241,19 +291,43 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
               <input className="input" value={hookDraft} onChange={(e) => onChangeHook(e.target.value)} />
             </label>
 
-            <label className="field">
-              <span className="field-label">Lời thoại / Narration (story.json)</span>
+            <div className="field">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span className="field-label" style={{ margin: 0 }}>Lời thoại / Narration (story.json)</span>
+                {editorBinding?.canSynthesizeLocalVoice && onSynthesizeLocalVoice && (
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    disabled={voiceBusy || busy || !narrationDraft.trim()}
+                    onClick={async () => {
+                      setVoiceBusy(true);
+                      try {
+                        await onSynthesizeLocalVoice({ voiceHint: 'David' });
+                      } finally {
+                        setVoiceBusy(false);
+                      }
+                    }}
+                  >
+                    <span>{voiceBusy ? 'Đang tạo WAV...' : 'Tạo Voice Local (SAPI)'}</span>
+                  </button>
+                )}
+              </div>
+              {reviewState?.voiceStale && (
+                <div style={{ fontSize: 12, color: 'var(--warning)', background: 'var(--warning-soft)', padding: '6px 8px', borderRadius: 6, marginTop: 4 }}>
+                  Lời thoại đã thay đổi sau audio gốc (<code>VOICE_NEEDS_REGENERATION</code>). Cần tạo lại Voice Local hoặc upload file WAV mới trước khi technical PASS được xác nhận.
+                </div>
+              )}
               <textarea
                 className="textarea"
                 aria-label="Lời thoại Narration"
-                style={{ minHeight: 110 }}
+                style={{ minHeight: 110, marginTop: 4 }}
                 value={narrationDraft}
                 onChange={(e) => onChangeNarration(e.target.value)}
               />
               <span className="field-hint">
                 B6 yêu cầu phụ đề ghép lại phải khớp chính xác lời thoại gốc (original-speed voice-led timing).
               </span>
-            </label>
+            </div>
 
             {ratio === '16:9' && (
               <label className="field">
@@ -516,6 +590,168 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     />
                   </label>
                 )}
+
+                <label className="field">
+                  <span className="field-label">Easing chuyển động (scene_runtime)</span>
+                  <select
+                    className="select"
+                    value={selectedShot.easing ?? 'smooth'}
+                    onChange={(e) =>
+                      onUpdateShot(selectedShotIndex, { ...selectedShot, easing: e.target.value as ShotEasing })
+                    }
+                  >
+                    <option value="smooth">smooth (Cubic Smoothstep)</option>
+                    <option value="linear">linear</option>
+                    <option value="ease_in">ease_in</option>
+                    <option value="ease_out">ease_out</option>
+                    <option value="hold">hold (bậc thang)</option>
+                  </select>
+                </label>
+
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="section-label" style={{ margin: 0 }}>Vị trí & Tư thế Actor (Start → End)</span>
+                    {!selectedShot.actorStart && (
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        onClick={() =>
+                          onUpdateShot(selectedShotIndex, {
+                            ...selectedShot,
+                            actorStart: defaultActorPose(),
+                            actorEnd: defaultActorPose(),
+                          })
+                        }
+                      >
+                        Bật Pose Editor
+                      </button>
+                    )}
+                  </div>
+                  {(selectedShot.actorStart || selectedShot.actorEnd) && (() => {
+                    const aStart = selectedShot.actorStart ?? defaultActorPose();
+                    const aEnd = selectedShot.actorEnd ?? { ...aStart };
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 12 }}>
+                        {([
+                          ['Start', aStart, (next: ActorPoseState) => onUpdateShot(selectedShotIndex, { ...selectedShot, actorStart: next })],
+                          ['End', aEnd, (next: ActorPoseState) => onUpdateShot(selectedShotIndex, { ...selectedShot, actorEnd: next })],
+                        ] as const).map(([label, pose, setPose]) => (
+                          <div key={label} style={{ padding: 8, border: '1px solid var(--border)', borderRadius: 8, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+                            <div style={{ gridColumn: '1 / -1', fontWeight: 600 }}>{label}</div>
+                            <label className="field">
+                              <span className="field-label" style={{ fontSize: 11 }}>X</span>
+                              <input type="number" step={20} className="input" style={{ minHeight: 28, padding: '2px 6px' }} value={pose.x} onChange={(e) => setPose({ ...pose, x: Number(e.target.value) })} />
+                            </label>
+                            <label className="field">
+                              <span className="field-label" style={{ fontSize: 11 }}>Y</span>
+                              <input type="number" step={10} className="input" style={{ minHeight: 28, padding: '2px 6px' }} value={pose.y} onChange={(e) => setPose({ ...pose, y: Number(e.target.value) })} />
+                            </label>
+                            <label className="field">
+                              <span className="field-label" style={{ fontSize: 11 }}>Head °</span>
+                              <input type="number" step={2} min={-20} max={20} className="input" style={{ minHeight: 28, padding: '2px 6px' }} value={pose.headAngleDeg} onChange={(e) => setPose({ ...pose, headAngleDeg: Number(e.target.value) })} />
+                            </label>
+                            <label className="field">
+                              <span className="field-label" style={{ fontSize: 11 }}>Tay trái</span>
+                              <select className="select" style={{ minHeight: 28, padding: '2px 4px' }} value={pose.leftArmAction} onChange={(e) => setPose({ ...pose, leftArmAction: e.target.value as ActorPoseState['leftArmAction'] })}>
+                                <option value="rest">rest</option>
+                                <option value="reach">reach</option>
+                                <option value="offer">offer</option>
+                                <option value="point">point</option>
+                              </select>
+                            </label>
+                            <label className="field">
+                              <span className="field-label" style={{ fontSize: 11 }}>Tay phải</span>
+                              <select className="select" style={{ minHeight: 28, padding: '2px 4px' }} value={pose.rightArmAction} onChange={(e) => setPose({ ...pose, rightArmAction: e.target.value as ActorPoseState['rightArmAction'] })}>
+                                <option value="rest">rest</option>
+                                <option value="reach">reach</option>
+                                <option value="offer">offer</option>
+                                <option value="point">point</option>
+                              </select>
+                            </label>
+                            <label className="field">
+                              <span className="field-label" style={{ fontSize: 11 }}>Stride (±25%)</span>
+                              <input type="number" step={0.5} min={0} className="input" style={{ minHeight: 28, padding: '2px 6px' }} value={pose.strideCycles} onChange={(e) => setPose({ ...pose, strideCycles: Number(e.target.value) })} />
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span className="section-label" style={{ margin: 0 }}>Đạo cụ (Prop Keyframes: {selectedShot.propKeyframes?.length ?? 0})</span>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => {
+                        const existing = selectedShot.propKeyframes ?? [];
+                        const propName = selectedShot.props[0] ?? 'hat';
+                        const last = existing[existing.length - 1];
+                        const nextProp: PropKeyframe = last
+                          ? { ...last, t: Number(Math.min(selectedShot.end - selectedShot.start, last.t + 0.5).toFixed(2)) }
+                          : { propId: propName, t: 0, x: 0, y: -120, angleDeg: 0, scale: 1 };
+                        onUpdateShot(selectedShotIndex, { ...selectedShot, propKeyframes: [...existing, nextProp] });
+                      }}
+                    >
+                      <Plus size={13} />
+                      <span>Thêm Prop Key</span>
+                    </button>
+                  </div>
+                  {(selectedShot.propKeyframes ?? []).map((pk, pIdx) => (
+                    <div key={pIdx} style={{ padding: 6, border: '1px solid var(--border)', borderRadius: 8, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 4, fontSize: 11 }}>
+                      <label className="field">
+                        <span className="field-label">Prop</span>
+                        <input className="input" style={{ minHeight: 26, padding: '2px 4px' }} value={pk.propId} onChange={(e) => {
+                          const next = [...(selectedShot.propKeyframes ?? [])];
+                          next[pIdx] = { ...pk, propId: e.target.value };
+                          onUpdateShot(selectedShotIndex, { ...selectedShot, propKeyframes: next });
+                        }} />
+                      </label>
+                      <label className="field">
+                        <span className="field-label">t (s)</span>
+                        <input type="number" step={0.1} className="input" style={{ minHeight: 26, padding: '2px 4px' }} value={pk.t} onChange={(e) => {
+                          const next = [...(selectedShot.propKeyframes ?? [])];
+                          next[pIdx] = { ...pk, t: Number(e.target.value) };
+                          onUpdateShot(selectedShotIndex, { ...selectedShot, propKeyframes: next });
+                        }} />
+                      </label>
+                      <label className="field">
+                        <span className="field-label">Angle °</span>
+                        <input type="number" step={5} className="input" style={{ minHeight: 26, padding: '2px 4px' }} value={pk.angleDeg} onChange={(e) => {
+                          const next = [...(selectedShot.propKeyframes ?? [])];
+                          next[pIdx] = { ...pk, angleDeg: Number(e.target.value) };
+                          onUpdateShot(selectedShotIndex, { ...selectedShot, propKeyframes: next });
+                        }} />
+                      </label>
+                      <label className="field">
+                        <span className="field-label">X</span>
+                        <input type="number" step={20} className="input" style={{ minHeight: 26, padding: '2px 4px' }} value={pk.x} onChange={(e) => {
+                          const next = [...(selectedShot.propKeyframes ?? [])];
+                          next[pIdx] = { ...pk, x: Number(e.target.value) };
+                          onUpdateShot(selectedShotIndex, { ...selectedShot, propKeyframes: next });
+                        }} />
+                      </label>
+                      <label className="field">
+                        <span className="field-label">Y</span>
+                        <input type="number" step={10} className="input" style={{ minHeight: 26, padding: '2px 4px' }} value={pk.y} onChange={(e) => {
+                          const next = [...(selectedShot.propKeyframes ?? [])];
+                          next[pIdx] = { ...pk, y: Number(e.target.value) };
+                          onUpdateShot(selectedShotIndex, { ...selectedShot, propKeyframes: next });
+                        }} />
+                      </label>
+                      <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                        <button type="button" className="btn btn-sm" onClick={() => {
+                          const next = (selectedShot.propKeyframes ?? []).filter((_, j) => j !== pIdx);
+                          onUpdateShot(selectedShotIndex, { ...selectedShot, propKeyframes: next });
+                        }}>
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </>
             )}
           </>
@@ -539,22 +775,42 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span className="section-label" style={{ margin: 0 }}>Keyframes ({selectedShot.cameraKeys?.length ?? 0})</span>
-                  <button
-                    type="button"
-                    className="btn btn-sm"
-                    onClick={() => {
-                      const keys = selectedShot.cameraKeys ?? [];
-                      const last = keys[keys.length - 1] ?? { t: 0, x: 0, y: -210, z: 0, fov: 55 };
-                      const nextT = Math.min(selectedShot.end - selectedShot.start, Number((last.t + 0.5).toFixed(2)));
-                      onUpdateShot(selectedShotIndex, {
-                        ...selectedShot,
-                        cameraKeys: [...keys, { ...last, t: nextT }],
-                      });
-                    }}
-                  >
-                    <Plus size={13} />
-                    <span>Thêm Keyframe</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {onVerifyChanges && (
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        disabled={verifyBusy || busy}
+                        onClick={async () => {
+                          setVerifyBusy(true);
+                          try {
+                            await onVerifyChanges();
+                          } finally {
+                            setVerifyBusy(false);
+                          }
+                        }}
+                      >
+                        <RefreshCw size={12} />
+                        <span>{verifyBusy ? 'Đang kiểm...' : 'Verify changes'}</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => {
+                        const keys = selectedShot.cameraKeys ?? [];
+                        const last = keys[keys.length - 1] ?? { t: 0, x: 0, y: -210, z: 0, fov: 55 };
+                        const nextT = Math.min(selectedShot.end - selectedShot.start, Number((last.t + 0.5).toFixed(2)));
+                        onUpdateShot(selectedShotIndex, {
+                          ...selectedShot,
+                          cameraKeys: [...keys, { ...last, t: nextT }],
+                        });
+                      }}
+                    >
+                      <Plus size={13} />
+                      <span>Thêm Keyframe</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -593,6 +849,32 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     </div>
                   ))}
                 </div>
+
+                {editorBinding && (
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className="section-label" style={{ margin: 0 }}>Bảng Binding UI → Renderer</span>
+                      <span className={`badge ${editorBinding.mode === 'bound_canonical' ? 'badge-success' : 'badge-neutral'}`}>
+                        {editorBinding.mode === 'bound_canonical' ? 'Live Runtime Bound' : 'Custom scene.py'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11 }}>
+                      {editorBinding.mappings.map((m, mIdx) => (
+                        <div key={mIdx} style={{ padding: 6, background: 'var(--surface-subtle)', borderRadius: 6 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+                            <span>{m.uiField}</span>
+                            <span style={{ color: m.liveBound ? 'var(--success)' : 'var(--warning)' }}>
+                              {m.liveBound ? 'Live' : 'Static'}
+                            </span>
+                          </div>
+                          <div style={{ color: 'var(--muted)' }}>
+                            <code>{m.jsonPath}</code> → <code>{m.pythonFunction}</code>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </>
@@ -791,8 +1073,24 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 <span className="section-label" style={{ margin: 0 }}>Trạng thái QA tách biệt (3 tầng)</span>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span>Kỹ thuật (Technical):</span>
-                  <span className={`badge ${reviewState.technicalStatus === 'pass' ? 'badge-success' : 'badge-neutral'}`}>
-                    {reviewState.technicalStatus === 'pass' ? 'PASS kỹ thuật' : 'Chưa chạy'}
+                  <span
+                    className={`badge ${
+                      reviewState.technicalStatus === 'pass'
+                        ? 'badge-success'
+                        : reviewState.technicalStatus === 'fail'
+                        ? 'badge-danger'
+                        : reviewState.technicalStatus === 'stale'
+                        ? 'badge-warning'
+                        : 'badge-neutral'
+                    }`}
+                  >
+                    {reviewState.technicalStatus === 'pass'
+                      ? 'PASS kỹ thuật'
+                      : reviewState.technicalStatus === 'fail'
+                      ? 'FAIL kỹ thuật'
+                      : reviewState.technicalStatus === 'stale'
+                      ? 'STALE (Cần render lại)'
+                      : 'Chưa chạy'}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
@@ -810,17 +1108,47 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                       ? 'PASS (35/35)'
                       : reviewState.visualReviewStatus === 'needs_repair'
                       ? 'Cần sửa (needs_repair)'
+                      : reviewState.visualReviewStatus === 'stale'
+                      ? 'STALE (Cần review lại)'
                       : 'Cần kiểm tra trực quan'}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span>Phê duyệt của bạn:</span>
-                  <span className={`badge ${reviewState.userApprovalStatus === 'approved' ? 'badge-success' : 'badge-warning'}`}>
-                    {reviewState.userApprovalStatus === 'approved' ? 'Đã duyệt' : 'Chờ phê duyệt'}
+                  <span
+                    className={`badge ${
+                      reviewState.userApprovalStatus === 'approved'
+                        ? 'badge-success'
+                        : reviewState.userApprovalStatus === 'rejected'
+                        ? 'badge-danger'
+                        : 'badge-warning'
+                    }`}
+                  >
+                    {reviewState.userApprovalStatus === 'approved'
+                      ? 'Đã duyệt'
+                      : reviewState.userApprovalStatus === 'rejected'
+                      ? 'Từ chối'
+                      : reviewState.userApprovalStatus === 'stale'
+                      ? 'STALE (Cần duyệt lại)'
+                      : 'Chờ phê duyệt'}
                   </span>
                 </div>
 
-                {reviewState.latestReport && reviewState.latestMotionReview && reviewState.visualReviewStatus === 'pass' && (
+                {reviewState.blockingReasons.length > 0 && (
+                  <div style={{ fontSize: 11, color: 'var(--warning)', background: 'var(--warning-soft)', padding: 8, borderRadius: 6 }}>
+                    <strong>Lý do chưa mở khóa Export:</strong>
+                    <ul style={{ margin: '4px 0 0 14px', padding: 0 }}>
+                      {reviewState.blockingReasons.slice(0, 4).map((r, idx) => (
+                        <li key={idx}>{r}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {reviewState.latestReport &&
+                  reviewState.latestMotionReview &&
+                  reviewState.technicalStatus === 'pass' &&
+                  reviewState.visualReviewStatus === 'pass' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 6 }}>
                     <input
                       className="input"
@@ -831,7 +1159,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     <button
                       type="button"
                       className="btn btn-primary"
-                      disabled={busy || !approvalNote.trim()}
+                      disabled={busy || approvalNote.trim().length < 3}
                       onClick={() =>
                         void onRunApprove(reviewState.latestReport!.path, reviewState.latestMotionReview!.path, approvalNote)
                       }
@@ -844,15 +1172,15 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 <button
                   type="button"
                   className="btn btn-primary"
-                  disabled={busy || !trustedCode || reviewState.userApprovalStatus !== 'approved'}
+                  disabled={busy || !trustedCode || !reviewState.renderUnlocked}
                   onClick={() => void onRunRender()}
                 >
                   <span>7. Xuất Video Full MP4</span>
                 </button>
-                {reviewState.userApprovalStatus !== 'approved' && (
+                {!reviewState.renderUnlocked && (
                   <div className="field-hint" style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
                     <AlertTriangle size={13} color="var(--warning)" />
-                    <span>Export Full bị khóa cho tới khi Review 35 mục & User Approve hoàn tất.</span>
+                    <span>Export Full bị khóa cho tới khi Technical PASS + Review 35/35 + User Approve đều khớp source hiện hành.</span>
                   </div>
                 )}
               </div>

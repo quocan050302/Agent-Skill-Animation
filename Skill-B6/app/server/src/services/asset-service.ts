@@ -7,7 +7,8 @@ import sharp from 'sharp';
 import type { AssetBriefInput, AssetClassification, AssetRecord, AssetRole } from '@b6-studio/shared';
 import { SKILL_DIR, resolveRealFfprobe } from '../config.js';
 import { readJsonFile, resolveInsideRoot, sha256Buffer, sha256File, writeAtomicJson } from '../utils/fs-safe.js';
-import type { ProjectService } from './project-service.js';
+import type { ProjectService, StudioMeta } from './project-service.js';
+import type { QaEvidenceResolver } from './qa-evidence-service.js';
 
 interface AssetManifestFile {
   schema: 'b6-studio-assets/1';
@@ -45,7 +46,10 @@ const IMAGE_ROLES = new Set<AssetRole>([
 const AUDIO_ROLES = new Set<AssetRole>(['audio_narration', 'audio_sfx', 'audio_bgm']);
 
 export class AssetService {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(
+    private readonly projectService: ProjectService,
+    private readonly qaResolver?: QaEvidenceResolver,
+  ) {}
 
   private async readManifest(projectDir: string): Promise<AssetManifestFile> {
     const manifestPath = path.join(projectDir, 'assets', 'manifest.json');
@@ -282,6 +286,47 @@ export class AssetService {
     manifest.assets = manifest.assets.filter((a) => a.relativePath !== relPath);
     manifest.assets.push(record);
     await this.writeManifest(dir, manifest);
+
+    if (classification === 'PRODUCTION ASSET') {
+      const metaPath = path.join(dir, 'studio.meta.json');
+      if (fs.existsSync(metaPath)) {
+        try {
+          const meta = await readJsonFile<StudioMeta>(metaPath);
+          const nextRev = Number(meta.revision ?? 1) + 1;
+          meta.revision = nextRev;
+          meta.updatedAt = new Date().toISOString();
+          if (opts.role === 'audio_narration') {
+            const storyPath = path.join(dir, 'story.json');
+            if (fs.existsSync(storyPath)) {
+              const story = await readJsonFile<{ narration?: string }>(storyPath);
+              const narrationSha = crypto
+                .createHash('sha256')
+                .update(String(story.narration ?? '').trim(), 'utf8')
+                .digest('hex');
+              meta.voiceTextSha256 = narrationSha;
+            }
+          }
+          await writeAtomicJson(metaPath, meta);
+        } catch {
+          // keep non-fatal if meta missing
+        }
+      }
+      if (opts.role === 'audio_narration') {
+        const controlPath = path.join(dir, 'scene-control.json');
+        if (fs.existsSync(controlPath)) {
+          try {
+            const control = await readJsonFile<Record<string, unknown>>(controlPath);
+            control.voice_sha256 = digest;
+            control.voice_stale = false;
+            control.updatedAt = new Date().toISOString();
+            await writeAtomicJson(controlPath, control);
+          } catch {
+            // ignore
+          }
+        }
+      }
+      this.qaResolver?.invalidateProject(dir);
+    }
 
     return record;
   }

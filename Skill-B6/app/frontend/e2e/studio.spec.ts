@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SCREENSHOT_DIR = path.resolve(__dirname, '../../../docs/agent-runs/B6-LOCAL-STUDIO-01/screenshots');
+const SCREENSHOT_DIR = path.resolve(__dirname, '../../../docs/agent-runs/B6-LOCAL-STUDIO-02/screenshots');
 fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 
 test.describe('B6 Local Studio E2E Verification', () => {
@@ -103,19 +103,36 @@ test.describe('B6 Local Studio E2E Verification', () => {
     await expect(page.getByText(/Đã chuẩn bị \(req-/i)).toBeVisible();
     await expect(page.getByText(/Copy prompt/i)).toBeVisible();
 
-    // 4. Open Roman Gladiator project & inspect Studio + video element + run real B6 Validate + screenshots
+    // 4. Cleanup temporary E2E project BEFORE taking Cowboy showcase screenshots
     await page.getByRole('button', { name: 'Projects' }).click();
+    const tempCard = page.locator('.card', { hasText: updatedTitle });
+    await tempCard.getByRole('button', { name: new RegExp(`Xóa ${updatedTitle}`) }).click();
+    await tempCard.getByRole('button', { name: /Xác nhận xóa/i }).click();
+    await expect(tempCard).toHaveCount(0);
+
+    // 5. Open Cowboy project & inspect live binding badges, QA truth & screenshots
     const romanCard = page.locator('.card', { hasText: 'Đấu Sĩ La Mã Phút Cuối (10s)' });
     await expect(romanCard).toBeVisible();
-    await romanCard.getByRole('button', { name: /Mở Studio/i }).click();
+    const cowboyCard = page.locator('.card', { hasText: "The Cowboy Who Couldn't Catch His Hat" });
+    await expect(cowboyCard).toBeVisible();
+    await cowboyCard.getByRole('button', { name: /Mở Studio/i }).click();
     await expect(page.getByText('authored').first()).toBeVisible({ timeout: 10_000 });
-    await page.waitForTimeout(400);
-    await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440-studio.png'), fullPage: false });
+    await expect(page.getByTestId('editor-sync-badge')).toContainText('rev 1', { timeout: 10_000 });
+    await expect(page.getByTestId('output-freshness-badge')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('video').first()).toBeVisible({ timeout: 10_000 });
+    await page.waitForTimeout(300);
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440-studio-cowboy.png'), fullPage: false });
 
     const videoEl = page.locator('video');
     if ((await videoEl.count()) > 0) {
       await expect(videoEl.first()).toHaveAttribute('src', /preview\.mp4|final\.mp4|draft\.mp4/);
     }
+
+    // Verify Camera tab live binding table & Verify button
+    await page.getByRole('tab', { name: 'Camera' }).click();
+    await expect(page.getByText(/Bảng Binding UI → Renderer/i)).toBeVisible();
+    await expect(page.getByText('Live Runtime Bound')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Verify changes/i })).toBeVisible();
 
     // Check Character tab gait notice & run Preflight
     await page.getByRole('tab', { name: 'Character' }).click();
@@ -123,8 +140,9 @@ test.describe('B6 Local Studio E2E Verification', () => {
     await page.getByRole('button', { name: /Chạy Preflight/i }).click();
     await expect(page.getByText(/Hoàn tất preflight/i).first()).toBeVisible({ timeout: 25_000 });
 
-    // Check Export tab & run Validate
+    // Check Export tab: run Validate & verify Full Export remains strictly locked unless approved
     await page.getByRole('tab', { name: 'Export' }).click();
+    await expect(page.getByRole('button', { name: /Xuất Video Full MP4/i })).toBeDisabled();
     await page.getByRole('button', { name: /Kiểm tra điều kiện \(Validate\)/i }).click();
     await expect(page.getByText(/Hoàn tất validate/i).first()).toBeVisible({ timeout: 25_000 });
 
@@ -139,14 +157,7 @@ test.describe('B6 Local Studio E2E Verification', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.getByRole('button', { name: /Jobs.*QA/i }).click();
     await page.waitForTimeout(250);
-    await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440-qa.png'), fullPage: false });
-
-    // 5. Cleanup temporary E2E project
-    await page.getByRole('button', { name: 'Projects' }).click();
-    const tempCard = page.locator('.card', { hasText: updatedTitle });
-    await tempCard.getByRole('button', { name: new RegExp(`Xóa ${updatedTitle}`) }).click();
-    await tempCard.getByRole('button', { name: /Xác nhận xóa/i }).click();
-    await expect(tempCard).toHaveCount(0);
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440-qa-cowboy.png'), fullPage: false });
     expect(runtimeErrors).toEqual([]);
   });
 });

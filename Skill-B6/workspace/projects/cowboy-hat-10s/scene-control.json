@@ -1,0 +1,606 @@
+{
+  "schema": "b6-studio-scene-control/1",
+  "revision": 1,
+  "ratio": "9:16",
+  "width": 720,
+  "height": 1280,
+  "fps": 30,
+  "duration": 10.0,
+  "narration": "One desert gust stole Jesse's hat. He sprinted down Main Street, caught the brim, and spun right back in a cloud of dust.",
+  "voice_sha256": "8d8769396aa7084dd96146bdad2ae520b905de9323dd525b6f8ea650620af203",
+  "narration_sha256": "7acc1e6ed8c2a4fa34984956fcd3ce9d78c48371cdd98050e87f9a120561506f",
+  "voice_stale": false,
+  "shots": [
+    {
+      "id": "shot-1-proud-stroll",
+      "start": 0.0,
+      "end": 0.95,
+      "actor": "jesse",
+      "environment": "Sunlit desert frontier Main Street",
+      "sceneGoal": "Hook: establish Jesse strolling smugly under crisp morning sun with his prize brown hat",
+      "composition": "Medium 9:16 framing showing Jesse centered slightly left with dusty frontier saloon facades behind",
+      "action": "Jesse smirks comfortably as the first desert wind ripple begins tugging at his hat brim",
+      "expression": "neutral",
+      "props": [
+        "cowboy_hat"
+      ],
+      "staging": {
+        "jesse": {
+          "x": -40,
+          "y": 0,
+          "z": 920
+        }
+      },
+      "camera": "Gentle close-medium hold before wind gust hits",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": -45.0,
+          "y": -205.0,
+          "z": 115.0,
+          "fov": 54.0
+        },
+        {
+          "t": 0.95,
+          "x": -40.0,
+          "y": -205.0,
+          "z": 110.0,
+          "fov": 54.0
+        }
+      ],
+      "easing": "smooth",
+      "actorStart": {
+        "x": -35.0,
+        "y": 0.0,
+        "scale": 1.0,
+        "headAngleDeg": -2.0,
+        "leftArmAction": "rest",
+        "leftArmPhase": 0.0,
+        "rightArmAction": "rest",
+        "rightArmPhase": 0.0,
+        "strideCycles": 0.0
+      },
+      "actorEnd": {
+        "x": -30.0,
+        "y": 0.0,
+        "scale": 1.0,
+        "headAngleDeg": 6.0,
+        "leftArmAction": "reach",
+        "leftArmPhase": 0.3,
+        "rightArmAction": "reach",
+        "rightArmPhase": 0.35,
+        "strideCycles": 0.0
+      },
+      "propKeyframes": [
+        {
+          "propId": "hat",
+          "t": 0.0,
+          "x": 6.0,
+          "y": -372.0,
+          "angleDeg": -3.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 0.72,
+          "x": 7.0,
+          "y": -374.0,
+          "angleDeg": -1.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 0.95,
+          "x": 38.0,
+          "y": -395.0,
+          "angleDeg": 16.0,
+          "scale": 1.0
+        }
+      ],
+      "transition": "continuous wind gust whip into shock beat",
+      "asset_inputs": [
+        "assets/production/western_wide_bg.png",
+        "assets/production/cowboy_hat.png"
+      ],
+      "sfx": "dry_wind_rise"
+    },
+    {
+      "id": "shot-2-gust-shock",
+      "start": 0.95,
+      "end": 2.65,
+      "actor": "jesse",
+      "environment": "Main Street saloon boardwalk",
+      "sceneGoal": "Inciting shock: gust tears hat off Jesse's head while arms fly up and camera widens",
+      "composition": "Dynamic widen tracking hat rising up-right against sunny desert mesas",
+      "action": "Jesse gasps with wide shocked eyes as his hat rockets away into Main Street",
+      "expression": "shocked",
+      "props": [
+        "cowboy_hat"
+      ],
+      "staging": {
+        "jesse": {
+          "x": -30,
+          "y": 0,
+          "z": 920
+        }
+      },
+      "camera": "Quick pull-out pan right following hat trajectory",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": -40.0,
+          "y": -205.0,
+          "z": 110.0,
+          "fov": 54.0
+        },
+        {
+          "t": 0.55,
+          "x": -10.0,
+          "y": -212.0,
+          "z": 55.0,
+          "fov": 56.0
+        },
+        {
+          "t": 1.7,
+          "x": 10.0,
+          "y": -205.0,
+          "z": 35.0,
+          "fov": 56.0
+        }
+      ],
+      "easing": "ease_out",
+      "actorStart": {
+        "x": -30.0,
+        "y": 0.0,
+        "scale": 1.0,
+        "headAngleDeg": 6.0,
+        "leftArmAction": "reach",
+        "leftArmPhase": 0.3,
+        "rightArmAction": "reach",
+        "rightArmPhase": 0.35,
+        "strideCycles": 0.0
+      },
+      "actorEnd": {
+        "x": -25.0,
+        "y": 0.0,
+        "scale": 1.0,
+        "headAngleDeg": -5.0,
+        "leftArmAction": "offer",
+        "leftArmPhase": 0.95,
+        "rightArmAction": "reach",
+        "rightArmPhase": 0.8,
+        "strideCycles": 0.0
+      },
+      "propKeyframes": [
+        {
+          "propId": "hat",
+          "t": 0.0,
+          "x": 38.0,
+          "y": -395.0,
+          "angleDeg": 16.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 0.65,
+          "x": 165.0,
+          "y": -430.0,
+          "angleDeg": 32.0,
+          "scale": 1.02
+        },
+        {
+          "propId": "hat",
+          "t": 1.7,
+          "x": 205.0,
+          "y": -290.0,
+          "angleDeg": -20.0,
+          "scale": 1.0
+        }
+      ],
+      "transition": "launch straight into sprint chase",
+      "asset_inputs": [
+        "assets/production/western_wide_bg.png",
+        "assets/production/cowboy_hat.png"
+      ],
+      "sfx": "gust_whoosh"
+    },
+    {
+      "id": "shot-3-mainstreet-chase",
+      "start": 2.65,
+      "end": 5.1,
+      "actor": "jesse",
+      "environment": "Dusty frontier road past wooden hitching post and cactus",
+      "sceneGoal": "Escalating comedic pursuit with lateral camera follow & foreground parallax",
+      "composition": "Fast right-tracking medium shot; foreground hitching post & cactus zip past bottom-right",
+      "action": "Jesse grit-teeth sprints down Main Street chasing the tumbling hat past the hitching post",
+      "expression": "determined",
+      "props": [
+        "cowboy_hat"
+      ],
+      "staging": {
+        "jesse": {
+          "x": 20,
+          "y": 0,
+          "z": 910
+        }
+      },
+      "camera": "Brisk rightward tracking pan with parallax across Main Street",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": 10.0,
+          "y": -205.0,
+          "z": 35.0,
+          "fov": 56.0
+        },
+        {
+          "t": 1.25,
+          "x": 85.0,
+          "y": -200.0,
+          "z": 60.0,
+          "fov": 55.0
+        },
+        {
+          "t": 2.45,
+          "x": 135.0,
+          "y": -202.0,
+          "z": 78.0,
+          "fov": 55.0
+        }
+      ],
+      "easing": "linear",
+      "actorStart": {
+        "x": -25.0,
+        "y": 0.0,
+        "scale": 1.0,
+        "headAngleDeg": -5.0,
+        "leftArmAction": "offer",
+        "leftArmPhase": 0.95,
+        "rightArmAction": "reach",
+        "rightArmPhase": 0.8,
+        "strideCycles": 3.0
+      },
+      "actorEnd": {
+        "x": 65.0,
+        "y": 0.0,
+        "scale": 1.0,
+        "headAngleDeg": -5.0,
+        "leftArmAction": "offer",
+        "leftArmPhase": 0.65,
+        "rightArmAction": "reach",
+        "rightArmPhase": 0.35,
+        "strideCycles": 3.0
+      },
+      "propKeyframes": [
+        {
+          "propId": "hat",
+          "t": 0.0,
+          "x": 205.0,
+          "y": -290.0,
+          "angleDeg": -20.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 0.85,
+          "x": 215.0,
+          "y": -195.0,
+          "angleDeg": 14.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 1.65,
+          "x": 225.0,
+          "y": -275.0,
+          "angleDeg": -16.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 2.45,
+          "x": 175.0,
+          "y": -205.0,
+          "angleDeg": 8.0,
+          "scale": 1.0
+        }
+      ],
+      "transition": "punch into lunge grab closeup",
+      "asset_inputs": [
+        "assets/production/western_wide_bg.png",
+        "assets/production/western_fg_frame.png",
+        "assets/production/cowboy_hat.png"
+      ],
+      "sfx": "fast_boot_steps"
+    },
+    {
+      "id": "shot-4-near-catch-slip",
+      "start": 5.1,
+      "end": 7.35,
+      "actor": "jesse",
+      "environment": "Center road near frontier store porch",
+      "sceneGoal": "Climax hand-brim contact followed by instant gust backfire flip",
+      "composition": "Tight 9:16 push-in spotlighting right-hand brim grab before swirling flip",
+      "action": "Jesse snatches the hat brim cleanly at chest height, then a reverse gust rips it flipping overhead",
+      "expression": "determined",
+      "props": [
+        "cowboy_hat"
+      ],
+      "staging": {
+        "jesse": {
+          "x": 75,
+          "y": 0,
+          "z": 900
+        }
+      },
+      "camera": "Zoom push in framing hand brim catch, quick tilt up as hat flips overhead",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": 135.0,
+          "y": -202.0,
+          "z": 78.0,
+          "fov": 55.0
+        },
+        {
+          "t": 0.65,
+          "x": 105.0,
+          "y": -192.0,
+          "z": 125.0,
+          "fov": 53.0
+        },
+        {
+          "t": 1.55,
+          "x": 85.0,
+          "y": -228.0,
+          "z": 130.0,
+          "fov": 53.0
+        },
+        {
+          "t": 2.25,
+          "x": 75.0,
+          "y": -220.0,
+          "z": 155.0,
+          "fov": 52.0
+        }
+      ],
+      "easing": "smooth",
+      "actorStart": {
+        "x": 65.0,
+        "y": 0.0,
+        "scale": 1.0,
+        "headAngleDeg": -5.0,
+        "leftArmAction": "offer",
+        "leftArmPhase": 0.65,
+        "rightArmAction": "reach",
+        "rightArmPhase": 0.35,
+        "strideCycles": 0.0
+      },
+      "actorEnd": {
+        "x": 75.0,
+        "y": 0.0,
+        "scale": 1.0,
+        "headAngleDeg": -6.0,
+        "leftArmAction": "offer",
+        "leftArmPhase": 0.78,
+        "rightArmAction": "rest",
+        "rightArmPhase": 0.95,
+        "strideCycles": 0.0
+      },
+      "propKeyframes": [
+        {
+          "propId": "hat",
+          "t": 0.0,
+          "x": 175.0,
+          "y": -205.0,
+          "angleDeg": 8.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 0.3,
+          "x": 182.0,
+          "y": -122.0,
+          "angleDeg": -4.0,
+          "scale": 1.0,
+          "holderActor": "jesse",
+          "holderArm": "left",
+          "gripUv": [
+            0.26,
+            0.58
+          ]
+        },
+        {
+          "propId": "hat",
+          "t": 1.05,
+          "x": 182.0,
+          "y": -122.0,
+          "angleDeg": -6.0,
+          "scale": 1.0,
+          "holderActor": "jesse",
+          "holderArm": "left",
+          "gripUv": [
+            0.26,
+            0.58
+          ]
+        },
+        {
+          "propId": "hat",
+          "t": 1.08,
+          "x": 182.0,
+          "y": -123.0,
+          "angleDeg": -2.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 1.18,
+          "x": 185.0,
+          "y": -175.0,
+          "angleDeg": 24.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 1.55,
+          "x": 55.0,
+          "y": -445.0,
+          "angleDeg": 180.0,
+          "scale": 1.02
+        },
+        {
+          "propId": "hat",
+          "t": 2.25,
+          "x": 8.0,
+          "y": -364.0,
+          "angleDeg": 11.0,
+          "scale": 1.0
+        }
+      ],
+      "transition": "hat slams down crooked into deadpan hold",
+      "asset_inputs": [
+        "assets/production/western_wide_bg.png",
+        "assets/production/cowboy_hat.png"
+      ],
+      "sfx": "leather_snap_gust"
+    },
+    {
+      "id": "shot-5-deadpan-payoff",
+      "start": 7.35,
+      "end": 10.0,
+      "actor": "jesse",
+      "environment": "Frontier Main Street dust settle",
+      "sceneGoal": "Comedic deadpan payoff with hat crooked on head & lingering dust puff",
+      "composition": "Clean close 9:16 portrait punchline framing face, crooked hat & dust particles",
+      "action": "Hat thuds crooked onto Jesse's brow; he settles arms limp with deadpan side-eye as dust drifts away",
+      "expression": "deadpan",
+      "props": [
+        "cowboy_hat"
+      ],
+      "staging": {
+        "jesse": {
+          "x": 75,
+          "y": 0,
+          "z": 900
+        }
+      },
+      "camera": "Subtle comic settle push-in holding on deadpan eyes",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": 75.0,
+          "y": -220.0,
+          "z": 155.0,
+          "fov": 52.0
+        },
+        {
+          "t": 2.65,
+          "x": 75.0,
+          "y": -224.0,
+          "z": 175.0,
+          "fov": 51.0
+        }
+      ],
+      "easing": "smooth",
+      "actorStart": {
+        "x": 75.0,
+        "y": 0.0,
+        "scale": 1.0,
+        "headAngleDeg": -6.0,
+        "leftArmAction": "offer",
+        "leftArmPhase": 0.78,
+        "rightArmAction": "rest",
+        "rightArmPhase": 0.95,
+        "strideCycles": 0.0
+      },
+      "actorEnd": {
+        "x": 75.0,
+        "y": 0.0,
+        "scale": 1.0,
+        "headAngleDeg": 0.0,
+        "leftArmAction": "rest",
+        "leftArmPhase": 1.0,
+        "rightArmAction": "rest",
+        "rightArmPhase": 1.0,
+        "strideCycles": 0.0
+      },
+      "propKeyframes": [
+        {
+          "propId": "hat",
+          "t": 0.0,
+          "x": 8.0,
+          "y": -364.0,
+          "angleDeg": 11.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 0.35,
+          "x": 8.0,
+          "y": -370.0,
+          "angleDeg": 9.0,
+          "scale": 1.0
+        },
+        {
+          "propId": "hat",
+          "t": 2.65,
+          "x": 8.0,
+          "y": -370.0,
+          "angleDeg": 9.0,
+          "scale": 1.0
+        }
+      ],
+      "transition": "hold to end",
+      "asset_inputs": [
+        "assets/production/western_wide_bg.png",
+        "assets/production/cowboy_hat.png"
+      ],
+      "sfx": "hat_thud_dust"
+    }
+  ],
+  "captions": [
+    {
+      "id": "cap_1",
+      "start": 0.25,
+      "end": 0.9,
+      "text": "One desert gust"
+    },
+    {
+      "id": "cap_2",
+      "start": 0.9,
+      "end": 2.24,
+      "text": "stole Jesse's hat."
+    },
+    {
+      "id": "cap_3",
+      "start": 2.89,
+      "end": 3.8,
+      "text": "He sprinted down"
+    },
+    {
+      "id": "cap_4",
+      "start": 3.8,
+      "end": 4.49,
+      "text": "Main Street,"
+    },
+    {
+      "id": "cap_5",
+      "start": 5.13,
+      "end": 5.83,
+      "text": "caught the brim,"
+    },
+    {
+      "id": "cap_6",
+      "start": 7.47,
+      "end": 8.26,
+      "text": "and spun right back"
+    },
+    {
+      "id": "cap_7",
+      "start": 8.26,
+      "end": 9.6,
+      "text": "in a cloud of dust."
+    }
+  ],
+  "updatedAt": "2026-11-18T06:15:47.240728Z"
+}

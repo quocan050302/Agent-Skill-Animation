@@ -39,7 +39,7 @@ export const JobsQaView: React.FC<JobsQaViewProps> = ({
         <div>
           <h1 style={{ margin: 0, fontSize: 20 }}>Jobs & Báo cáo QA</h1>
           <div className="field-hint">
-            Theo dõi tiến trình thật (stdout/stderr, frame counter từ `b6_production.py`, kết quả FFprobe và 35 subchecks).
+            Theo dõi tiến trình thật (stdout/stderr, frame counter từ <code>b6_production.py</code>, kết quả FFprobe và 35 subchecks).
           </div>
         </div>
         {projectId && (
@@ -52,38 +52,69 @@ export const JobsQaView: React.FC<JobsQaViewProps> = ({
 
       {/* Review Summary */}
       {reviewState && (
-        <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12 }}>
-          <div>
-            <div className="section-label">1. Technical Check</div>
-            <div style={{ fontWeight: 700 }}>{reviewState.technicalStatus.toUpperCase()}</div>
-            <div className="field-hint">{reviewState.latestReport?.path ?? 'Chưa có report.json'}</div>
-          </div>
-          <div>
-            <div className="section-label">2. Visual Motion Review (35 mục)</div>
-            <div style={{ fontWeight: 700 }}>{reviewState.visualReviewStatus.toUpperCase()}</div>
-            {reviewState.latestMotionReview && (
-              <div className="field-hint">
-                Pass: {reviewState.latestMotionReview.subcheckCounts.pass}/{reviewState.latestMotionReview.subcheckCounts.total}
-                {' · '}Pending: {reviewState.latestMotionReview.subcheckCounts.pending}
-                {' · '}Needs repair: {reviewState.latestMotionReview.subcheckCounts.needsRepair}
-                {reviewState.latestMotionReview.htmlIndexUrl && (
-                  <>
-                    {' · '}
-                    <a href={reviewState.latestMotionReview.htmlIndexUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)' }}>
-                      Mở review/index.html <ExternalLink size={11} />
-                    </a>
-                  </>
-                )}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))', gap: 12 }}>
+            <div>
+              <div className="section-label">1. Technical Check</div>
+              <div style={{ fontWeight: 700 }}>{reviewState.technicalStatus.toUpperCase()}</div>
+              <div className="field-hint">{reviewState.latestReport?.path ?? 'Chưa có report.json'}</div>
+              {reviewState.currentSourceFingerprint && (
+                <div className="field-hint" style={{ fontSize: 11 }}>
+                  Src FP: <code>{reviewState.currentSourceFingerprint.slice(0, 12)}…</code>
+                  {reviewState.previewFingerprint ? ` | Preview FP: ${reviewState.previewFingerprint.slice(0, 12)}…` : ''}
+                </div>
+              )}
+            </div>
+            <div>
+              <div className="section-label">2. Visual Motion Review (35 mục)</div>
+              <div style={{ fontWeight: 700 }}>{reviewState.visualReviewStatus.toUpperCase()}</div>
+              {reviewState.latestMotionReview && (
+                <div className="field-hint">
+                  Pass: {reviewState.latestMotionReview.subcheckCounts.pass}/{reviewState.latestMotionReview.subcheckCounts.total}
+                  {' · '}Pending: {reviewState.latestMotionReview.subcheckCounts.pending}
+                  {' · '}Needs repair: {reviewState.latestMotionReview.subcheckCounts.needsRepair}
+                  {reviewState.latestMotionReview.htmlIndexUrl && (
+                    <>
+                      {' · '}
+                      <a href={reviewState.latestMotionReview.htmlIndexUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)' }}>
+                        Mở review/index.html <ExternalLink size={11} />
+                      </a>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            <div>
+              <div className="section-label">3. User Approval & Export Gate</div>
+              <div style={{ fontWeight: 700 }}>
+                {reviewState.userApprovalStatus.toUpperCase()} · {reviewState.renderUnlocked ? 'EXPORT MỞ KHÓA' : 'EXPORT ĐANG KHÓA'}
               </div>
-            )}
-          </div>
-          <div>
-            <div className="section-label">3. User Approval</div>
-            <div style={{ fontWeight: 700 }}>{reviewState.userApprovalStatus.toUpperCase()}</div>
-            <div className="field-hint">
-              {reviewState.approvalRecord ? String(reviewState.approvalRecord.note ?? 'Approved') : 'Chưa có xác nhận người dùng'}
+              <div className="field-hint">
+                {reviewState.approvalRecord ? String(reviewState.approvalRecord.note ?? 'Approved') : 'Chưa có xác nhận người dùng'}
+              </div>
             </div>
           </div>
+
+          {(reviewState.reasonCodes.length > 0 || reviewState.blockingReasons.length > 0) && (
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, fontSize: 12 }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                Đồng bộ Editor: <code>{reviewState.editorSyncState}</code>
+                {reviewState.voiceStale ? ' · VOICE_NEEDS_REGENERATION' : ''}
+              </div>
+              {reviewState.reasonCodes.length > 0 && (
+                <div style={{ color: 'var(--muted)', marginBottom: 4 }}>
+                  Mã bằng chứng: {reviewState.reasonCodes.join(', ')}
+                </div>
+              )}
+              {reviewState.blockingReasons.length > 0 && (
+                <ul style={{ margin: '4px 0 0 16px', padding: 0, color: 'var(--warning)' }}>
+                  {reviewState.blockingReasons.map((r, i) => (
+                    <li key={i}>{r}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -162,8 +193,28 @@ export const JobsQaView: React.FC<JobsQaViewProps> = ({
               <div key={o.id} style={{ padding: 10, border: '1px solid var(--border)', borderRadius: 8, fontSize: 13 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
                   <strong>{o.outputDirRel} ({o.kind})</strong>
-                  <span className="badge badge-neutral">{o.ratio}</span>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <span
+                      className={`badge ${
+                        o.verificationStatus === 'current'
+                          ? 'badge-success'
+                          : o.verificationStatus === 'corrupt'
+                          ? 'badge-danger'
+                          : o.verificationStatus === 'stale'
+                          ? 'badge-warning'
+                          : 'badge-neutral'
+                      }`}
+                    >
+                      {o.verificationStatus.toUpperCase()} · {o.technicalStatus}
+                    </span>
+                    <span className="badge badge-neutral">{o.ratio}</span>
+                  </div>
                 </div>
+                {o.verificationReasons?.length > 0 && (
+                  <div style={{ fontSize: 11, color: 'var(--warning)', marginTop: 3 }}>
+                    Kiểm chứng QA: {o.verificationReasons.join(', ')}
+                  </div>
+                )}
                 {o.ffprobe ? (
                   <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
                     FFprobe: {o.ffprobe.width}x{o.ffprobe.height} · {o.ffprobe.codec} · {o.ffprobe.fps}fps ·{' '}

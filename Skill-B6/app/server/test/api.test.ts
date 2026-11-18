@@ -412,3 +412,408 @@ describe('B6 Studio REST API Integration', () => {
     }
   });
 });
+
+describe('QA Truth Negative Traps, Concurrency Lock & Editor Binding Backtests', () => {
+  it('blocks transactional invalid patches, enforces 409 revision lock, and marks narration edits voiceStale', async () => {
+    const revRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-tx-test-'));
+    const txApp = await buildApp({
+      projectsDir: path.join(revRoot, 'projects'),
+      jobsDir: path.join(revRoot, 'jobs'),
+    });
+    try {
+      const createRes = await txApp.app.inject({
+        method: 'POST',
+        url: '/api/projects',
+        payload: {
+          title: 'TX & Concurrency Smoke',
+          brief: 'Test transactional validation and optimistic locking',
+          ratio: '9:16',
+          language: 'en',
+          targetDuration: 4,
+        },
+      });
+      expect(createRes.statusCode).toBe(200);
+      const proj = createRes.json().project;
+      const projId = proj.id as string;
+      const rev1 = Number(proj.meta.revision ?? 1);
+
+      // Valid patch updates to revision + 1
+      const validPatch = await txApp.app.inject({
+        method: 'PATCH',
+        url: `/api/projects/${projId}`,
+        payload: {
+          expectedRevision: rev1,
+          title: 'TX Updated Title',
+          narration: 'Hello cowboy hat.',
+          duration: 4,
+          beats: [{ id: 'b1', start: 0, end: 4, action: 'Chase hat' }],
+          captions: [{ start: 0.2, end: 2.5, text: 'Hello cowboy hat.' }],
+          shots: [
+            {
+              id: 'b1',
+              start: 0,
+              end: 4,
+              actor: '',
+              composition: '9:16',
+              action: 'Chase hat',
+              expression: 'neutral',
+              props: [],
+              staging: {},
+              camera: 'Pan',
+              cameraKeys: [{ t: 0, x: 0, y: -200, z: 0, fov: 55 }],
+              transition: 'cut',
+              asset_inputs: [],
+              sfx: '',
+            },
+          ],
+        },
+      });
+      expect(validPatch.statusCode).toBe(200);
+      const rev2 = Number(validPatch.json().detail.meta.revision);
+      expect(rev2).toBe(rev1 + 1);
+
+      // Stale expectedRevision -> 409 Conflict
+      const conflictRes = await txApp.app.inject({
+        method: 'PATCH',
+        url: `/api/projects/${projId}`,
+        payload: { expectedRevision: rev1, title: 'Should Conflict' },
+      });
+      expect(conflictRes.statusCode).toBe(409);
+
+      // Invalid timeline (overlap + caption mismatch) -> 400 AND disk untouched!
+      const badPatch = await txApp.app.inject({
+        method: 'PATCH',
+        url: `/api/projects/${projId}`,
+        payload: {
+          expectedRevision: rev2,
+          title: 'Must Not Persist',
+          narration: 'Hello cowboy hat.',
+          captions: [{ start: 0.2, end: 2.0, text: 'WRONG TEXT' }],
+          shots: [
+            {
+              id: 'b1',
+              start: 0,
+              end: 2.5,
+              actor: '',
+              composition: '9:16',
+              action: 'Overlap',
+              expression: 'neutral',
+              props: [],
+              staging: {},
+              camera: 'Pan',
+              cameraKeys: [{ t: 0, x: 0, y: -200, z: 0, fov: 55 }],
+              transition: 'cut',
+              asset_inputs: [],
+              sfx: '',
+            },
+            {
+              id: 'b2',
+              start: 2.0,
+              end: 4.0,
+              actor: '',
+              composition: '9:16',
+              action: 'Overlap 2',
+              expression: 'neutral',
+              props: [],
+              staging: {},
+              camera: 'Pan',
+              cameraKeys: [{ t: 0, x: 0, y: -200, z: 0, fov: 55 }],
+              transition: 'cut',
+              asset_inputs: [],
+              sfx: '',
+            },
+          ],
+        },
+      });
+      expect(badPatch.statusCode).toBe(400);
+      const afterBad = await txApp.app.inject({ method: 'GET', url: `/api/projects/${projId}` });
+      expect(afterBad.json().project.meta.title).toBe('TX Updated Title');
+      expect(afterBad.json().project.meta.revision).toBe(rev2);
+
+      // Invalid Python syntax in PUT /scene -> 400 and untouched
+      const badScene = await txApp.app.inject({
+        method: 'PUT',
+        url: `/api/projects/${projId}/scene`,
+        payload: { content: 'def broken(:' },
+      });
+      expect(badScene.statusCode).toBe(400);
+
+      // Voice synthesis + narration change -> voiceStale = true
+      if (process.platform === 'win32') {
+        const synthRes = await txApp.app.inject({
+          method: 'POST',
+          url: `/api/projects/${projId}/voice/synthesize-local`,
+          payload: { voiceHint: 'David' },
+        });
+        expect(synthRes.statusCode).toBe(200);
+        expect(synthRes.json().qa.voiceStale).toBe(false);
+
+        const editNarr = await txApp.app.inject({
+          method: 'PATCH',
+          url: `/api/projects/${projId}`,
+          payload: {
+            narration: 'Completely new narration words.',
+            captions: [{ start: 0.2, end: 2.8, text: 'Completely new narration words.' }],
+          },
+        });
+        expect(editNarr.statusCode).toBe(200);
+        const qaAfterNarr = await txApp.app.inject({
+          method: 'GET',
+          url: `/api/projects/${projId}/qa?ratio=9:16`,
+        });
+        expect(qaAfterNarr.statusCode).toBe(200);
+        expect(qaAfterNarr.json().qa.voiceStale).toBe(true);
+        expect(qaAfterNarr.json().qa.reasonCodes).toContain('VOICE_NEEDS_REGENERATION');
+        expect(qaAfterNarr.json().qa.technicalStatus).not.toBe('pass');
+      }
+    } finally {
+      await txApp.app.close();
+      await fsp.rm(revRoot, { recursive: true, force: true });
+    }
+  }, 40000);
+
+  it('rejects all fake, missing, SHA-mismatched, wrong-ratio, tampered-35, and stale QA artifacts', async () => {
+    const trapRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-qa-traps-'));
+    const trapProjects = path.join(trapRoot, 'projects');
+    const trapJobs = path.join(trapRoot, 'jobs');
+    const srcCowboy = path.join(process.cwd(), '..', '..', 'workspace', 'projects', 'cowboy-hat-10s');
+    const projDir = path.join(trapProjects, 'cowboy-trap');
+    fs.mkdirSync(trapProjects, { recursive: true });
+    fs.mkdirSync(trapJobs, { recursive: true });
+    fs.cpSync(srcCowboy, projDir, {
+      recursive: true,
+      filter: (src) => !src.includes(`${path.sep}outputs`),
+    });
+
+    const trapApp = await buildApp({ projectsDir: trapProjects, jobsDir: trapJobs });
+    try {
+      // 1) Report with missing video
+      const out1 = path.join(projDir, 'outputs', 'preview-missing-vid');
+      fs.mkdirSync(out1, { recursive: true });
+      fs.writeFileSync(
+        path.join(out1, 'report.json'),
+        JSON.stringify({
+          kind: 'preview',
+          ratio: '9:16',
+          technical_status: 'pass',
+          fingerprint: 'a'.repeat(64),
+          video: 'outputs/preview-missing-vid/preview.mp4',
+          video_sha256: 'b'.repeat(64),
+          checked_frames: 300,
+        }),
+      );
+      let qaRes = await trapApp.app.inject({ method: 'GET', url: '/api/projects/cowboy-trap/review?ratio=9:16' });
+      expect(qaRes.statusCode).toBe(200);
+      expect(qaRes.json().review.technicalStatus).toBe('fail');
+      expect(qaRes.json().review.reasonCodes).toContain('VIDEO_FILE_MISSING');
+      expect(qaRes.json().review.renderUnlocked).toBe(false);
+
+      // 2) Wrong SHA + corrupt MP4 bytes + fake approval JSON
+      fs.writeFileSync(path.join(out1, 'preview.mp4'), 'NOT A REAL MP4');
+      fs.writeFileSync(
+        path.join(projDir, 'outputs', 'approval-9x16.json'),
+        JSON.stringify({ note: 'fake pass', fingerprint: 'a'.repeat(64), preview_sha256: 'b'.repeat(64) }),
+      );
+      qaRes = await trapApp.app.inject({ method: 'GET', url: '/api/projects/cowboy-trap/review?ratio=9:16' });
+      expect(qaRes.json().review.technicalStatus).toBe('fail');
+      expect(qaRes.json().review.userApprovalStatus).not.toBe('approved');
+      expect(qaRes.json().review.renderUnlocked).toBe(false);
+
+      // 3) Render route stays locked when not approved/verified
+      const lockedRender = await trapApp.app.inject({
+        method: 'POST',
+        url: '/api/projects/cowboy-trap/render',
+        payload: { ratio: '9:16', trustedCode: true },
+      });
+      expect(lockedRender.statusCode).toBe(400);
+
+      // 4) Wrong ratio report + tampered 34/35 visual review claiming pass
+      fs.rmSync(out1, { recursive: true, force: true });
+      const out2 = path.join(projDir, 'outputs', 'preview-wrong-ratio');
+      fs.mkdirSync(out2, { recursive: true });
+      fs.writeFileSync(
+        path.join(out2, 'report.json'),
+        JSON.stringify({
+          kind: 'preview',
+          ratio: '16:9',
+          technical_status: 'pass',
+          fingerprint: 'c'.repeat(64),
+          video: 'outputs/preview-wrong-ratio/preview.mp4',
+          video_sha256: 'd'.repeat(64),
+          checked_frames: 300,
+        }),
+      );
+      fs.writeFileSync(
+        path.join(out2, 'motion-review.json'),
+        JSON.stringify({
+          ratio: '9:16',
+          status: 'pass',
+          groups: {
+            reading_order_framing: { subchecks: { a1: { status: 'pass', observation: 'ok' } } },
+          },
+        }),
+      );
+      qaRes = await trapApp.app.inject({ method: 'GET', url: '/api/projects/cowboy-trap/review?ratio=9:16' });
+      expect(qaRes.json().review.technicalStatus).not.toBe('pass');
+      expect(qaRes.json().review.visualReviewStatus).not.toBe('pass');
+      expect(qaRes.json().review.renderUnlocked).toBe(false);
+
+      // 5) JobQueue exit-0 without artifact fails closed
+      const fakeEmptyJob = await trapApp.jobQueue.enqueue({
+        projectId: null,
+        kind: 'preview',
+        heavyEncode: false,
+        spec: {
+          executable: process.execPath,
+          args: ['-e', 'console.log("RESULT {}")'],
+          cwd: trapRoot,
+          env: process.env,
+          displayCommand: 'node empty-preview-trap',
+          outputDir: path.join(trapRoot, 'empty-out'),
+          reportPath: path.join(trapRoot, 'empty-out', 'report.json'),
+        },
+      });
+      for (let w = 0; w < 40; w++) {
+        const poll = await trapApp.app.inject({ method: 'GET', url: `/api/jobs/${fakeEmptyJob.id}` });
+        if (['failed', 'succeeded', 'cancelled'].includes(poll.json().job.status)) {
+          expect(poll.json().job.status).toBe('failed');
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 100));
+      }
+
+      // 6) DiskGuard blocks heavy jobs cleanly under threshold override
+      process.env.B6_MIN_FREE_BYTES = String(1024 * 1024 * 1024 * 1024 * 50); // 50 TiB
+      await expect(
+        trapApp.jobQueue.enqueue({
+          projectId: null,
+          kind: 'preview',
+          heavyEncode: true,
+          spec: {
+            executable: process.execPath,
+            args: ['-v'],
+            cwd: trapRoot,
+            env: process.env,
+            displayCommand: 'disk-trap',
+            outputDir: null,
+            reportPath: null,
+          },
+        }),
+      ).rejects.toThrow(/Không đủ dung lượng đĩa/);
+      delete process.env.B6_MIN_FREE_BYTES;
+    } finally {
+      delete process.env.B6_MIN_FREE_BYTES;
+      await trapApp.app.close();
+      await fsp.rm(trapRoot, { recursive: true, force: true });
+    }
+  }, 40000);
+
+  it('proves UI edits to camera/prop flow into rendered pixels and mark stale QA honestly', async () => {
+    const diffRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-render-diff-'));
+    const diffProjects = path.join(diffRoot, 'projects');
+    const diffJobs = path.join(diffRoot, 'jobs');
+    const srcCowboy = path.join(process.cwd(), '..', '..', 'workspace', 'projects', 'cowboy-hat-10s');
+    const projDir = path.join(diffProjects, 'cowboy-diff');
+    fs.mkdirSync(diffProjects, { recursive: true });
+    fs.mkdirSync(diffJobs, { recursive: true });
+    fs.cpSync(srcCowboy, projDir, {
+      recursive: true,
+      filter: (src) => !src.includes(`${path.sep}outputs`),
+    });
+
+    const diffApp = await buildApp({ projectsDir: diffProjects, jobsDir: diffJobs });
+    try {
+      const waitJob = async (jobId: string) => {
+        const deadline = Date.now() + 60000;
+        while (Date.now() < deadline) {
+          const r = await diffApp.app.inject({ method: 'GET', url: `/api/jobs/${jobId}` });
+          const j = r.json().job;
+          if (!['queued', 'running'].includes(j.status)) return j;
+          await new Promise((res) => setTimeout(res, 200));
+        }
+        throw new Error(`Timed out waiting for job ${jobId}`);
+      };
+
+      // Render 0.4s draft clip BEFORE edit inside shot-3 (t=3.0..3.4s)
+      const draft1Res = await diffApp.app.inject({
+        method: 'POST',
+        url: '/api/projects/cowboy-diff/draft',
+        payload: { ratio: '9:16', draftScale: 0.5, start: 3.0, seconds: 0.4, trustedCode: true },
+      });
+      expect(draft1Res.statusCode).toBe(200);
+      const j1 = await waitJob(draft1Res.json().job.id);
+      expect(j1.status).toBe('succeeded');
+      const vid1 = path.join(projDir, j1.videoPath as string);
+      expect(fs.existsSync(vid1)).toBe(true);
+
+      // Extract middle frame of draft 1 with real ffmpeg
+      const { resolveRealFfmpeg } = await import('../src/config.js');
+      const { spawnSync } = await import('node:child_process');
+      const ffmpeg = resolveRealFfmpeg();
+      const png1 = path.join(diffRoot, 'before.png');
+      const png2 = path.join(diffRoot, 'after.png');
+      spawnSync(ffmpeg, ['-v', 'error', '-y', '-i', vid1, '-vf', 'select=eq(n\\,5)', '-vframes', '1', png1], { shell: false });
+
+      // Edit shot-3 cameraKeys[0].x and propKeyframes via real PATCH endpoint
+      const curProj = (await diffApp.app.inject({ method: 'GET', url: '/api/projects/cowboy-diff' })).json().project;
+      const curShots = curProj.formats['9:16'].shots.map((s: Record<string, unknown>, idx: number) => {
+        const keys = (s.camera_keys ?? s.cameraKeys) as Array<Record<string, number>>;
+        const baseObj = {
+          id: s.id,
+          start: s.start,
+          end: s.end,
+          actor: s.actor,
+          environment: s.environment,
+          sceneGoal: s.sceneGoal,
+          composition: s.composition,
+          action: s.action,
+          expression: s.expression,
+          props: s.props,
+          staging: s.staging,
+          camera: s.camera,
+          cameraKeys: idx === 2 ? keys.map((k) => ({ ...k, x: Number(k.x) + 40 })) : keys,
+          easing: s.easing,
+          actorStart: s.actorStart,
+          actorEnd: s.actorEnd,
+          propKeyframes:
+            idx === 2 && Array.isArray(s.propKeyframes)
+              ? (s.propKeyframes as Array<Record<string, number>>).map((pk) => ({ ...pk, y: Number(pk.y) - 55 }))
+              : s.propKeyframes,
+          transition: s.transition,
+          asset_inputs: s.asset_inputs,
+          sfx: s.sfx,
+        };
+        return baseObj;
+      });
+
+      const patchRes = await diffApp.app.inject({
+        method: 'PATCH',
+        url: '/api/projects/cowboy-diff',
+        payload: { expectedRevision: curProj.meta.revision, shots: curShots },
+      });
+      expect(patchRes.statusCode).toBe(200);
+
+      // Render 0.4s draft clip AFTER edit at exact same timestamp
+      const draft2Res = await diffApp.app.inject({
+        method: 'POST',
+        url: '/api/projects/cowboy-diff/draft',
+        payload: { ratio: '9:16', draftScale: 0.5, start: 3.0, seconds: 0.4, trustedCode: true },
+      });
+      expect(draft2Res.statusCode).toBe(200);
+      const j2 = await waitJob(draft2Res.json().job.id);
+      expect(j2.status).toBe('succeeded');
+      const vid2 = path.join(projDir, j2.videoPath as string);
+      spawnSync(ffmpeg, ['-v', 'error', '-y', '-i', vid2, '-vf', 'select=eq(n\\,5)', '-vframes', '1', png2], { shell: false });
+
+      const buf1 = await sharp(png1).ensureAlpha().raw().toBuffer();
+      const buf2 = await sharp(png2).ensureAlpha().raw().toBuffer();
+      let diffSum = 0;
+      for (let i = 0; i < buf1.length; i++) diffSum += Math.abs(buf1[i] - buf2[i]);
+      const mad = diffSum / buf1.length;
+      expect(mad).toBeGreaterThan(2.5);
+    } finally {
+      await diffApp.app.close();
+      await fsp.rm(diffRoot, { recursive: true, force: true });
+    }
+  }, 60000);
+});

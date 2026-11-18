@@ -1,0 +1,232 @@
+{
+  "schema": "b6-studio-assets/1",
+  "assets": [
+    {
+      "id": "asset-c033e370",
+      "filename": "western_wide_bg.png",
+      "relativePath": "assets/production/western_wide_bg.png",
+      "role": "background_mid",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 3591259,
+      "sha256": "dc4a5860cd3bf492905f8d4571f32af92233fdf10a653cd426ec6d308e0dae6a",
+      "tags": [
+        "background_mid",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "image-generator + OpenCV RGBA cut",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      }
+    },
+    {
+      "id": "asset-074ee7ea",
+      "filename": "western_fg_frame.png",
+      "relativePath": "assets/production/western_fg_frame.png",
+      "role": "foreground",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 320843,
+      "sha256": "b6b9dc202f9bd5d82aca3ad7fff2b6343a64498add1d18c43e3eda521d2d0808",
+      "tags": [
+        "foreground",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "image-generator + OpenCV RGBA cut",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      }
+    },
+    {
+      "id": "asset-aaf2f83a",
+      "filename": "cowboy_hat.png",
+      "relativePath": "assets/production/cowboy_hat.png",
+      "role": "prop",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 75381,
+      "sha256": "85c48c0170f755129db251ff06b35df60f5173aeeb3a8ee28a462dbe954361e0",
+      "tags": [
+        "prop",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "image-generator + OpenCV RGBA cut",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      }
+    },
+    {
+      "id": "asset-19869ba7",
+      "filename": "body.png",
+      "relativePath": "characters/jesse/three_quarter/body.png",
+      "role": "character_body",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 135009,
+      "sha256": "27d1dd784c84d1d1e40a78c53a06ecd6711e580c48be0f75bd7c5b1c2ec5c1c3",
+      "tags": [
+        "character_body",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "image-generator + OpenCV RGBA cut",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      },
+      "actorId": "jesse",
+      "viewId": "three_quarter"
+    },
+    {
+      "id": "asset-105b2ec2",
+      "filename": "head.png",
+      "relativePath": "characters/jesse/three_quarter/head.png",
+      "role": "character_head",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 91720,
+      "sha256": "22107efaaafa2fc3a50b8e15132b7db5da53527608de9653de9285bdd5cd566c",
+      "tags": [
+        "character_head",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "image-generator + OpenCV RGBA cut",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      },
+      "actorId": "jesse",
+      "viewId": "three_quarter",
+      "expressionId": "neutral"
+    },
+    {
+      "id": "asset-aa628285",
+      "filename": "head-shocked.png",
+      "relativePath": "characters/jesse/three_quarter/head-shocked.png",
+      "role": "expression",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 92736,
+      "sha256": "8681e61bebf709aa99d138dbfee466cee8e274e8edc2d207c15cf640bfcf2f2d",
+      "tags": [
+        "expression",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "image-generator + OpenCV RGBA cut",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      },
+      "actorId": "jesse",
+      "viewId": "three_quarter",
+      "expressionId": "shocked"
+    },
+    {
+      "id": "asset-4988a143",
+      "filename": "head-determined.png",
+      "relativePath": "characters/jesse/three_quarter/head-determined.png",
+      "role": "expression",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 91471,
+      "sha256": "b3e079926bcb6a7e83e2260401b7bf947c5a76cdbccf649e9e4e187d793e79bd",
+      "tags": [
+        "expression",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "image-generator + OpenCV RGBA cut",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      },
+      "actorId": "jesse",
+      "viewId": "three_quarter",
+      "expressionId": "determined"
+    },
+    {
+      "id": "asset-d7638e55",
+      "filename": "head-deadpan.png",
+      "relativePath": "characters/jesse/three_quarter/head-deadpan.png",
+      "role": "expression",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 90590,
+      "sha256": "dd1be3b1f58e758aed58703b4d711560100c437c83aa6c72015f69cc037418fb",
+      "tags": [
+        "expression",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "image-generator + OpenCV RGBA cut",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      },
+      "actorId": "jesse",
+      "viewId": "three_quarter",
+      "expressionId": "deadpan"
+    },
+    {
+      "id": "asset-3019602f",
+      "filename": "cuff-left.png",
+      "relativePath": "characters/jesse/three_quarter/cuff-left.png",
+      "role": "sleeve_cuff",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 4644,
+      "sha256": "8aa1ca9bd3f8a57a8c1f5f929474e17d15c7e936224cafb9fe714d05711c01f1",
+      "tags": [
+        "sleeve_cuff",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "image-generator + OpenCV RGBA cut",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      },
+      "actorId": "jesse",
+      "viewId": "three_quarter"
+    },
+    {
+      "id": "asset-534040ce",
+      "filename": "cuff-right.png",
+      "relativePath": "characters/jesse/three_quarter/cuff-right.png",
+      "role": "sleeve_cuff",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 4587,
+      "sha256": "f102c41b9651797c3ab93746a82b1767102380912a895892f97f448ef76aa499",
+      "tags": [
+        "sleeve_cuff",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "image-generator + OpenCV RGBA cut",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      },
+      "actorId": "jesse",
+      "viewId": "three_quarter"
+    },
+    {
+      "id": "asset-5d2b301a",
+      "filename": "narration_mix.wav",
+      "relativePath": "audio/narration_mix.wav",
+      "role": "audio_narration",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "audio/wav",
+      "sizeBytes": 882044,
+      "sha256": "8d8769396aa7084dd96146bdad2ae520b905de9323dd525b6f8ea650620af203",
+      "tags": [
+        "audio_narration",
+        "cowboy-hat-10s"
+      ],
+      "provenance": {
+        "source": "local_synth",
+        "tool": "System.Speech + NumPy SFX",
+        "createdAt": "2026-11-18T06:15:47.240728Z"
+      }
+    }
+  ]
+}

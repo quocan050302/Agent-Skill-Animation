@@ -33,6 +33,8 @@ import { JobQueue } from './services/job-queue.js';
 import { MediaService } from './services/media-service.js';
 import { ReviewService } from './services/review-service.js';
 import { OutputService } from './services/output-service.js';
+import { QaEvidenceResolver } from './services/qa-evidence-service.js';
+import { EditorBindingService } from './services/editor-binding-service.js';
 
 export interface ServerDependencies {
   projectsDir?: string;
@@ -68,27 +70,34 @@ export async function buildApp(deps: ServerDependencies = {}): Promise<{
     },
   });
 
+  const qaResolver = new QaEvidenceResolver();
+  const editorBindingService = new EditorBindingService();
   const doctorService = new EnvDoctorService();
   const upstreamService = new UpstreamService();
   const projectService = new ProjectService(projectsDir);
-  const timelineService = new ScriptTimelineService(projectService);
-  const assetService = new AssetService(projectService);
-  const characterService = new CharacterBindingService(projectService);
+  const timelineService = new ScriptTimelineService(projectService, editorBindingService, qaResolver);
+  const assetService = new AssetService(projectService, qaResolver);
+  const characterService = new CharacterBindingService(projectService, qaResolver);
   const commandAdapter = new B6CommandAdapter();
-  const jobQueue = new JobQueue(jobsDir, projectsDir);
+  const jobQueue = new JobQueue(jobsDir, projectsDir, qaResolver);
   app.addHook('onClose', async () => {
     await jobQueue.shutdown();
   });
   const mediaService = new MediaService(projectService);
-  const reviewService = new ReviewService(projectService);
-  const outputService = new OutputService(projectService);
+  const reviewService = new ReviewService(projectService, qaResolver);
+  const outputService = new OutputService(projectService, qaResolver);
 
   app.setErrorHandler((err, _req, reply) => {
     const message = err instanceof Error ? err.message : 'Lỗi không xác định';
+    const explicitCode = (err as { statusCode?: number }).statusCode;
     const statusCode =
-      message.includes('Không tìm thấy') ? 404
-      : message.includes('không hợp lệ') || message.includes('bị chặn') || message.includes('Bị chặn') || message.includes('Zod') ? 400
-      : (err as { statusCode?: number }).statusCode ?? 400;
+      typeof explicitCode === 'number' && explicitCode >= 400
+        ? explicitCode
+        : message.includes('Không tìm thấy')
+        ? 404
+        : message.includes('không hợp lệ') || message.includes('bị chặn') || message.includes('Bị chặn') || message.includes('Zod')
+        ? 400
+        : 400;
     reply.code(statusCode).send({ error: message });
   });
 
@@ -339,9 +348,51 @@ export async function buildApp(deps: ServerDependencies = {}): Promise<{
         trustedCode: z.boolean().default(false),
       })
       .parse(req.body ?? {});
+    const qa = await qaResolver.resolveQaState(dir, body.ratio);
+    if (!qa.summary.renderUnlocked) {
+      throw new Error(
+        `Chưa đủ điều kiện Full Export: ${qa.summary.blockingReasons.join(' | ') || 'Cần preview PASS hiện hành, visual review 35 mục PASS và phê duyệt người dùng hợp lệ.'}`,
+      );
+    }
     const spec = commandAdapter.buildRender(dir, body.ratio, body.trustedCode);
     const job = await jobQueue.enqueue({ projectId: id, kind: 'render', ratio: body.ratio, spec, heavyEncode: true });
     return { job };
+  });
+
+  app.get('/api/projects/:id/editor-binding', async (req) => {
+    const { id } = req.params as { id: string };
+    const { ratio } = z.object({ ratio: RatioSchema.default('9:16') }).parse(req.query ?? {});
+    const dir = projectService.getProjectDir(id);
+    const detail = await projectService.getProject(id);
+    const qa = await qaResolver.resolveQaState(dir, ratio);
+    const binding = await editorBindingService.resolveBindingStatus(dir, detail, {
+      voiceStale: qa.summary.voiceStale,
+      technicalStatus: qa.summary.technicalStatus,
+      editorSyncState: qa.summary.editorSyncState,
+    });
+    return { binding, qa: qa.summary };
+  });
+
+  app.post('/api/projects/:id/voice/synthesize-local', async (req) => {
+    const { id } = req.params as { id: string };
+    const body = z
+      .object({
+        voiceHint: z.string().max(80).optional(),
+        rate: z.number().int().min(-10).max(10).optional(),
+        filename: z.string().max(100).optional(),
+      })
+      .parse(req.body ?? {});
+    const voice = await timelineService.synthesizeLocalVoiceWav(id, body);
+    const detail = await projectService.getProject(id);
+    const qa = await qaResolver.resolveQaState(projectService.getProjectDir(id), detail.meta.activeRatio);
+    return { voice, qa: qa.summary, project: detail };
+  });
+
+  app.get('/api/projects/:id/qa', async (req) => {
+    const { id } = req.params as { id: string };
+    const { ratio } = z.object({ ratio: RatioSchema.default('9:16') }).parse(req.query ?? {});
+    const review = await reviewService.getReviewState(id, ratio);
+    return { qa: review };
   });
 
   // Outputs & Reviews

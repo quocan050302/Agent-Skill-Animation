@@ -14,6 +14,7 @@ import {
   api,
   type CharacterActorDto,
   type DoctorReportDto,
+  type EditorBindingStatusDto,
   type OutputArtifactDto,
   type ProjectDetailDto,
   type ProjectSummaryDto,
@@ -61,6 +62,10 @@ function normalizeShotsFromPlan(plan: Record<string, unknown> | undefined): Shot
       : Array.isArray(s.cameraKeys)
       ? (s.cameraKeys as ShotItem['cameraKeys'])
       : [{ t: 0, x: 0, y: -210, z: 0, fov: 55 }],
+    easing: s.easing as ShotItem['easing'],
+    actorStart: s.actorStart as ShotItem['actorStart'],
+    actorEnd: s.actorEnd as ShotItem['actorEnd'],
+    propKeyframes: Array.isArray(s.propKeyframes) ? (s.propKeyframes as ShotItem['propKeyframes']) : undefined,
     transition: String(s.transition ?? 'cut'),
     short_cut_reason: typeof s.short_cut_reason === 'string' ? s.short_cut_reason : undefined,
     asset_inputs: Array.isArray(s.asset_inputs) ? (s.asset_inputs as string[]) : [],
@@ -101,7 +106,9 @@ export function App() {
   const [outputs, setOutputs] = useState<OutputArtifactDto[]>([]);
   const [selectedOutputId, setSelectedOutputId] = useState<string | null>(null);
   const [reviewState, setReviewState] = useState<ReviewStateDto | null>(null);
+  const [editorBinding, setEditorBinding] = useState<EditorBindingStatusDto | null>(null);
   const [trustedCode, setTrustedCode] = useState(false);
+  const expectedRevisionRef = useRef<number | undefined>(undefined);
 
   // Jobs & Live SSE
   const [jobs, setJobs] = useState<JobRecord[]>([]);
@@ -129,8 +136,16 @@ export function App() {
   }, []);
 
   const loadProjectBundle = useCallback(async (id: string) => {
-    const { project: detail } = await api.getProject(id);
     const switchedProject = activeProjectIdRef.current !== id;
+    if (switchedProject) {
+      setOutputs([]);
+      setSelectedOutputId(null);
+      setReviewState(null);
+      setEditorBinding(null);
+      setLatestPreflight(null);
+      setJobs([]);
+    }
+    const { project: detail } = await api.getProject(id);
     activeProjectIdRef.current = id;
     setProject(detail);
     localStorage.setItem('b6.activeProjectId', id);
@@ -155,19 +170,22 @@ export function App() {
     setSaveStatus('saved');
     setSaveError(null);
 
-    const [assetsRes, charsRes, outsRes, revRes, jobsRes] = await Promise.all([
+    const [assetsRes, charsRes, outsRes, bindRes, reviewRes, jobsRes] = await Promise.all([
       api.listAssets(id),
       api.getCharacters(id),
       api.getOutputs(id),
+      api.getEditorBinding(id, activeRatio),
       api.getReviewState(id, activeRatio),
       api.listJobs(id),
     ]);
+    expectedRevisionRef.current = detail.meta.revision;
     setAssets(assetsRes.assets);
     setInboxFiles(assetsRes.inboxFiles);
     setCharacters(charsRes.actors);
     setLatestPreflight(charsRes.latestPreflight);
     setOutputs(outsRes.outputs);
-    setReviewState(revRes.review);
+    setReviewState(reviewRes.review);
+    setEditorBinding(bindRes.binding);
     setJobs(jobsRes.jobs);
     if (switchedProject) {
       setActiveJobId(jobsRes.jobs.length > 0 ? jobsRes.jobs[0].id : null);
@@ -285,6 +303,7 @@ export function App() {
       setSaveError(null);
       try {
         const res = await api.patchProject(activeProjectId, {
+          expectedRevision: expectedRevisionRef.current,
           title: snapToSave.title || activeProjectId,
           premise: snapToSave.premise,
           hook: snapToSave.hook,
@@ -298,9 +317,18 @@ export function App() {
           captions: snapToSave.captions,
           nativeLayoutReason: snapToSave.nativeLayoutReason,
         });
+        expectedRevisionRef.current = res.detail.meta.revision;
         setProject(res.detail);
         setValidationErrors(res.validation.errors);
         setSaveStatus('saved');
+        const [bindRes, reviewRes, outsRes] = await Promise.all([
+          api.getEditorBinding(activeProjectId, res.detail.meta.activeRatio),
+          api.getReviewState(activeProjectId, res.detail.meta.activeRatio),
+          api.getOutputs(activeProjectId),
+        ]);
+        setEditorBinding(bindRes.binding);
+        setReviewState(reviewRes.review);
+        setOutputs(outsRes.outputs);
         void loadProjectsList();
       } catch (err) {
         setSaveStatus('error');
@@ -557,6 +585,8 @@ export function App() {
               }}
               onAddShot={handleAddShot}
               missingItems={project.completeness.missingItems}
+              reviewState={reviewState}
+              editorBinding={editorBinding}
             />
           )}
 
@@ -661,6 +691,34 @@ export function App() {
               }}
               outputs={outputs}
               reviewState={reviewState}
+              editorBinding={editorBinding}
+              onSynthesizeLocalVoice={async (opts) => {
+                if (autosaveTimerRef.current) {
+                  window.clearTimeout(autosaveTimerRef.current);
+                  if (latestEditorRef.current) await commitSave(latestEditorRef.current);
+                }
+                const res = await api.synthesizeLocalVoice(project.id, opts);
+                expectedRevisionRef.current = res.project.meta.revision;
+                setProject(res.project);
+                const [bindRes, reviewRes] = await Promise.all([
+                  api.getEditorBinding(project.id, activeRatio),
+                  api.getReviewState(project.id, activeRatio),
+                ]);
+                setReviewState(reviewRes.review);
+                setEditorBinding(bindRes.binding);
+              }}
+              onVerifyChanges={async () => {
+                if (autosaveTimerRef.current) {
+                  window.clearTimeout(autosaveTimerRef.current);
+                }
+                if (latestEditorRef.current) {
+                  await commitSave(latestEditorRef.current);
+                }
+                await loadProjectBundle(project.id);
+              }}
+              onReloadConflict={async () => {
+                await loadProjectBundle(project.id);
+              }}
               trustedCode={trustedCode}
               onToggleTrustedCode={setTrustedCode}
               onRunValidate={() => launchJob(() => api.runValidate(project.id, activeRatio))}

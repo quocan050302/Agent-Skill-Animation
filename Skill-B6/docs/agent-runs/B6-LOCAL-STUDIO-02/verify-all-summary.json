@@ -1,0 +1,296 @@
+{
+  "ok": true,
+  "parityOk": true,
+  "speedupRatio": 1.16,
+  "passes": [
+    {
+      "passLabel": "workers=1",
+      "workerLimit": 1,
+      "ok": true,
+      "wallMs": 86992,
+      "tasks": [
+        {
+          "id": "upstream_doctor_checkpack",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 1151,
+          "stdoutTail": [
+            "    \"b6_complete_pack\": true",
+            "  },",
+            "  \"gemini_key_present\": false,",
+            "  \"network_checked\": false,",
+            "  \"note\": \"Key presence is not quota/billing verification\"",
+            "}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "workspace_build",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 14254,
+          "stdoutTail": [
+            "rendering chunks...",
+            "computing gzip size...",
+            "\u001b[2mdist/\u001b[22m\u001b[32mindex.html                 \u001b[39m\u001b[1m\u001b[2m  0.43 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  0.29 kB\u001b[22m",
+            "\u001b[2mdist/\u001b[22m\u001b[35massets/index-BxmodpBg.css  \u001b[39m\u001b[1m\u001b[2m  9.89 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  2.69 kB\u001b[22m",
+            "\u001b[2mdist/\u001b[22m\u001b[36massets/index-DqGRKUo0.js   \u001b[39m\u001b[1m\u001b[2m332.44 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 95.86 kB\u001b[22m",
+            "\u001b[32m✓ built in 3.83s\u001b[39m"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "hydrate_verify_existing",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 2385,
+          "stdoutTail": [
+            "        \"already_hydrated\"",
+            "      ],",
+            "      \"errors\": []",
+            "    }",
+            "  ]",
+            "}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "frontend_typecheck",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 4263,
+          "stdoutTail": [
+            "> @b6-studio/frontend@1.0.0 typecheck",
+            "> tsc -b --noEmit"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "server_vitest",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 21526,
+          "stdoutTail": [
+            "   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m QA Truth Negative Traps, Concurrency Lock & Editor Binding Backtests\u001b[2m > \u001b[22mproves UI edits to camera/prop flow into rendered pixels and mark stale QA honestly \u001b[33m 9277\u001b[2mms\u001b[22m\u001b[39m",
+            "",
+            "\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m",
+            "\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m13 passed\u001b[39m\u001b[22m\u001b[90m (13)\u001b[39m",
+            "\u001b[2m   Start at \u001b[22m 13:53:31",
+            "\u001b[2m   Duration \u001b[22m 20.10s\u001b[2m (transform 195ms, setup 0ms, collect 520ms, tests 19.19s, environment 0ms, prepare 140ms)\u001b[22m"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "cowboy_preflight_validate",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 1058,
+          "stdoutTail": [
+            "RESULT {\"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"valid\": true, \"renderer\": \"b6-production-v1\", \"fingerprint\": \"262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c\", \"ratio\": \"9:16\", \"duration\": 10.0}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "roman_baseline_sandbox_replay",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 12080,
+          "stdoutTail": [
+            "{\"checked_frame\": 0, \"total\": 45}",
+            "",
+            "RESULT {\"status\": \"draft_only_not_formal_quality_evidence\", \"kind\": \"draft\", \"technical_fixture\": false, \"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"ratio\": \"9:16\", \"fingerprint\": \"28c4ff3cfea1f5c888f7c7fb1a1f156002926a2c89330843e79a6f724510921e\", \"checked_frames\": 45, \"arm_poses_checked\": 90, \"straight_legs_checked\": 90, \"max_prop_contact_error_px\": 6.355287432313019e-14, \"external_media_reads\": [], \"voice_speed\": 1, \"new_story_acceptance\": \"not implied by reusing a tested performance\", \"time_range\": {\"start\": 0.0, \"end\": 1.5}, \"technical_status\": \"pass\", \"creative_status\": \"not_assessed_draft\", \"user_acceptance\": \"not_inferred\", \"review_required\": \"Native preview plus unchanged 35-item motion/AV review required; draft cannot be approved\", \"inputs\": {\"assets/production/arena_foreground.png\": \"573dff61ee14a03d9e8dd22b1cd036f8db6ea8beca11438692735cf617ce419e\", \"assets/production/arena_wide_bg.png\": \"fe0ab065a9f031e52d4ee553e11db265cee2549b8e7d742a37a81a3222b3fc7e\", \"assets/production/roman_pilum.png\": \"3e85646f61056c90309c01cf5063654348fb71506f2128bb5074cae495621bec\", \"assets/production/roman_shield.png\": \"fa1abea9cd3cd48d29b7e404836477538fd76a0ee458212d7a857cef61f23086\", \"audio/narration_mix.wav\": \"e8cefea0670333c09f7bb53f5239ea62c56ce354dc22d6a4f441ca1db39330b4\", \"b6_actions.py\": \"4efcf86cb4f677f1369ca62bb5c87021262c8d92493428f4c91171280760db27\", \"b6_asset_roles.py\": \"ade90e92cad1751bd0b010d508501bba73a41a1ffe6c6018dadd4a368ace9c14\", \"b6_character_preflight.py\": \"561c976f7e8be8ab446e37cbbfcf2fa8d99e9c2d24219291a4f036000fe67e2d\", \"b6_iteration.py\": \"37aac116a54c860aaa5dca66ae7dbc0e68ab9bf2d9296e7c1c49c5e11dc8f1b0\", \"b6_puppet.py\": \"adc4bd4ddcbe2bb184381d080e99ebe1f4bd1beb3b0b6b1a841930ae15d5bed8\", \"b6_space.py\": \"d006c622d63017d7d6ec1a75a56678204fc70486dae944d2b27170d8ae8d5e50\", \"caption_renderer.py\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"captions.json\": \"0a880c4ffda2fd9a6b088fd398e9a4333570e2c44cd267d7626c8b027a60d566\", \"characters.json\": \"707e36903374d01d87668c53ed92bbb9aae02d7d54931bbdc0bcc1aaef02a082\", \"characters/marcus/package.json\": \"42f2dfc6c90cc9a2295fd921c17b8efea3ac2ea8b0abbb69411707a2a79264bf\", \"characters/marcus/three_quarter/body.png\": \"a367d2ab8ce5809cd596881da5727388af1454ecb5cd09602a679f5ee43dd7dc\", \"characters/marcus/three_quarter/cuff-left.png\": \"f64f4960e5c437236877592aa4702b4f3376fe8f31b4102bc74ca74ef30a46da\", \"characters/marcus/three_quarter/cuff-right.png\": \"6b2c2afd17a3eea40b377a97bdf1a08532a2a0449f545b60c6da55b26edc9fa2\", \"characters/marcus/three_quarter/head-alert.png\": \"1fcb14304891b253e0e966e3f526fb11e640d95dec6bf3bc065f92e6877cdfb9\", \"characters/marcus/three_quarter/head-bracing.png\": \"0eff8eaab0f0800f7c9148f2573b927916c76b51a44022e350315337c2cb7ef0\", \"characters/marcus/three_quarter/head.png\": \"b3e1035d753b58cbb60ada81750abc6e5742ecff9f82f81460c87bede9298598\", \"fonts/ArchivoBlack.ttf\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"fonts/OFL-ArchivoBlack.txt\": \"4cafdbbd100af37a23805af09b7068e4daafb4516dc3d6d52436f4a9d7b4c0d3\", \"formats/portrait.json\": \"894b96289d04e5b5f23b0fdbe1fa7ea592123735a14c2ae144497b2371c05d26\", \"motion_review.py\": \"b2f813cf6d42f65d73053eb75565e6f7ee3f32af7f58600679aa6bd042d921ed\", \"project.json\": \"171a219141daa03e80b1765e8bd31b9198d3fa4268f1eac2c79ae7822329061c\", \"quality-target.json\": \"e8103b7d353a14bb7584ebfd1da708f76e22b2da7dc80f30a13d89c3507e4f57\", \"reference/eiffel-portrait-v44.mp4\": \"b0047f5889a7ca1fd47097d8c8b3db054ef412e2f4a7297d3fe04fc1083e5d79\", \"run.py\": \"acc8f41ac7ac1c98b79d6a1869e03bf651107a954b88a830c2dd27d9758476c0\", \"scene.py\": \"43ea199b09c5092a4538a9370bef13ea299164d7f453d6e29542701fd6bcd1d2\", \"story.json\": \"1b4bef283c5beb80d7ad93e2101bd3f65bbe6cb1d4aca9b4849726b9f4d7219a\", \"engine/manifest.json\": \"f5ef182cc381262a42a1a20a807798e255729719b20c741f60201ce0a26df0e2\"}, \"caption_cues\": [{\"start\": 0.1, \"end\": 0.72, \"text\": \"Sand burns\"}, {\"start\": 0.72, \"end\": 1.48, \"text\": \"under the roar.\"}, {\"start\": 1.6, \"end\": 2.48, \"text\": \"Marcus steps out\"}, {\"start\": 2.48, \"end\": 3.38, \"text\": \"onto the floor.\"}, {\"start\": 3.55, \"end\": 4.45, \"text\": \"Wait, a stray\"}, {\"start\": 4.45, \"end\": 5.45, \"text\": \"spear drops!\"}, {\"start\": 5.65, \"end\": 6.42, \"text\": \"Instinct snaps\"}, {\"start\": 6.42, \"end\": 7.25, \"text\": \"the shield up!\"}, {\"start\": 7.6, \"end\": 8.32, \"text\": \"One heartbeat\"}, {\"start\": 8.32, \"end\": 9.65, \"text\": \"too late?\"}], \"render_profile\": \"draft-viewport-v1\", \"dimensions\": [360, 640], \"native_dimensions\": [720, 1280], \"fps\": 30, \"reviewable\": false, \"timings\": {\"load_seconds\": 0.7412, \"setup_seconds\": 0.2215, \"scene_seconds\": 7.1319, \"validation_seconds\": 0.2685, \"caption_seconds\": 0.3642, \"encoder_write_seconds\": 0.0233, \"mux_seconds\": 0.1062, \"total_seconds\": 9.3087}, \"caption_sidecars\": [\"outputs\\\\replay-draft\\\\captions.srt\", \"outputs\\\\replay-draft\\\\captions.vtt\"], \"draft_caption_observations\": {\"profile\": {\"profile\": \"eiffel-v44-portrait-archivo-black-v1\", \"native_design\": \"9:16\", \"font_family\": \"Archivo Black\", \"font_file\": \"fonts/ArchivoBlack.ttf\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"font_size\": 47, \"stroke\": 4, \"fill\": \"#ffffff\", \"stroke_fill\": \"#171319\", \"supersampling\": 3, \"resample\": \"lanczos\", \"anchor\": \"ms\", \"side\": 44, \"switch\": \"hard_cut\", \"autoshrink\": false, \"pop\": false, \"baseline\": 914, \"band\": [864, 951]}, \"renderer_sha256\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"cues_sha256\": \"0a880c4ffda2fd9a6b088fd398e9a4333570e2c44cd267d7626c8b027a60d566\", \"observed_cues\": [{\"start\": 0.1, \"end\": 0.72, \"text\": \"Sand burns\", \"raster_bounds\": [106.0, 436.5, 254.5, 460.5]}, {\"start\": 0.72, \"end\": 1.48, \"text\": \"under the roar.\", \"raster_bounds\": [82.5, 436.5, 277.5, 460.5]}], \"limitation\": \"Configuration, font identity and measured caption raster only; decoded pixels, semantic speech timing and AV readability still require review.\"}, \"video\": \"outputs\\\\replay-draft\\\\preview.mp4\", \"video_sha256\": \"6ece24b25668410530ec2c80d7d09e13335a1032d0e703dc2b6a19892c6bf45c\"}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "clean_clone_hydrate_test",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 3606,
+          "stdoutTail": [
+            "RESULT {\"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"valid\": true, \"renderer\": \"b6-production-v1\", \"fingerprint\": \"262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c\", \"ratio\": \"9:16\", \"duration\": 10.0}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "playwright_e2e",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 25216,
+          "stdoutTail": [
+            "Running 2 tests using 1 worker",
+            "",
+            "  ok 1 e2e\\studio.spec.ts:11:3 › B6 Local Studio E2E Verification › responsive layout has zero horizontal overflow across 320/375/768/1024/1440 (3.9s)",
+            "  ok 2 e2e\\studio.spec.ts:57:3 › B6 Local Studio E2E Verification › create project, edit & persist across reload, create Anti asset brief, run real B6 validate job, and cleanup (18.5s)",
+            "",
+            "  2 passed (24.3s)"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "passLabel": "workers=2",
+      "workerLimit": 2,
+      "ok": true,
+      "wallMs": 75233,
+      "tasks": [
+        {
+          "id": "upstream_doctor_checkpack",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 1512,
+          "stdoutTail": [
+            "    \"b6_complete_pack\": true",
+            "  },",
+            "  \"gemini_key_present\": false,",
+            "  \"network_checked\": false,",
+            "  \"note\": \"Key presence is not quota/billing verification\"",
+            "}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "workspace_build",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 16730,
+          "stdoutTail": [
+            "rendering chunks...",
+            "computing gzip size...",
+            "\u001b[2mdist/\u001b[22m\u001b[32mindex.html                 \u001b[39m\u001b[1m\u001b[2m  0.43 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  0.29 kB\u001b[22m",
+            "\u001b[2mdist/\u001b[22m\u001b[35massets/index-BxmodpBg.css  \u001b[39m\u001b[1m\u001b[2m  9.89 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  2.69 kB\u001b[22m",
+            "\u001b[2mdist/\u001b[22m\u001b[36massets/index-DqGRKUo0.js   \u001b[39m\u001b[1m\u001b[2m332.44 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 95.86 kB\u001b[22m",
+            "\u001b[32m✓ built in 2.98s\u001b[39m"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "hydrate_verify_existing",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 939,
+          "stdoutTail": [
+            "        \"already_hydrated\"",
+            "      ],",
+            "      \"errors\": []",
+            "    }",
+            "  ]",
+            "}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "frontend_typecheck",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 4680,
+          "stdoutTail": [
+            "> @b6-studio/frontend@1.0.0 typecheck",
+            "> tsc -b --noEmit"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "server_vitest",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 24337,
+          "stdoutTail": [
+            "   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m QA Truth Negative Traps, Concurrency Lock & Editor Binding Backtests\u001b[2m > \u001b[22mproves UI edits to camera/prop flow into rendered pixels and mark stale QA honestly \u001b[33m 11676\u001b[2mms\u001b[22m\u001b[39m",
+            "",
+            "\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m",
+            "\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m13 passed\u001b[39m\u001b[22m\u001b[90m (13)\u001b[39m",
+            "\u001b[2m   Start at \u001b[22m 13:55:04",
+            "\u001b[2m   Duration \u001b[22m 23.16s\u001b[2m (transform 245ms, setup 0ms, collect 691ms, tests 21.95s, environment 0ms, prepare 107ms)\u001b[22m"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "cowboy_preflight_validate",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 1532,
+          "stdoutTail": [
+            "RESULT {\"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"valid\": true, \"renderer\": \"b6-production-v1\", \"fingerprint\": \"262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c\", \"ratio\": \"9:16\", \"duration\": 10.0}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "roman_baseline_sandbox_replay",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 22814,
+          "stdoutTail": [
+            "{\"checked_frame\": 0, \"total\": 45}",
+            "",
+            "RESULT {\"status\": \"draft_only_not_formal_quality_evidence\", \"kind\": \"draft\", \"technical_fixture\": false, \"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"ratio\": \"9:16\", \"fingerprint\": \"28c4ff3cfea1f5c888f7c7fb1a1f156002926a2c89330843e79a6f724510921e\", \"checked_frames\": 45, \"arm_poses_checked\": 90, \"straight_legs_checked\": 90, \"max_prop_contact_error_px\": 6.355287432313019e-14, \"external_media_reads\": [], \"voice_speed\": 1, \"new_story_acceptance\": \"not implied by reusing a tested performance\", \"time_range\": {\"start\": 0.0, \"end\": 1.5}, \"technical_status\": \"pass\", \"creative_status\": \"not_assessed_draft\", \"user_acceptance\": \"not_inferred\", \"review_required\": \"Native preview plus unchanged 35-item motion/AV review required; draft cannot be approved\", \"inputs\": {\"assets/production/arena_foreground.png\": \"573dff61ee14a03d9e8dd22b1cd036f8db6ea8beca11438692735cf617ce419e\", \"assets/production/arena_wide_bg.png\": \"fe0ab065a9f031e52d4ee553e11db265cee2549b8e7d742a37a81a3222b3fc7e\", \"assets/production/roman_pilum.png\": \"3e85646f61056c90309c01cf5063654348fb71506f2128bb5074cae495621bec\", \"assets/production/roman_shield.png\": \"fa1abea9cd3cd48d29b7e404836477538fd76a0ee458212d7a857cef61f23086\", \"audio/narration_mix.wav\": \"e8cefea0670333c09f7bb53f5239ea62c56ce354dc22d6a4f441ca1db39330b4\", \"b6_actions.py\": \"4efcf86cb4f677f1369ca62bb5c87021262c8d92493428f4c91171280760db27\", \"b6_asset_roles.py\": \"ade90e92cad1751bd0b010d508501bba73a41a1ffe6c6018dadd4a368ace9c14\", \"b6_character_preflight.py\": \"561c976f7e8be8ab446e37cbbfcf2fa8d99e9c2d24219291a4f036000fe67e2d\", \"b6_iteration.py\": \"37aac116a54c860aaa5dca66ae7dbc0e68ab9bf2d9296e7c1c49c5e11dc8f1b0\", \"b6_puppet.py\": \"adc4bd4ddcbe2bb184381d080e99ebe1f4bd1beb3b0b6b1a841930ae15d5bed8\", \"b6_space.py\": \"d006c622d63017d7d6ec1a75a56678204fc70486dae944d2b27170d8ae8d5e50\", \"caption_renderer.py\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"captions.json\": \"0a880c4ffda2fd9a6b088fd398e9a4333570e2c44cd267d7626c8b027a60d566\", \"characters.json\": \"707e36903374d01d87668c53ed92bbb9aae02d7d54931bbdc0bcc1aaef02a082\", \"characters/marcus/package.json\": \"42f2dfc6c90cc9a2295fd921c17b8efea3ac2ea8b0abbb69411707a2a79264bf\", \"characters/marcus/three_quarter/body.png\": \"a367d2ab8ce5809cd596881da5727388af1454ecb5cd09602a679f5ee43dd7dc\", \"characters/marcus/three_quarter/cuff-left.png\": \"f64f4960e5c437236877592aa4702b4f3376fe8f31b4102bc74ca74ef30a46da\", \"characters/marcus/three_quarter/cuff-right.png\": \"6b2c2afd17a3eea40b377a97bdf1a08532a2a0449f545b60c6da55b26edc9fa2\", \"characters/marcus/three_quarter/head-alert.png\": \"1fcb14304891b253e0e966e3f526fb11e640d95dec6bf3bc065f92e6877cdfb9\", \"characters/marcus/three_quarter/head-bracing.png\": \"0eff8eaab0f0800f7c9148f2573b927916c76b51a44022e350315337c2cb7ef0\", \"characters/marcus/three_quarter/head.png\": \"b3e1035d753b58cbb60ada81750abc6e5742ecff9f82f81460c87bede9298598\", \"fonts/ArchivoBlack.ttf\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"fonts/OFL-ArchivoBlack.txt\": \"4cafdbbd100af37a23805af09b7068e4daafb4516dc3d6d52436f4a9d7b4c0d3\", \"formats/portrait.json\": \"894b96289d04e5b5f23b0fdbe1fa7ea592123735a14c2ae144497b2371c05d26\", \"motion_review.py\": \"b2f813cf6d42f65d73053eb75565e6f7ee3f32af7f58600679aa6bd042d921ed\", \"project.json\": \"171a219141daa03e80b1765e8bd31b9198d3fa4268f1eac2c79ae7822329061c\", \"quality-target.json\": \"e8103b7d353a14bb7584ebfd1da708f76e22b2da7dc80f30a13d89c3507e4f57\", \"reference/eiffel-portrait-v44.mp4\": \"b0047f5889a7ca1fd47097d8c8b3db054ef412e2f4a7297d3fe04fc1083e5d79\", \"run.py\": \"acc8f41ac7ac1c98b79d6a1869e03bf651107a954b88a830c2dd27d9758476c0\", \"scene.py\": \"43ea199b09c5092a4538a9370bef13ea299164d7f453d6e29542701fd6bcd1d2\", \"story.json\": \"1b4bef283c5beb80d7ad93e2101bd3f65bbe6cb1d4aca9b4849726b9f4d7219a\", \"engine/manifest.json\": \"f5ef182cc381262a42a1a20a807798e255729719b20c741f60201ce0a26df0e2\"}, \"caption_cues\": [{\"start\": 0.1, \"end\": 0.72, \"text\": \"Sand burns\"}, {\"start\": 0.72, \"end\": 1.48, \"text\": \"under the roar.\"}, {\"start\": 1.6, \"end\": 2.48, \"text\": \"Marcus steps out\"}, {\"start\": 2.48, \"end\": 3.38, \"text\": \"onto the floor.\"}, {\"start\": 3.55, \"end\": 4.45, \"text\": \"Wait, a stray\"}, {\"start\": 4.45, \"end\": 5.45, \"text\": \"spear drops!\"}, {\"start\": 5.65, \"end\": 6.42, \"text\": \"Instinct snaps\"}, {\"start\": 6.42, \"end\": 7.25, \"text\": \"the shield up!\"}, {\"start\": 7.6, \"end\": 8.32, \"text\": \"One heartbeat\"}, {\"start\": 8.32, \"end\": 9.65, \"text\": \"too late?\"}], \"render_profile\": \"draft-viewport-v1\", \"dimensions\": [360, 640], \"native_dimensions\": [720, 1280], \"fps\": 30, \"reviewable\": false, \"timings\": {\"load_seconds\": 1.2758, \"setup_seconds\": 0.332, \"scene_seconds\": 12.5167, \"validation_seconds\": 0.4539, \"caption_seconds\": 0.6642, \"encoder_write_seconds\": 0.0514, \"mux_seconds\": 0.0973, \"total_seconds\": 16.1981}, \"caption_sidecars\": [\"outputs\\\\replay-draft\\\\captions.srt\", \"outputs\\\\replay-draft\\\\captions.vtt\"], \"draft_caption_observations\": {\"profile\": {\"profile\": \"eiffel-v44-portrait-archivo-black-v1\", \"native_design\": \"9:16\", \"font_family\": \"Archivo Black\", \"font_file\": \"fonts/ArchivoBlack.ttf\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"font_size\": 47, \"stroke\": 4, \"fill\": \"#ffffff\", \"stroke_fill\": \"#171319\", \"supersampling\": 3, \"resample\": \"lanczos\", \"anchor\": \"ms\", \"side\": 44, \"switch\": \"hard_cut\", \"autoshrink\": false, \"pop\": false, \"baseline\": 914, \"band\": [864, 951]}, \"renderer_sha256\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"cues_sha256\": \"0a880c4ffda2fd9a6b088fd398e9a4333570e2c44cd267d7626c8b027a60d566\", \"observed_cues\": [{\"start\": 0.1, \"end\": 0.72, \"text\": \"Sand burns\", \"raster_bounds\": [106.0, 436.5, 254.5, 460.5]}, {\"start\": 0.72, \"end\": 1.48, \"text\": \"under the roar.\", \"raster_bounds\": [82.5, 436.5, 277.5, 460.5]}], \"limitation\": \"Configuration, font identity and measured caption raster only; decoded pixels, semantic speech timing and AV readability still require review.\"}, \"video\": \"outputs\\\\replay-draft\\\\preview.mp4\", \"video_sha256\": \"6ece24b25668410530ec2c80d7d09e13335a1032d0e703dc2b6a19892c6bf45c\"}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "clean_clone_hydrate_test",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 4847,
+          "stdoutTail": [
+            "RESULT {\"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"valid\": true, \"renderer\": \"b6-production-v1\", \"fingerprint\": \"262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c\", \"ratio\": \"9:16\", \"duration\": 10.0}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "playwright_e2e",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 21802,
+          "stdoutTail": [
+            "Running 2 tests using 1 worker",
+            "",
+            "  ok 1 e2e\\studio.spec.ts:11:3 › B6 Local Studio E2E Verification › responsive layout has zero horizontal overflow across 320/375/768/1024/1440 (4.4s)",
+            "  ok 2 e2e\\studio.spec.ts:57:3 › B6 Local Studio E2E Verification › create project, edit & persist across reload, create Anti asset brief, run real B6 validate job, and cleanup (14.5s)",
+            "",
+            "  2 passed (20.7s)"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        }
+      ]
+    }
+  ],
+  "generatedAt": "2026-11-18T06:55:49.582Z"
+}

@@ -5,9 +5,11 @@ import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import path from 'node:path';
 import type { JobKind, JobRecord, Ratio } from '@b6-studio/shared';
-import { JOBS_DIR, MIN_FREE_BYTES_RENDER, PROJECTS_DIR } from '../config.js';
+import { JOBS_DIR, PROJECTS_DIR, resolveMinFreeBytesRender } from '../config.js';
 import { getFreeDiskBytes, readJsonFile, writeAtomicJson } from '../utils/fs-safe.js';
 import type { CommandSpec } from './b6-command-adapter.js';
+import type { StudioMeta } from './project-service.js';
+import type { QaEvidenceResolver } from './qa-evidence-service.js';
 
 interface QueuedTask {
   job: JobRecord;
@@ -31,7 +33,11 @@ export class JobQueue extends EventEmitter {
   private readonly maxLightConcurrency = 2;
   private activeLightCount = 0;
 
-  constructor(jobsDir = JOBS_DIR, projectsDir = PROJECTS_DIR) {
+  constructor(
+    jobsDir = JOBS_DIR,
+    projectsDir = PROJECTS_DIR,
+    private readonly qaResolver?: QaEvidenceResolver,
+  ) {
     super();
     this.jobsDir = jobsDir;
     this.projectsDir = projectsDir;
@@ -123,15 +129,18 @@ export class JobQueue extends EventEmitter {
     ratio?: Ratio;
     spec: CommandSpec;
     heavyEncode?: boolean;
+    estimatedTempBytes?: number;
   }): Promise<JobRecord> {
     const heavyEncode = opts.heavyEncode ?? ['draft', 'preview', 'render', 'review-pack'].includes(opts.kind);
 
     if (heavyEncode) {
       const freeBytes = getFreeDiskBytes(this.projectsDir);
-      if (freeBytes < MIN_FREE_BYTES_RENDER) {
+      const minFreeRequired = resolveMinFreeBytesRender(opts.estimatedTempBytes ?? 150 * 1024 * 1024);
+      if (freeBytes < minFreeRequired) {
         const freeMiB = Math.round(freeBytes / (1024 * 1024));
+        const reqMiB = Math.round(minFreeRequired / (1024 * 1024));
         throw new Error(
-          `Không đủ dung lượng đĩa trống để render (${freeMiB} MiB còn lại; yêu cầu tối thiểu 512 MiB).`,
+          `Không đủ dung lượng đĩa trống để render (${freeMiB} MiB còn lại; yêu cầu tối thiểu ${reqMiB} MiB).`,
         );
       }
     }
@@ -313,12 +322,58 @@ export class JobQueue extends EventEmitter {
         job.stageLabel = 'Đã hủy bởi người dùng';
         await this.cleanupCancelledOutput(job.outputDir);
       } else if (exitCode === 0) {
-        job.status = 'succeeded';
-        job.stageLabel = `Hoàn tất ${job.kind}`;
         const parsed = this.extractResultJson(allStdout.join('\n'), job.reportPath);
         job.resultJson = parsed;
-        if (parsed && typeof parsed.video === 'string' && job.projectId) {
-          job.videoPath = parsed.video;
+        let verificationError: string | null = null;
+        const requiresArtifactCheck = ['draft', 'preview', 'render', 'review-pack'].includes(job.kind);
+
+        if (requiresArtifactCheck) {
+          if (job.reportPath && !fs.existsSync(job.reportPath)) {
+            verificationError = `Thiếu tệp báo cáo đầu ra sau khi kết thúc ${job.kind}: ${path.basename(job.reportPath)}`;
+          } else if (['draft', 'preview', 'render'].includes(job.kind)) {
+            const videoRel = parsed && typeof parsed.video === 'string' ? parsed.video : null;
+            if (!videoRel || !job.projectId) {
+              verificationError = `Báo cáo ${job.kind} thiếu trường video đầu ra.`;
+            } else {
+              const videoAbs = path.resolve(this.projectsDir, job.projectId, videoRel);
+              if (!fs.existsSync(videoAbs) || fs.statSync(videoAbs).size <= 0) {
+                verificationError = `Tệp video đầu ra bị thiếu hoặc rỗng: ${videoRel}`;
+              } else {
+                job.videoPath = videoRel;
+              }
+            }
+            if (!verificationError && parsed && parsed.technical_status && parsed.technical_status !== 'pass' && job.kind !== 'draft') {
+              verificationError = `Báo cáo ${job.kind} ghi technical_status=${String(parsed.technical_status)}`;
+            }
+          }
+        }
+
+        if (verificationError) {
+          job.status = 'failed';
+          job.stageLabel = `Lỗi xác minh artifact ${job.kind}`;
+          job.errorMessage = verificationError;
+        } else {
+          job.status = 'succeeded';
+          job.stageLabel = `Hoàn tất ${job.kind}`;
+          if (parsed && typeof parsed.video === 'string' && job.projectId && !job.videoPath) {
+            job.videoPath = parsed.video;
+          }
+          if (job.projectId && ['preview', 'render'].includes(job.kind)) {
+            const metaPath = path.join(this.projectsDir, job.projectId, 'studio.meta.json');
+            if (fs.existsSync(metaPath)) {
+              try {
+                const meta = await readJsonFile<StudioMeta>(metaPath);
+                meta.lastRenderedRevision = Number(meta.revision ?? 1);
+                await writeAtomicJson(metaPath, meta);
+              } catch {
+                // non-fatal
+              }
+            }
+          }
+        }
+
+        if (job.projectId) {
+          this.qaResolver?.invalidateProject(path.join(this.projectsDir, job.projectId));
         }
       } else {
         job.status = 'failed';

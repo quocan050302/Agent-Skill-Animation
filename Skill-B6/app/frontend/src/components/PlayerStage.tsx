@@ -10,7 +10,7 @@ import {
   VolumeX,
 } from 'lucide-react';
 import type { Ratio, ShotItem } from '@b6-studio/shared';
-import type { OutputArtifactDto } from '../api/client';
+import type { EditorBindingStatusDto, OutputArtifactDto, ReviewStateDto } from '../api/client';
 
 interface PlayerStageProps {
   projectId: string;
@@ -24,6 +24,8 @@ interface PlayerStageProps {
   onSelectShot: (idx: number) => void;
   onAddShot: () => void;
   missingItems: string[];
+  reviewState?: ReviewStateDto | null;
+  editorBinding?: EditorBindingStatusDto | null;
 }
 
 export const PlayerStage: React.FC<PlayerStageProps> = ({
@@ -37,6 +39,8 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
   onSelectShot,
   onAddShot,
   missingItems,
+  reviewState,
+  editorBinding,
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -97,14 +101,66 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div className="player-container">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span className="section-label" style={{ margin: 0 }}>Xem thử ({ratio})</span>
             {activeOutput && (
-              <span className="badge badge-neutral">
-                {activeOutput.kind.toUpperCase()} · {activeOutput.id}
+              <>
+                <span className="badge badge-neutral">
+                  {activeOutput.kind.toUpperCase()} · {activeOutput.id}
+                </span>
+                <span
+                  className={`badge ${
+                    activeOutput.verificationStatus === 'current'
+                      ? 'badge-success'
+                      : activeOutput.verificationStatus === 'corrupt'
+                      ? 'badge-danger'
+                      : activeOutput.verificationStatus === 'stale'
+                      ? 'badge-warning'
+                      : 'badge-neutral'
+                  }`}
+                  data-testid="output-freshness-badge"
+                >
+                  {activeOutput.verificationStatus === 'current'
+                    ? 'Current PASS'
+                    : activeOutput.verificationStatus === 'stale'
+                    ? 'Preview STALE (Cần render lại)'
+                    : activeOutput.verificationStatus === 'corrupt'
+                    ? 'Corrupt / FAIL'
+                    : 'Draft lịch sử'}
+                </span>
+              </>
+            )}
+            {editorBinding && (
+              <span
+                className={`badge ${
+                  editorBinding.syncState === 'applied_to_renderer' || editorBinding.syncState === 'bound_current'
+                    ? 'badge-success'
+                    : editorBinding.syncState === 'preview_stale' || editorBinding.syncState === 'voice_needs_regeneration'
+                    ? 'badge-warning'
+                    : 'badge-neutral'
+                }`}
+                data-testid="editor-sync-badge"
+              >
+                {editorBinding.syncState === 'applied_to_renderer'
+                  ? 'Applied to renderer'
+                  : editorBinding.syncState === 'bound_current'
+                  ? 'Bound (chờ render)'
+                  : editorBinding.syncState === 'preview_stale'
+                  ? 'Preview stale'
+                  : editorBinding.syncState === 'voice_needs_regeneration'
+                  ? 'Voice needs regeneration'
+                  : editorBinding.syncState === 'manual_scene_only'
+                  ? 'Manual scene (needs authoring)'
+                  : 'Chưa biên soạn'}
+                {' · '}rev {editorBinding.revision}
               </span>
             )}
           </div>
+          {reviewState && reviewState.technicalStatus === 'stale' && activeOutput?.verificationStatus === 'stale' && (
+            <div style={{ width: '100%', fontSize: 12, color: 'var(--warning)' }}>
+              Dữ liệu chỉnh sửa hiện tại khác với bản render đang phát — hãy bấm <strong>Render Preview Native MP4</strong> để xem thay đổi mới nhất.
+            </div>
+          )}
           {outputs.length > 0 && (
             <select
               aria-label="Chọn bản render để xem"

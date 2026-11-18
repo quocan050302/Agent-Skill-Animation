@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { readJsonFile, resolveInsideRoot, sha256File, writeAtomicJson } from '../utils/fs-safe.js';
-import type { ProjectService } from './project-service.js';
+import type { ProjectService, StudioMeta } from './project-service.js';
+import type { QaEvidenceResolver } from './qa-evidence-service.js';
 
 export interface CharacterPackageView {
   viewId: string;
@@ -57,7 +58,10 @@ export interface CharacterSummary {
 }
 
 export class CharacterBindingService {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(
+    private readonly projectService: ProjectService,
+    private readonly qaResolver?: QaEvidenceResolver,
+  ) {}
 
   async getCharacters(projectId: string): Promise<{
     schema: string;
@@ -231,6 +235,18 @@ export class CharacterBindingService {
     }
 
     await writeAtomicJson(pkgPath, rawPkg);
+    const metaPath = path.join(dir, 'studio.meta.json');
+    if (fs.existsSync(metaPath)) {
+      try {
+        const meta = await readJsonFile<StudioMeta>(metaPath);
+        meta.revision = Number(meta.revision ?? 1) + 1;
+        meta.updatedAt = new Date().toISOString();
+        await writeAtomicJson(metaPath, meta);
+      } catch {
+        // non-fatal
+      }
+    }
+    this.qaResolver?.invalidateProject(dir);
     return rawPkg;
   }
 }

@@ -1,0 +1,52 @@
+{
+  "version": 2,
+  "style": "B6",
+  "renderer": "b6-production-v1",
+  "purpose": "production",
+  "stage": "authored",
+  "duration": 10.0,
+  "fps": 30,
+  "scene": "scene.py",
+  "story": "story.json",
+  "captions": "captions.json",
+  "formats": {
+    "9:16": "formats/portrait.json"
+  },
+  "voice": {
+    "name": "Microsoft David Desktop (Local SAPI)",
+    "path": "audio/narration_mix.wav",
+    "sha256": "8d8769396aa7084dd96146bdad2ae520b905de9323dd525b6f8ea650620af203",
+    "speed": 1,
+    "source": "Local Windows System.Speech synthesis + Python procedural frontier wind/footfall SFX mix"
+  },
+  "bindings": null,
+  "character_system": {
+    "schema": "b6-character-system/1",
+    "registry": "characters.json"
+  },
+  "quality_target": "quality-target.json",
+  "caption_font_variant": "archivo-black",
+  "inputs": [
+    "motion_review.py",
+    "b6_space.py",
+    "caption_renderer.py",
+    "b6_puppet.py",
+    "b6_asset_roles.py",
+    "b6_actions.py",
+    "b6_iteration.py",
+    "b6_character_preflight.py",
+    "fonts/ArchivoBlack.ttf",
+    "fonts/OFL-ArchivoBlack.txt",
+    "scene-control.json",
+    "scene_runtime.py",
+    "assets/production/western_wide_bg.png",
+    "assets/production/western_fg_frame.png",
+    "assets/production/cowboy_hat.png"
+  ],
+  "review": {
+    "status": "pending",
+    "art": null,
+    "acting": null,
+    "sound": null
+  }
+}

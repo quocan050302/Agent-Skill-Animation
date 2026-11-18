@@ -1,0 +1,17 @@
+{
+  "schema": "b6-studio-meta/1",
+  "id": "cowboy-hat-10s",
+  "title": "The Cowboy Who Couldn't Catch His Hat",
+  "brief": "9:16 Sample-1-inspired cowboy slapstick chase across frontier Main Street.",
+  "language": "en",
+  "targetDuration": 10.0,
+  "activeRatio": "9:16",
+  "premise": "A proud cowboy loses his prize brown hat to one sudden desert gust and sprints past Main Street only to swallow dust as it flips back crooked onto his brow.",
+  "hook": "One desert gust stole Jesse's hat.",
+  "createdAt": "2026-11-18T06:15:47.240728Z",
+  "updatedAt": "2026-11-18T06:15:47.240728Z",
+  "revision": 1,
+  "lastRenderedRevision": 1,
+  "voiceTextSha256": "7acc1e6ed8c2a4fa34984956fcd3ce9d78c48371cdd98050e87f9a120561506f",
+  "sceneSyncRequests": []
+}

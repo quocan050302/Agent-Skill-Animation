@@ -3,8 +3,12 @@ import type {
   AssetRecord,
   AssetRole,
   CreateProjectInput,
+  EditorSyncState,
   JobRecord,
   PatchProjectInput,
+  QaApprovalVerdict,
+  QaTechnicalVerdict,
+  QaVisualVerdict,
   Ratio,
 } from '@b6-studio/shared';
 
@@ -40,6 +44,9 @@ export interface ProjectDetailDto {
     hook: string;
     createdAt: string;
     updatedAt: string;
+    revision?: number;
+    lastRenderedRevision?: number | null;
+    voiceTextSha256?: string | null;
     sceneSyncRequests: Array<{ id: string; createdAt: string; note: string; status: 'pending' | 'applied' }>;
   };
   projectJson: Record<string, unknown>;
@@ -118,6 +125,8 @@ export interface OutputArtifactDto {
   technicalStatus: string;
   creativeStatus: string;
   userAcceptance: string;
+  verificationStatus: 'current' | 'historical' | 'stale' | 'corrupt';
+  verificationReasons: string[];
   fingerprint: string;
   ffprobe: {
     width: number;
@@ -133,27 +142,67 @@ export interface OutputArtifactDto {
 }
 
 export interface ReviewStateDto {
-  technicalStatus: 'pass' | 'fail' | 'pending';
-  visualReviewStatus: 'pass' | 'needs_repair' | 'pending';
-  userApprovalStatus: 'approved' | 'rejected' | 'pending';
+  technicalStatus: QaTechnicalVerdict;
+  visualReviewStatus: QaVisualVerdict;
+  userApprovalStatus: QaApprovalVerdict;
+  reasonCodes: string[];
+  staleReasons: string[];
+  blockingReasons: string[];
+  currentSourceFingerprint: string | null;
+  previewFingerprint: string | null;
+  previewSha256: string | null;
+  reviewSha256: string | null;
+  verifiedAt: string;
+  voiceStale: boolean;
+  editorSyncState: EditorSyncState;
+  renderUnlocked: boolean;
+  evidenceLinks: Array<{ label: string; path: string; status: string }>;
   latestReport: {
     path: string;
     kind: string;
     ratio: string;
+    status: string;
     fingerprint: string;
     videoPath?: string;
     videoSha256?: string;
+    timeRange?: { start: number; end: number };
+    checkedFrames?: number;
+    reasonCodes: string[];
   } | null;
   latestMotionReview: {
     path: string;
     status: string;
+    rawStatus: string;
+    reviewSha256: string;
     subcheckCounts: { total: number; pass: number; pending: number; needsRepair: number; na: number };
     remainingGaps: string[];
     htmlIndexUrl: string | null;
+    reasonCodes: string[];
   } | null;
   approvalRecord: Record<string, unknown> | null;
   historyEvents: unknown[];
   activeFailure: unknown | null;
+  outputStatuses?: Record<string, { status: 'current' | 'historical' | 'stale' | 'corrupt'; reasonCodes: string[] }>;
+}
+
+export interface FieldRuntimeBindingRowDto {
+  uiField: string;
+  jsonPath: string;
+  pythonFunction: string;
+  affectedRegion: string;
+  verificationMethod: string;
+  liveBound: boolean;
+}
+
+export interface EditorBindingStatusDto {
+  mode: 'bound_canonical' | 'authored_custom_scene';
+  syncState: EditorSyncState;
+  revision: number;
+  lastRenderedRevision: number | null;
+  voiceStale: boolean;
+  canSynthesizeLocalVoice: boolean;
+  gaitHonestyNote: string;
+  mappings: FieldRuntimeBindingRowDto[];
 }
 
 export interface CharacterActorDto {
@@ -205,7 +254,9 @@ async function req<T>(url: string, init?: RequestInit): Promise<T> {
     throw new Error(`Server trả về lỗi (${res.status}): ${text.slice(0, 200)}`);
   }
   if (!res.ok) {
-    throw new Error(String(data.error ?? `HTTP ${res.status}`));
+    const err = new Error(String(data.error ?? `HTTP ${res.status}`)) as Error & { status?: number };
+    err.status = res.status;
+    throw err;
   }
   return data as T;
 }
@@ -307,6 +358,20 @@ export const api = {
     }),
   getReviewState: (id: string, ratio: Ratio) =>
     req<{ review: ReviewStateDto }>(`/api/projects/${encodeURIComponent(id)}/review?ratio=${encodeURIComponent(ratio)}`),
+  getEditorBinding: (id: string, ratio: Ratio) =>
+    req<{ binding: EditorBindingStatusDto; qa: ReviewStateDto }>(
+      `/api/projects/${encodeURIComponent(id)}/editor-binding?ratio=${encodeURIComponent(ratio)}`,
+    ),
+  synthesizeLocalVoice: (id: string, payload?: { voiceHint?: string; rate?: number; filename?: string }) =>
+    req<{
+      voice: { path: string; sha256: string; duration: number; voiceName: string; revision: number };
+      qa: ReviewStateDto;
+      project: ProjectDetailDto;
+    }>(`/api/projects/${encodeURIComponent(id)}/voice/synthesize-local`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload ?? {}),
+    }),
   runPreflight: (id: string) =>
     req<{ job: JobRecord }>(`/api/projects/${encodeURIComponent(id)}/preflight`, {
       method: 'POST',

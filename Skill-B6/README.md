@@ -10,7 +10,9 @@
 - **Upstream Vendor Checkout (Read-Only)**: `D:\Project_github\Agent-Skill\Skill-B6\vendor\stickman-video-director`
 - **B6 Skill Entrypoint**: `D:\Project_github\Agent-Skill\Skill-B6\vendor\stickman-video-director\skills\directing-stickman-videos`
 - **Workspace Projects**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\projects`
-- **Project mẫu La Mã 10s (Mới)**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\projects\roman-gladiator-10s`
+- **Project mẫu La Mã 10s (Baseline R1)**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\projects\roman-gladiator-10s`
+- **Project Cao bồi 10s (Mới R2 — Live `scene-control.json` binding)**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\projects\cowboy-hat-10s`
+- **Video preview tự chứa của run R2**: `docs/agent-runs/B6-LOCAL-STUDIO-02/cowboy-preview-10s.mp4` (`3.343 MiB`, `720x1280`, `30fps`, `10.0s`)
 - **Jobs & Logs**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\jobs`
 - **Python Isolated Virtualenv**: `D:\Project_github\Agent-Skill\Skill-B6\.venv\Scripts\python.exe`
 
@@ -23,10 +25,13 @@
 
 ## 3. Khởi động nhanh (One-Command Startup)
 
-### Cài đặt từ đầu (Windows PowerShell / macOS & Linux)
+### Cài đặt & Hydrate sau khi `git clone` sạch (Windows PowerShell / macOS & Linux)
 ```powershell
-# Windows PowerShell
+# Windows PowerShell (cài dependencies, checkout upstream SHA ghim ở upstream-lock.json, hydrate engine/fonts/reference)
 .\scripts\setup.ps1
+
+# Hoặc chỉ hydrate lại các artifact .gitignore vào workspace/projects
+npm run hydrate
 ```
 ```bash
 # macOS / Linux
@@ -57,9 +62,10 @@ Hoặc dùng script PowerShell / Shell (tự hỗ trợ `-Open` mở trình duy�
 - **Health Check**: `http://127.0.0.1:4310/api/health`
 - **Dừng ứng dụng**: Nhấn `Ctrl + C` trong terminal đang chạy `dev.ps1` / `dev.sh`.
 
-### Kiểm chứng toàn bộ hệ thống (Tests + Doctor + E2E)
+### Kiểm chứng toàn bộ hệ thống (Bounded-Parallel DAG + Clean Clone + E2E)
 ```powershell
-.\scripts\verify.ps1
+# Hoặc: powershell -ExecutionPolicy Bypass -File .\scripts\verify.ps1
+npm run verify:all
 ```
 
 ## 4. Quy trình sử dụng UI (Từ kịch bản đến Export MP4)

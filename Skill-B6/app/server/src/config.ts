@@ -80,5 +80,11 @@ export function resolveRealFfprobe(): string {
 
 export const MIN_FREE_BYTES_CLONE = 6 * 1024 * 1024 * 1024;
 export const WARN_FREE_BYTES_RENDER = 10 * 1024 * 1024 * 1024;
-export const MIN_FREE_BYTES_RENDER = 512 * 1024 * 1024; // Hard block under 512 MiB
+export const MIN_FREE_BYTES_RENDER = 1024 * 1024 * 1024; // Hard block under 1 GiB
 export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50 MiB upload limit per asset
+
+export function resolveMinFreeBytesRender(estimatedTempBytes = 0): number {
+  const envVal = process.env.B6_MIN_FREE_BYTES ? Number(process.env.B6_MIN_FREE_BYTES) : NaN;
+  const floorBytes = Number.isFinite(envVal) && envVal >= 0 ? envVal : MIN_FREE_BYTES_RENDER;
+  return Math.max(floorBytes, Math.max(0, estimatedTempBytes) * 2);
+}

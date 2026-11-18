@@ -1,0 +1,8 @@
+{
+  "schema": "b6-upstream-lock/1",
+  "repoUrl": "https://github.com/kaomei/stickman-video-director.git",
+  "branch": "main",
+  "commitSha": "833e277cab230f22e6d9c24b31a1baccaae0e22d",
+  "skillSubdir": "skills/directing-stickman-videos",
+  "notes": "Read-only upstream vendor pin for B6 Local Studio. Do not mutate vendor files to bypass integrity checks."
+}

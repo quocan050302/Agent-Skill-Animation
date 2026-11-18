@@ -18,6 +18,9 @@ export interface StudioMeta {
   hook: string;
   createdAt: string;
   updatedAt: string;
+  revision?: number;
+  lastRenderedRevision?: number | null;
+  voiceTextSha256?: string | null;
   sceneSyncRequests: Array<{
     id: string;
     createdAt: string;
@@ -216,6 +219,9 @@ export class ProjectService {
       hook: '',
       createdAt: now,
       updatedAt: now,
+      revision: 1,
+      lastRenderedRevision: null,
+      voiceTextSha256: null,
       sceneSyncRequests: [],
     };
     await writeAtomicJson(path.join(targetDir, 'studio.meta.json'), meta);
@@ -228,6 +234,54 @@ export class ProjectService {
       schema: 'b6-studio-assets/1',
       assets: [],
     });
+
+    // Install canonical scene_runtime.py + starter scene-control.json
+    try {
+      const { EditorBindingService, SCENE_RUNTIME_PY_SOURCE } = await import('./editor-binding-service.js');
+      await fsp.writeFile(path.join(targetDir, 'scene_runtime.py'), SCENE_RUNTIME_PY_SOURCE, 'utf8');
+      const projectJsonPath = path.join(targetDir, 'project.json');
+      const storyJsonPath = path.join(targetDir, 'story.json');
+      const captionsJsonPath = path.join(targetDir, 'captions.json');
+      const projectJson = JSON.parse(await fsp.readFile(projectJsonPath, 'utf8')) as {
+        expected_duration?: number;
+        inputs?: string[];
+      };
+      const storyJson = JSON.parse(await fsp.readFile(storyJsonPath, 'utf8')) as {
+        narration?: string;
+        shots?: Array<Record<string, unknown>>;
+      };
+      const rawCaptions = JSON.parse(await fsp.readFile(captionsJsonPath, 'utf8')) as
+        | Array<{ id?: string; start: number; end: number; text: string }>
+        | { cues?: Array<{ id?: string; start: number; end: number; text: string }> };
+      const captionArr = Array.isArray(rawCaptions) ? rawCaptions : rawCaptions.cues ?? [];
+      const bindingSvc = new EditorBindingService();
+      const canonicalPlan = bindingSvc.buildCanonicalScenePlan({
+        revision: 1,
+        ratio: meta.activeRatio,
+        width: meta.activeRatio === '9:16' ? 720 : 1280,
+        height: meta.activeRatio === '9:16' ? 1280 : 720,
+        duration: Number(projectJson.expected_duration ?? meta.targetDuration),
+        narration: String(storyJson.narration ?? ''),
+        voiceSha256: null,
+        voiceTextSha256: null,
+        shots: Array.isArray(storyJson.shots) ? (storyJson.shots as never[]) : [],
+        captions: captionArr.map((c, idx) => ({
+          id: c.id || `cap_${idx + 1}`,
+          start: Number(c.start ?? 0),
+          end: Number(c.end ?? 0),
+          text: String(c.text ?? ''),
+        })),
+      });
+      await writeAtomicJson(path.join(targetDir, 'scene-control.json'), canonicalPlan);
+      const inputs = Array.isArray(projectJson.inputs) ? [...projectJson.inputs] : [];
+      for (const extra of ['scene-control.json', 'scene_runtime.py']) {
+        if (!inputs.includes(extra)) inputs.push(extra);
+      }
+      projectJson.inputs = inputs;
+      await writeAtomicJson(projectJsonPath, projectJson);
+    } catch {
+      // Leave init template intact; EditorBindingService truthfully reflects custom/unbound mode
+    }
 
     return this.getProject(candidateId);
   }

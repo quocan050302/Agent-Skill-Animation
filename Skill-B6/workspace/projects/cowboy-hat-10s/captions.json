@@ -1,0 +1,37 @@
+[
+  {
+    "start": 0.25,
+    "end": 0.9,
+    "text": "One desert gust"
+  },
+  {
+    "start": 0.9,
+    "end": 2.24,
+    "text": "stole Jesse's hat."
+  },
+  {
+    "start": 2.89,
+    "end": 3.8,
+    "text": "He sprinted down"
+  },
+  {
+    "start": 3.8,
+    "end": 4.49,
+    "text": "Main Street,"
+  },
+  {
+    "start": 5.13,
+    "end": 5.83,
+    "text": "caught the brim,"
+  },
+  {
+    "start": 7.47,
+    "end": 8.26,
+    "text": "and spun right back"
+  },
+  {
+    "start": 8.26,
+    "end": 9.6,
+    "text": "in a cloud of dust."
+  }
+]

@@ -45,6 +45,35 @@ export const StagingCoordSchema = z.object({
 });
 export type StagingCoord = z.infer<typeof StagingCoordSchema>;
 
+export const ShotEasingSchema = z.enum(['smooth', 'linear', 'ease_in', 'ease_out', 'hold']);
+export type ShotEasing = z.infer<typeof ShotEasingSchema>;
+
+export const ActorPoseStateSchema = z.object({
+  x: z.number().finite(),
+  y: z.number().finite(),
+  scale: z.number().finite().positive().default(1),
+  headAngleDeg: z.number().finite().min(-20).max(20).default(0),
+  leftArmAction: z.enum(['rest', 'reach', 'offer', 'point']).default('rest'),
+  leftArmPhase: z.number().finite().min(0).max(1).default(0.5),
+  rightArmAction: z.enum(['rest', 'reach', 'offer', 'point']).default('rest'),
+  rightArmPhase: z.number().finite().min(0).max(1).default(0.5),
+  strideCycles: z.number().finite().min(0).default(0),
+});
+export type ActorPoseState = z.infer<typeof ActorPoseStateSchema>;
+
+export const PropKeyframeSchema = z.object({
+  propId: z.string().min(1).max(60),
+  t: z.number().finite().min(0),
+  x: z.number().finite(),
+  y: z.number().finite(),
+  angleDeg: z.number().finite().default(0),
+  scale: z.number().finite().positive().default(1),
+  holderActor: z.string().optional(),
+  holderArm: z.enum(['left', 'right']).optional(),
+  gripUv: z.tuple([z.number().finite().min(0).max(1), z.number().finite().min(0).max(1)]).optional(),
+});
+export type PropKeyframe = z.infer<typeof PropKeyframeSchema>;
+
 export const ShotItemSchema = z.object({
   id: z.string().min(1).max(80).regex(/^[a-zA-Z0-9_-]+$/),
   start: z.number().finite().min(0),
@@ -61,6 +90,10 @@ export const ShotItemSchema = z.object({
   cameraKeys: z.array(CameraKeyframeSchema).default([
     { t: 0, x: 0, y: -210, z: 0, fov: 55 },
   ]),
+  easing: ShotEasingSchema.optional(),
+  actorStart: ActorPoseStateSchema.optional(),
+  actorEnd: ActorPoseStateSchema.optional(),
+  propKeyframes: z.array(PropKeyframeSchema).optional(),
   transition: z.string().min(1),
   short_cut_reason: z.string().optional(),
   asset_inputs: z.array(z.string()).default([]),
@@ -106,6 +139,7 @@ export const CreateProjectInputSchema = z.object({
 export type CreateProjectInput = z.infer<typeof CreateProjectInputSchema>;
 
 export const PatchProjectInputSchema = z.object({
+  expectedRevision: z.number().int().nonnegative().optional(),
   title: z.string().min(1).max(120).optional(),
   premise: z.string().max(2000).optional(),
   hook: z.string().max(500).optional(),
@@ -213,3 +247,59 @@ export const JobRecordSchema = z.object({
   errorMessage: z.string().nullable(),
 });
 export type JobRecord = z.infer<typeof JobRecordSchema>;
+
+export const QaTechnicalVerdictSchema = z.enum(['pass', 'fail', 'pending', 'stale']);
+export type QaTechnicalVerdict = z.infer<typeof QaTechnicalVerdictSchema>;
+
+export const QaVisualVerdictSchema = z.enum(['pass', 'needs_repair', 'pending', 'stale']);
+export type QaVisualVerdict = z.infer<typeof QaVisualVerdictSchema>;
+
+export const QaApprovalVerdictSchema = z.enum(['approved', 'rejected', 'pending', 'stale']);
+export type QaApprovalVerdict = z.infer<typeof QaApprovalVerdictSchema>;
+
+export const EditorSyncStateSchema = z.enum([
+  'not_authored',
+  'bound_current',
+  'applied_to_renderer',
+  'preview_stale',
+  'voice_needs_regeneration',
+  'manual_scene_only',
+]);
+export type EditorSyncState = z.infer<typeof EditorSyncStateSchema>;
+
+export const CanonicalScenePlanSchema = z.object({
+  schema: z.literal('b6-studio-scene-control/1'),
+  revision: z.number().int().nonnegative(),
+  ratio: RatioSchema,
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  fps: z.literal(30),
+  duration: z.number().finite().positive(),
+  narration: z.string(),
+  voice_sha256: z.string().nullable(),
+  narration_sha256: z.string(),
+  voice_stale: z.boolean(),
+  shots: z.array(ShotItemSchema),
+  captions: z.array(CaptionCueSchema),
+  updatedAt: z.string(),
+});
+export type CanonicalScenePlan = z.infer<typeof CanonicalScenePlanSchema>;
+
+export const QaEvidenceSummarySchema = z.object({
+  technicalStatus: QaTechnicalVerdictSchema,
+  visualReviewStatus: QaVisualVerdictSchema,
+  userApprovalStatus: QaApprovalVerdictSchema,
+  reasonCodes: z.array(z.string()),
+  staleReasons: z.array(z.string()),
+  blockingReasons: z.array(z.string()),
+  currentSourceFingerprint: z.string().nullable(),
+  previewFingerprint: z.string().nullable(),
+  previewSha256: z.string().nullable(),
+  reviewSha256: z.string().nullable(),
+  verifiedAt: z.string(),
+  voiceStale: z.boolean(),
+  editorSyncState: EditorSyncStateSchema,
+  renderUnlocked: z.boolean(),
+  evidenceLinks: z.array(z.object({ label: z.string(), path: z.string(), status: z.string() })),
+});
+export type QaEvidenceSummary = z.infer<typeof QaEvidenceSummarySchema>;

@@ -31,26 +31,33 @@ B6 Local Studio tách bạch hoàn toàn thành 3 tầng trên máy local (`127.
 ```
 
 ## 2. Backend Service Responsibilities (`app/server/src/services/`)
-- `EnvDoctorService`: Kiểm tra Node, Python `.venv`, imports (`numpy`, `PIL`, `cv2`), FFmpeg/FFprobe, chạy `autopilot.mjs doctor --style B6`, kiểm tra dung lượng đĩa trống (`6 GiB` clone / `10 GiB` render warning / `512 MiB` hard block).
-- `UpstreamService`: Đọc read-only SHA commit `HEAD`, nhánh, license MIT, xác minh hash tham chiếu chính `eiffel-portrait-v44.mp4` và `check-pack`.
-- `ProjectService`: Quản lý `workspace/projects/<id>`. Tạo dự án mới bằng CLI `autopilot.mjs init <dir> --style B6 --ratio <r>`. Ghi `studio.meta.json` và giữ cấu trúc tách biệt khỏi `vendor/`.
-- `ScriptTimelineService`: Kiểm tra tính liên tục timeline (no gaps/overlaps, positive shot duration, short-cut reason `<0.9s`, camera keyframes `t=0` & tăng dần, single-line captions khớp `narration`) và ghi atomic (`tmp + fsync + rename`). Hỗ trợ tạo `sceneSyncRequests` hoặc lưu `scene.py`.
-- `AssetService`: Quản lý `assets/manifest.json`, inspect ảnh bằng `sharp` (width, height, alpha bbox, transparent exterior), kiểm tra âm thanh bằng `ffprobe`, chặn SHA-256 trùng media mẫu từ `b6_asset_roles.py` nếu nhập làm `PRODUCTION ASSET`, sinh `assets/requests/*.asset-request.json` và nhập file từ `assets/inbox/`.
-- `CharacterBindingService`: Đọc `characters.json` và `characters/<id>/package.json` (`b6-puppet/1`, `binding_version: 2`), phơi bày trạng thái walk/run gait (`unsupported_needs_authoring`), cập nhật anchor và tính lại SHA-256 gói nhân vật.
+- `EnvDoctorService`: Kiểm tra Node, Python `.venv`, imports (`numpy`, `PIL`, `cv2`), FFmpeg/FFprobe, chạy `autopilot.mjs doctor --style B6`, kiểm tra dung lượng đĩa trống (`6 GiB` clone / `10 GiB` render warning / `1 GiB` hard block mặc định qua `resolveMinFreeBytesRender()`).
+- `UpstreamService`: Đọc read-only SHA commit `HEAD`, nhánh, license MIT, xác minh hash tham chiếu chính `eiffel-portrait-v44.mp4` và `check-pack` đối chiếu `upstream-lock.json`.
+- `ProjectService`: Quản lý `workspace/projects/<id>`. Tạo dự án mới bằng CLI `autopilot.mjs init <dir> --style B6 --ratio <r>`, tự động cài đặt `scene_runtime.py` + `scene-control.json` khởi điểm, lưu `studio.meta.json` (`revision`, `lastRenderedRevision`, `voiceTextSha256`) và giữ cấu trúc tách biệt khỏi `vendor/`.
+- `EditorBindingService`: Biên dịch và kiểm định `scene-control.json` (`b6-studio-scene-control/1`), phát hành `scene_runtime.py` (`load_scene_plan`, `shot_at`, `camera_at`, `actor_state_at`, `prop_state_at`, `qa_trace_at`) để camera keyframes, pose/expression/arm-actions, easing và prop keyframes từ UI chảy trực tiếp vào `frame()`/`draft_frame()`, đồng thời phơi bày bảng ánh xạ binding và trạng thái đồng bộ (`EditorSyncState`).
+- `QaEvidenceResolver`: Nguồn chân lý QA duy nhất (`qa-evidence-service.ts`). Uỷ quyền `run.py validate` tính fingerprint nguồn hiện tại, đối chiếu `report.json` (`video_sha256`, `technical_status`, `checked_frames`, `ffprobe` dimension/fps/duration/audio), kiểm tra đủ 8 nhóm / 35 subchecks với observation không rỗng của `motion-review.json`, xác nhận `approval-9x16.json`/`approval-16x9.json` trùng fingerprint & playback SHA, phát hiện `VOICE_NEEDS_REGENERATION` khi narration thay đổi, và chỉ mở khóa `renderUnlocked` khi cả 3 tầng khớp source hiện hành.
+- `ScriptTimelineService`: Kiểm tra transactional **trước khi ghi file** (`validateTimelineData` + `validateCanonicalScenePlan`), khóa concurrency theo project (`withProjectLock`), optimistic lock `expectedRevision` (`409` nếu xung đột), kiểm tra cú pháp Python trước khi lưu `scene.py`, tổng hợp giọng Windows SAPI local (`synthesizeLocalVoiceWav`) và xóa cache QA sau mỗi lần sửa.
+- `AssetService`: Quản lý `assets/manifest.json`, inspect ảnh bằng `sharp` (width, height, alpha bbox, transparent exterior), kiểm tra âm thanh bằng `ffprobe`, chặn SHA-256 trùng media mẫu từ `b6_asset_roles.py` nếu nhập làm `PRODUCTION ASSET`, đồng bộ `voiceTextSha256` & bump `revision` khi nhập voice mới.
+- `CharacterBindingService`: Đọc `characters.json` và `characters/<id>/package.json` (`b6-puppet/1`, `binding_version: 2`), phơi bày trung thực trạng thái walk/run gait (`unsupported_needs_authoring`), cập nhật anchor, tính lại SHA-256 gói nhân vật, tăng `revision` và làm mất hiệu lực QA cũ.
 - `B6CommandAdapter` & `JobQueue`:
   - Khởi chạy process với `shell: false`, `PYTHONDONTWRITEBYTECODE=1`, `PYTHONPYCACHEPREFIX=workspace/cache/pycache`, và `scripts/ffmpeg-compat` đứng đầu `PATH` (khi chạy trên Windows có FFmpeg 9).
-  - Hàng đợi khóa theo từng project (`activeProjectLocks`) và giới hạn tối đa `1` job encode nặng (`draft`, `preview`, `render`, `review-pack`) chạy đồng thời.
+  - Hàng đợi khóa theo từng project (`activeProjectLocks`), giới hạn tối đa `1` job encode nặng đồng thời, kiểm tra disk floor `>= max(1 GiB, 2 * estimatedTempBytes)` và xác minh report/MP4 đầu ra khi job thoát `0` (fail closed nếu thiếu/rỗng artifact).
   - Durable state lưu tại `workspace/jobs/<jobId>.json` và log append-only tại `workspace/jobs/<jobId>.log`. Khi server khởi động lại, mọi job còn ở trạng thái `running`/`queued` được đánh dấu trung thực là `interrupted`.
   - Hỗ trợ hủy cây tiến trình (`taskkill /PID ... /T /F` trên Windows, `SIGTERM` -> `SIGKILL` trên Unix) và chỉ xóa thư mục output riêng của job bị hủy.
 - `MediaService`: Phục vụ media trong project qua `/api/media/:projectId/*` với `resolveInsideRoot` chống path traversal/symlink escape và hỗ trợ HTTP `206 Partial Content` (Range streaming).
-- `ReviewService` & `OutputService`: Tách biệt 3 trạng thái QA (`technicalStatus`, `visualReviewStatus`, `userApprovalStatus`), probe thông số thực của MP4 qua `ffprobe`, và mở thư mục output local khi người dùng bấm nút.
+- `ReviewService` & `OutputService`: Ủy quyền qua `QaEvidenceResolver` để trả về 3 trạng thái QA tách biệt (`pass | fail | pending | stale`), `verificationStatus` từng output (`current | historical | stale | corrupt`), thông số `ffprobe` thực tế và mở thư mục output local.
 
 ## 3. REST & SSE Endpoints
 - `GET /api/health`, `GET /api/doctor`, `GET /api/upstream`
 - `GET /api/projects`, `POST /api/projects`, `GET /api/projects/:id`, `PATCH /api/projects/:id`, `PUT /api/projects/:id/scene`, `POST /api/projects/:id/duplicate`, `DELETE /api/projects/:id`
+- `GET /api/projects/:id/editor-binding`, `GET /api/projects/:id/qa`, `POST /api/projects/:id/voice/synthesize-local`
 - `GET /api/projects/:id/assets`, `POST /api/projects/:id/assets/import`, `POST /api/projects/:id/assets/brief`
 - `GET /api/projects/:id/characters`, `PATCH /api/projects/:id/characters/:actorId/views/:viewId`
-- `POST /api/projects/:id/{preflight|validate|draft|preview|review-pack|check-review|approve|render}`
+- `POST /api/projects/:id/{preflight|validate|draft|preview|review-pack|check-review|approve|render}` (route `render` chặn `400` nếu `renderUnlocked !== true`)
 - `GET /api/projects/:id/outputs`, `POST /api/projects/:id/outputs/open-folder`, `GET /api/projects/:id/review`
 - `GET /api/jobs`, `GET /api/jobs/:jobId`, `GET /api/jobs/:jobId/events` (SSE), `POST /api/jobs/:jobId/cancel`
 - `GET /api/media/:projectId/*`
+
+## 4. Portable Clean-Clone Hydration & DAG Verification
+- `upstream-lock.json` + `scripts/hydrate-project.{mjs,ps1,sh}`: Khôi phục không phá hủy `engine/`, `fonts/` và `reference/` bị `.gitignore` cho mọi project từ checkout `vendor/` đã pin SHA `833e277cab230f22e6d9c24b31a1baccaae0e22d`.
+- `scripts/verify-all.mjs` (được gọi bởi `scripts/verify.{ps1,sh}`): DAG runner song song có giới hạn (`--max-workers`, `heavyRenderSemaphore = 1`, per-project mutex), ghi log cấu trúc JSONL tại `docs/agent-runs/B6-LOCAL-STUDIO-02/verify-all.jsonl`.
