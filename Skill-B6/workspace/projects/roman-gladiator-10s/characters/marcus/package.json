@@ -1,0 +1,366 @@
+{
+  "schema": "b6-puppet/1",
+  "binding_version": 2,
+  "character_id": "marcus",
+  "display_name": "Marcus \u00b7 Young Roman Gladiator",
+  "coordinate_system": {
+    "feet_origin": [
+      0,
+      0
+    ],
+    "x": "right",
+    "y": "down",
+    "units": "local painted stage pixels"
+  },
+  "views": {
+    "three_quarter": {
+      "facing": "right",
+      "sprites": {
+        "body": {
+          "path": "three_quarter/body.png",
+          "sha256": "a367d2ab8ce5809cd596881da5727388af1454ecb5cd09602a679f5ee43dd7dc",
+          "image_to_local": [
+            [
+              0.3870967741935484,
+              0.0,
+              -64.64516129032258
+            ],
+            [
+              0.0,
+              0.3870967741935484,
+              -268.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "head": {
+          "path": "three_quarter/head.png",
+          "sha256": "b3e1035d753b58cbb60ada81750abc6e5742ecff9f82f81460c87bede9298598",
+          "image_to_local": [
+            [
+              0.5,
+              0.0,
+              -67.1
+            ],
+            [
+              0.0,
+              0.5,
+              -404.5
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "heads": {
+          "neutral": {
+            "path": "three_quarter/head.png",
+            "sha256": "b3e1035d753b58cbb60ada81750abc6e5742ecff9f82f81460c87bede9298598",
+            "image_to_local": [
+              [
+                0.5,
+                0.0,
+                -67.1
+              ],
+              [
+                0.0,
+                0.5,
+                -404.5
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "alert": {
+            "path": "three_quarter/head-alert.png",
+            "sha256": "1fcb14304891b253e0e966e3f526fb11e640d95dec6bf3bc065f92e6877cdfb9",
+            "image_to_local": [
+              [
+                0.5,
+                0.0,
+                -67.1
+              ],
+              [
+                0.0,
+                0.5,
+                -404.5
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "bracing": {
+            "path": "three_quarter/head-bracing.png",
+            "sha256": "0eff8eaab0f0800f7c9148f2573b927916c76b51a44022e350315337c2cb7ef0",
+            "image_to_local": [
+              [
+                0.5,
+                0.0,
+                -67.1
+              ],
+              [
+                0.0,
+                0.5,
+                -404.5
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          }
+        }
+      },
+      "head_anchor": [
+        2.9,
+        -242.0
+      ],
+      "neck_attachment": {
+        "mount_polygon": [
+          [
+            -6.0,
+            -261.0
+          ],
+          [
+            11.0,
+            -261.0
+          ],
+          [
+            11.0,
+            -245.0
+          ],
+          [
+            -6.0,
+            -245.0
+          ]
+        ],
+        "min_overlap_fraction": 0.65,
+        "min_overlap_thickness": 2.5
+      },
+      "arms": {
+        "left": {
+          "socket": [
+            49.54838709677419,
+            -208.38709677419354
+          ],
+          "exit_normal": [
+            0.7071,
+            0.7071
+          ],
+          "exit_center": [
+            53.03225806451613,
+            -202.19354838709677
+          ],
+          "outlet_segment": [
+            [
+              44.516129032258064,
+              -196.0
+            ],
+            [
+              59.22580645161291,
+              -208.38709677419354
+            ]
+          ],
+          "lengths": [
+            56.0,
+            54.0
+          ],
+          "pole": -1,
+          "upper_angle_range_deg": [
+            -70,
+            125
+          ],
+          "elbow_bend_range_deg": [
+            8,
+            130
+          ],
+          "max_ik_offset": 90.0,
+          "ink_width": 5.4,
+          "hand_radius": 9.5,
+          "layer": "back",
+          "cuff": {
+            "path": "three_quarter/cuff-left.png",
+            "sha256": "f64f4960e5c437236877592aa4702b4f3376fe8f31b4102bc74ca74ef30a46da",
+            "image_to_local": [
+              [
+                0.3870967741935484,
+                0.0,
+                -64.64516129032258
+              ],
+              [
+                0.0,
+                0.3870967741935484,
+                -268.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "ink_path": {
+            "mode": "continuous",
+            "sag": 5.0
+          },
+          "poses": {
+            "rest": [
+              42,
+              18
+            ],
+            "reach": [
+              12,
+              55
+            ],
+            "offer": [
+              -15,
+              75
+            ],
+            "receive": [
+              10,
+              75
+            ],
+            "retract": [
+              45,
+              45
+            ]
+          }
+        },
+        "right": {
+          "socket": [
+            -46.064516129032256,
+            -209.16129032258064
+          ],
+          "exit_normal": [
+            0.6427876,
+            0.7660444
+          ],
+          "exit_center": [
+            -47.61290322580645,
+            -200.64516129032256
+          ],
+          "outlet_segment": [
+            [
+              -58.4516129032258,
+              -208.38709677419354
+            ],
+            [
+              -36.0,
+              -194.4516129032258
+            ]
+          ],
+          "lengths": [
+            60.0,
+            58.0
+          ],
+          "pole": 1,
+          "upper_angle_range_deg": [
+            5,
+            136
+          ],
+          "elbow_bend_range_deg": [
+            8,
+            135
+          ],
+          "max_ik_offset": 95.0,
+          "ink_width": 5.4,
+          "hand_radius": 10.0,
+          "layer": "front",
+          "cuff": {
+            "path": "three_quarter/cuff-right.png",
+            "sha256": "6b2c2afd17a3eea40b377a97bdf1a08532a2a0449f545b60c6da55b26edc9fa2",
+            "image_to_local": [
+              [
+                0.3870967741935484,
+                0.0,
+                -64.64516129032258
+              ],
+              [
+                0.0,
+                0.3870967741935484,
+                -268.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "ink_path": {
+            "mode": "continuous",
+            "sag": 6.0
+          },
+          "poses": {
+            "rest": [
+              88,
+              14
+            ],
+            "reach": [
+              52,
+              65
+            ],
+            "offer": [
+              18,
+              95
+            ],
+            "receive": [
+              32,
+              80
+            ],
+            "retract": [
+              62,
+              42
+            ]
+          }
+        }
+      },
+      "legs": {
+        "left": {
+          "hip": [
+            -18.0,
+            -96.0
+          ],
+          "ankle": [
+            -22.0,
+            -4.0
+          ],
+          "ink_width": 5.4,
+          "foot_size": [
+            22.0,
+            8.0
+          ]
+        },
+        "right": {
+          "hip": [
+            20.0,
+            -96.0
+          ],
+          "ankle": [
+            24.0,
+            -4.0
+          ],
+          "ink_width": 5.4,
+          "foot_size": [
+            22.0,
+            8.0
+          ]
+        }
+      },
+      "ink_color": "#1d1410"
+    }
+  }
+}

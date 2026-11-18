@@ -1,0 +1,304 @@
+{
+  "schema": "b6-studio-assets/1",
+  "assets": [
+    {
+      "id": "roman-01",
+      "filename": "arena_wide_bg.png",
+      "relativePath": "assets/production/arena_wide_bg.png",
+      "role": "background_back",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 1569255,
+      "sha256": "fe0ab065a9f031e52d4ee553e11db265cee2549b8e7d742a37a81a3222b3fc7e",
+      "tags": [
+        "roman-gladiator",
+        "background_back"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "Antigravity image-generator subagent + Pillow/OpenCV RGBA segmentation",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Wide Roman Colosseum panorama painted via Anti image-generator"
+      },
+      "width": 1376,
+      "height": 768,
+      "hasAlpha": false
+    },
+    {
+      "id": "roman-02",
+      "filename": "arena_foreground.png",
+      "relativePath": "assets/production/arena_foreground.png",
+      "role": "foreground",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 630722,
+      "sha256": "573dff61ee14a03d9e8dd22b1cd036f8db6ea8beca11438692735cf617ce419e",
+      "tags": [
+        "roman-gladiator",
+        "foreground"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "Antigravity image-generator subagent + Pillow/OpenCV RGBA segmentation",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Weathered stone arch foreground depth layer painted via Anti image-generator"
+      },
+      "width": 1376,
+      "height": 768,
+      "hasAlpha": true,
+      "transparentExterior": true,
+      "alphaBbox": [
+        0,
+        0,
+        1376,
+        768
+      ]
+    },
+    {
+      "id": "roman-03",
+      "filename": "roman_shield.png",
+      "relativePath": "assets/production/roman_shield.png",
+      "role": "prop",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 97586,
+      "sha256": "fa1abea9cd3cd48d29b7e404836477538fd76a0ee458212d7a857cef61f23086",
+      "tags": [
+        "roman-gladiator",
+        "prop"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "Antigravity image-generator subagent + Pillow/OpenCV RGBA segmentation",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Bronze and wood Roman round shield prop cutout"
+      },
+      "width": 212,
+      "height": 294,
+      "hasAlpha": true,
+      "transparentExterior": true,
+      "alphaBbox": [
+        0,
+        0,
+        212,
+        294
+      ]
+    },
+    {
+      "id": "roman-04",
+      "filename": "roman_pilum.png",
+      "relativePath": "assets/production/roman_pilum.png",
+      "role": "prop",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 16220,
+      "sha256": "3e85646f61056c90309c01cf5063654348fb71506f2128bb5074cae495621bec",
+      "tags": [
+        "roman-gladiator",
+        "prop"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "Antigravity image-generator subagent + Pillow/OpenCV RGBA segmentation",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Wooden and iron Roman pilum javelin cutout"
+      },
+      "width": 34,
+      "height": 360,
+      "hasAlpha": true,
+      "transparentExterior": true,
+      "alphaBbox": [
+        0,
+        0,
+        34,
+        360
+      ]
+    },
+    {
+      "id": "roman-05",
+      "filename": "body.png",
+      "relativePath": "characters/marcus/three_quarter/body.png",
+      "role": "character_body",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 198552,
+      "sha256": "a367d2ab8ce5809cd596881da5727388af1454ecb5cd09602a679f5ee43dd7dc",
+      "tags": [
+        "roman-gladiator",
+        "character_body"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "Antigravity image-generator subagent + Pillow/OpenCV RGBA segmentation",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Marcus Roman tunic torso RGBA cutout"
+      },
+      "width": 334,
+      "height": 465,
+      "hasAlpha": true,
+      "transparentExterior": true,
+      "alphaBbox": [
+        0,
+        0,
+        334,
+        465
+      ]
+    },
+    {
+      "id": "roman-06",
+      "filename": "head.png",
+      "relativePath": "characters/marcus/three_quarter/head.png",
+      "role": "character_head",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 118047,
+      "sha256": "b3e1035d753b58cbb60ada81750abc6e5742ecff9f82f81460c87bede9298598",
+      "tags": [
+        "roman-gladiator",
+        "character_head"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "Antigravity image-generator subagent + Pillow/OpenCV RGBA segmentation",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Marcus neutral meme head RGBA cutout"
+      },
+      "width": 280,
+      "height": 325,
+      "hasAlpha": true,
+      "transparentExterior": true,
+      "alphaBbox": [
+        8,
+        17,
+        272,
+        325
+      ]
+    },
+    {
+      "id": "roman-07",
+      "filename": "head-alert.png",
+      "relativePath": "characters/marcus/three_quarter/head-alert.png",
+      "role": "expression",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 121320,
+      "sha256": "1fcb14304891b253e0e966e3f526fb11e640d95dec6bf3bc065f92e6877cdfb9",
+      "tags": [
+        "roman-gladiator",
+        "expression"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "Antigravity image-generator subagent + Pillow/OpenCV RGBA segmentation",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Marcus startled wide-eyed head RGBA cutout"
+      },
+      "width": 280,
+      "height": 325,
+      "hasAlpha": true,
+      "transparentExterior": true,
+      "alphaBbox": [
+        8,
+        17,
+        272,
+        325
+      ]
+    },
+    {
+      "id": "roman-08",
+      "filename": "head-bracing.png",
+      "relativePath": "characters/marcus/three_quarter/head-bracing.png",
+      "role": "expression",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 119114,
+      "sha256": "0eff8eaab0f0800f7c9148f2573b927916c76b51a44022e350315337c2cb7ef0",
+      "tags": [
+        "roman-gladiator",
+        "expression"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "Antigravity image-generator subagent + Pillow/OpenCV RGBA segmentation",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Marcus bracing determined head RGBA cutout"
+      },
+      "width": 280,
+      "height": 325,
+      "hasAlpha": true,
+      "transparentExterior": true,
+      "alphaBbox": [
+        8,
+        17,
+        272,
+        325
+      ]
+    },
+    {
+      "id": "roman-09",
+      "filename": "cuff-left.png",
+      "relativePath": "characters/marcus/three_quarter/cuff-left.png",
+      "role": "sleeve_cuff",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 657,
+      "sha256": "f64f4960e5c437236877592aa4702b4f3376fe8f31b4102bc74ca74ef30a46da",
+      "tags": [
+        "roman-gladiator",
+        "sleeve_cuff"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "Antigravity image-generator subagent + Pillow/OpenCV RGBA segmentation",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Left sleeve cuff alpha matte extracted from body.png"
+      },
+      "width": 334,
+      "height": 465,
+      "hasAlpha": true
+    },
+    {
+      "id": "roman-10",
+      "filename": "cuff-right.png",
+      "relativePath": "characters/marcus/three_quarter/cuff-right.png",
+      "role": "sleeve_cuff",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "image/png",
+      "sizeBytes": 744,
+      "sha256": "6b2c2afd17a3eea40b377a97bdf1a08532a2a0449f545b60c6da55b26edc9fa2",
+      "tags": [
+        "roman-gladiator",
+        "sleeve_cuff"
+      ],
+      "provenance": {
+        "source": "anti_image_gen",
+        "tool": "Antigravity image-generator subagent + Pillow/OpenCV RGBA segmentation",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Right sleeve cuff alpha matte extracted from body.png"
+      },
+      "width": 334,
+      "height": 465,
+      "hasAlpha": true
+    },
+    {
+      "id": "roman-11",
+      "filename": "narration_mix.wav",
+      "relativePath": "audio/narration_mix.wav",
+      "role": "audio_narration",
+      "classification": "PRODUCTION ASSET",
+      "mimeType": "audio/wav",
+      "sizeBytes": 480044,
+      "sha256": "e8cefea0670333c09f7bb53f5239ea62c56ce354dc22d6a4f441ca1db39330b4",
+      "tags": [
+        "roman-gladiator",
+        "audio_narration"
+      ],
+      "provenance": {
+        "source": "local_synth",
+        "tool": "Windows System.Speech + NumPy SFX",
+        "createdAt": "2026-11-18T10:05:00.000Z",
+        "notes": "Original-speed English narration (Windows SAPI) + procedural arena ambience/SFX"
+      }
+    }
+  ]
+}

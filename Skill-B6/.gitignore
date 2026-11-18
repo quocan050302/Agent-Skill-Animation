@@ -1,0 +1,40 @@
+# Vendor upstream checkout (kept separate from app git repo)
+vendor/
+
+# Dependencies & virtual environments
+node_modules/
+**/node_modules/
+.venv/
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Build & TypeScript outputs
+dist/
+**/dist/
+build/
+*.tsbuildinfo
+
+# Workspace runtime data, jobs, cache, temp, upstream-copied engine/reference/fonts, and rendered media
+workspace/projects/*/outputs/
+workspace/projects/*/renders/
+workspace/projects/*/engine/
+workspace/projects/*/reference/
+workspace/projects/*/fonts/
+workspace/projects/*/*.mp4
+workspace/projects/*/*.wav
+workspace/jobs/
+workspace/cache/
+workspace/temp/
+
+# Logs & Playwright artifacts
+*.log
+npm-debug.log*
+playwright-report/
+test-results/
+
+# Local environment & secrets
+.env
+.env.*
+!.env.example

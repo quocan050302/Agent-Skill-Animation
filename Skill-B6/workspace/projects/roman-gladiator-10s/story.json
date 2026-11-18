@@ -1,0 +1,36 @@
+{
+  "narration": "Sand burns under the roar. Marcus steps out onto the floor. Wait, a stray spear drops! Instinct snaps the shield up! One heartbeat too late?",
+  "status": "authored",
+  "beats": [
+    {
+      "id": "establishing-arena",
+      "start": 0.0,
+      "end": 1.5,
+      "action": "Camera establishes wide sunlit Colosseum arena; Marcus stands alert."
+    },
+    {
+      "id": "gladiator-advance",
+      "start": 1.5,
+      "end": 3.5,
+      "action": "Tracking move as Marcus shifts weight forward with grounded steps."
+    },
+    {
+      "id": "spear-drop-surprise",
+      "start": 3.5,
+      "end": 5.3,
+      "action": "A stray Roman spear slams into the sand by his feet; wide-eyed shock reaction."
+    },
+    {
+      "id": "shield-brace-action",
+      "start": 5.3,
+      "end": 7.5,
+      "action": "Camera dollies closer as Marcus raises and braces his bronze shield."
+    },
+    {
+      "id": "reaction-closeup-hold",
+      "start": 7.5,
+      "end": 10.0,
+      "action": "Reaction close-up hold on determined glare as arena dust settles."
+    }
+  ]
+}

@@ -1,0 +1,267 @@
+{
+  "ratio": "9:16",
+  "native_design": "9:16",
+  "width": 720,
+  "height": 1280,
+  "shots": [
+    {
+      "id": "establishing-arena",
+      "start": 0.0,
+      "end": 1.5,
+      "actor": "marcus",
+      "environment": "Colosseum Arena",
+      "sceneGoal": "Establish sunlit Roman arena and foreground stone arch",
+      "composition": "9:16 portrait wide establishing; Marcus centered in lower-mid frame above caption band",
+      "action": "Marcus enters focus in neutral alert stance while dust drifts across stone arch",
+      "expression": "neutral",
+      "props": [
+        "roman_shield"
+      ],
+      "staging": {
+        "marcus": {
+          "x": -40,
+          "y": 0,
+          "z": 960
+        }
+      },
+      "camera": "Lateral pan from left stone arch toward center arena",
+      "camera_keys": [
+        {
+          "t": 0.0,
+          "x": -180,
+          "y": -215,
+          "z": 0,
+          "fov": 55
+        },
+        {
+          "t": 1.5,
+          "x": -35,
+          "y": -215,
+          "z": 50,
+          "fov": 55
+        }
+      ],
+      "transition": "continuous track",
+      "asset_inputs": [
+        "assets/production/arena_wide_bg.png",
+        "assets/production/arena_foreground.png",
+        "assets/production/roman_shield.png"
+      ],
+      "sfx": "arena wind murmur"
+    },
+    {
+      "id": "gladiator-advance",
+      "start": 1.5,
+      "end": 3.5,
+      "actor": "marcus",
+      "environment": "Colosseum Arena",
+      "sceneGoal": "Show Marcus advancing forward with grounded stance weight shift",
+      "composition": "9:16 medium-wide tracking shot following Marcus across sand",
+      "action": "Marcus takes grounded weight-shifting steps forward with shield ready",
+      "expression": "neutral",
+      "props": [
+        "roman_shield"
+      ],
+      "staging": {
+        "marcus": {
+          "x": 0,
+          "y": 0,
+          "z": 910
+        }
+      },
+      "camera": "Smooth lateral & depth tracking follow",
+      "camera_keys": [
+        {
+          "t": 0.0,
+          "x": -35,
+          "y": -215,
+          "z": 50,
+          "fov": 55
+        },
+        {
+          "t": 2.0,
+          "x": 10,
+          "y": -215,
+          "z": 120,
+          "fov": 55
+        }
+      ],
+      "transition": "continuous action",
+      "asset_inputs": [
+        "assets/production/arena_wide_bg.png",
+        "assets/production/roman_shield.png"
+      ],
+      "sfx": "sand footsteps"
+    },
+    {
+      "id": "spear-drop-surprise",
+      "start": 3.5,
+      "end": 5.3,
+      "actor": "marcus",
+      "environment": "Colosseum Arena",
+      "sceneGoal": "Surprise threat: stray pilum drops right beside Marcus's feet",
+      "composition": "9:16 medium shot framing Marcus and planted pilum on right sand",
+      "action": "Pilum drops and sticks into sand at t=3.95s; Marcus snaps head down in wide-eyed shock",
+      "expression": "alert",
+      "props": [
+        "roman_shield",
+        "roman_pilum"
+      ],
+      "staging": {
+        "marcus": {
+          "x": 0,
+          "y": 0,
+          "z": 910
+        }
+      },
+      "camera": "Quick depth push & micro impact impulse on spear thud",
+      "camera_keys": [
+        {
+          "t": 0.0,
+          "x": 10,
+          "y": -215,
+          "z": 120,
+          "fov": 55
+        },
+        {
+          "t": 1.8,
+          "x": 20,
+          "y": -210,
+          "z": 210,
+          "fov": 55
+        }
+      ],
+      "transition": "action beat",
+      "asset_inputs": [
+        "assets/production/roman_pilum.png",
+        "assets/production/roman_shield.png"
+      ],
+      "sfx": "spear whoosh + sand thud"
+    },
+    {
+      "id": "shield-brace-action",
+      "start": 5.3,
+      "end": 7.5,
+      "actor": "marcus",
+      "environment": "Colosseum Arena",
+      "sceneGoal": "Decisive body-supported shield raise and brace reaction",
+      "composition": "9:16 medium close-up keeping face & raised shield above caption band y=864..951",
+      "action": "Marcus braces torso weight, narrows eyes, and snaps bronze shield forward",
+      "expression": "bracing",
+      "props": [
+        "roman_shield",
+        "roman_pilum"
+      ],
+      "staging": {
+        "marcus": {
+          "x": 0,
+          "y": 0,
+          "z": 910
+        }
+      },
+      "camera": "Purposeful dolly landing onto braced gladiator",
+      "camera_keys": [
+        {
+          "t": 0.0,
+          "x": 20,
+          "y": -210,
+          "z": 210,
+          "fov": 55
+        },
+        {
+          "t": 1.4,
+          "x": 8,
+          "y": -225,
+          "z": 310,
+          "fov": 55
+        }
+      ],
+      "transition": "cut to close hold",
+      "asset_inputs": [
+        "assets/production/roman_shield.png",
+        "assets/production/arena_foreground.png"
+      ],
+      "sfx": "bronze shield clang"
+    },
+    {
+      "id": "reaction-closeup-hold",
+      "start": 7.5,
+      "end": 10.0,
+      "actor": "marcus",
+      "environment": "Colosseum Arena",
+      "sceneGoal": "Deliver final reaction punchline with steady readable hold",
+      "composition": "9:16 tight reaction close-up above caption band",
+      "action": "Purposeful hold as Marcus locks determined gaze, subtle head settle",
+      "expression": "bracing",
+      "props": [
+        "roman_shield"
+      ],
+      "staging": {
+        "marcus": {
+          "x": 0,
+          "y": 0,
+          "z": 910
+        }
+      },
+      "camera": "Settled close-up hold",
+      "camera_keys": [
+        {
+          "t": 0.0,
+          "x": 8,
+          "y": -230,
+          "z": 345,
+          "fov": 55
+        },
+        {
+          "t": 2.5,
+          "x": 8,
+          "y": -230,
+          "z": 345,
+          "fov": 55
+        }
+      ],
+      "transition": "end hold",
+      "asset_inputs": [
+        "assets/production/arena_wide_bg.png",
+        "assets/production/roman_shield.png"
+      ],
+      "sfx": "arena wind settle"
+    }
+  ],
+  "cast_inventory": [
+    {
+      "id": "marcus",
+      "role": "Young Roman Gladiator (protagonist)",
+      "shot_ids": [
+        "establishing-arena",
+        "gladiator-advance",
+        "spear-drop-surprise",
+        "shield-brace-action",
+        "reaction-closeup-hold"
+      ]
+    }
+  ],
+  "caption": {
+    "profile": "eiffel-v44-portrait-archivo-black-v1",
+    "native_design": "9:16",
+    "font_family": "Archivo Black",
+    "font_file": "fonts/ArchivoBlack.ttf",
+    "font_sha256": "dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180",
+    "font_size": 47,
+    "stroke": 4,
+    "fill": "#ffffff",
+    "stroke_fill": "#171319",
+    "supersampling": 3,
+    "resample": "lanczos",
+    "anchor": "ms",
+    "side": 44,
+    "switch": "hard_cut",
+    "autoshrink": false,
+    "pop": false,
+    "baseline": 914,
+    "band": [
+      864,
+      951
+    ]
+  }
+}
