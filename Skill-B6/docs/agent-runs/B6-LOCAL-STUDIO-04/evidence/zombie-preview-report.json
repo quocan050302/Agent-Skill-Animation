@@ -1,0 +1,263 @@
+{
+  "status": "automated_checks_passed_pending_visual_and_user_review",
+  "kind": "preview",
+  "technical_fixture": false,
+  "purpose": "production",
+  "delivery_ready": false,
+  "protected_inputs": [],
+  "ratio": "9:16",
+  "fingerprint": "0100d364451e00a7dbf60f3bf98222b715030dabc3cbd3b626b204cec0345def",
+  "checked_frames": 300,
+  "arm_poses_checked": 1200,
+  "straight_legs_checked": 1200,
+  "max_prop_contact_error_px": 2.5421149729252077e-13,
+  "external_media_reads": [],
+  "voice_speed": 1,
+  "new_story_acceptance": "not implied by reusing a tested performance",
+  "time_range": {
+    "start": 0.0,
+    "end": 10.0
+  },
+  "technical_status": "pass",
+  "creative_status": "pending_actual_playback_and_source_review",
+  "user_acceptance": "not_inferred",
+  "review_required": "review-pack then check-review; numeric QC never certifies motion quality",
+  "inputs": {
+    "assets/production/bg_convenience_night.png": "64bab975bc7635422af8206c84f5f044a949c23fd3c330af738fd309dfcb6b24",
+    "assets/production/fg_neon_sign.png": "2b88ee8e5f2a3acf028323ea173adc5bdebf6e17ec3748d8bb83bb3150356e3a",
+    "assets/production/prop_traffic_cone.png": "cc139a91d389f8e58cacf8880b06fe793d5dd7e1b8438e988585af9ec934a009",
+    "assets/production/prop_vanity_mirror.png": "4e175861243c393d8bef9d05aa9a98ad6800892d5e65220a2f66f21b9de50d61",
+    "audio/narration_mixed.wav": "6bf91816decb3f74a2fcaa1c693d537e085fcf9248b332db8d200d493d223359",
+    "b6_actions.py": "4efcf86cb4f677f1369ca62bb5c87021262c8d92493428f4c91171280760db27",
+    "b6_asset_roles.py": "ade90e92cad1751bd0b010d508501bba73a41a1ffe6c6018dadd4a368ace9c14",
+    "b6_character_preflight.py": "561c976f7e8be8ab446e37cbbfcf2fa8d99e9c2d24219291a4f036000fe67e2d",
+    "b6_editorial_contract.py": "0dbda686a0d644f38e585db6f0ff97b2b355ff52d221a72aa5f988c6164a61c6",
+    "b6_editorial_director.py": "204d3b230f402e384d3e981da9a2e9f5f22a49aa95cb2883b1c90e980cce1fdf",
+    "b6_iteration.py": "37aac116a54c860aaa5dca66ae7dbc0e68ab9bf2d9296e7c1c49c5e11dc8f1b0",
+    "b6_motion_core.py": "771c76b4dfdd396c34a95529212eaace24263af5b0d073f9667ed38d1ac81ae4",
+    "b6_motion_qc.py": "1948a05c90c66d721b82fee654651a225a655c5c7cf8f99f6a99462f084aa1e7",
+    "b6_motion_render.py": "7c38a2d3e7352c659b68df730b235fcafa3fd12c50e18db7c05490f646b8a4d5",
+    "b6_puppet.py": "adc4bd4ddcbe2bb184381d080e99ebe1f4bd1beb3b0b6b1a841930ae15d5bed8",
+    "b6_space.py": "d006c622d63017d7d6ec1a75a56678204fc70486dae944d2b27170d8ae8d5e50",
+    "caption_renderer.py": "5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b",
+    "captions.json": "e8d42b87804c495066b83c96e3d257346df7014775e9f576493e1066efffb76e",
+    "characters.json": "7c7e1650bfdcc02dedbf5e34f9d0936681645b5d6710dd5f24e75f1fb829a5c7",
+    "characters/human/package.json": "7bb3b002a1e7def8d7334ba0ffcb0789d1705a1ecd85db5cddb9cab8fbf800b8",
+    "characters/human/three_quarter/body.png": "465f89bec04f2b23578bfbd0f3eebcc0f8f331a2f589eb722bf4b7ee72b95dd2",
+    "characters/human/three_quarter/cuff-left.png": "190d6c0766597b499afa3061a6d1857428431519a968b5e8e2bfaea28b1bab6b",
+    "characters/human/three_quarter/cuff-right.png": "52cddc48a6bb54b2e0f5fef0457d54584d3a63fb32624b4176b3acc3376d4ab8",
+    "characters/human/three_quarter/head-blink.png": "b274c5f676b72f92d2ab27ae0cf266e94b96e132db8f7c0b378a77f13d4173ea",
+    "characters/human/three_quarter/head-deadpan.png": "9e244c65a783a3a2f086c8896be7b9f1fdfc27d52c9e499a5ea0b8440ae2e126",
+    "characters/human/three_quarter/head.png": "63e14287da29f570d2c8a0710000b65dbdac8b2fd0c65420aa401691f3e01660",
+    "characters/zombie/package.json": "5894e7134024db2af560ac3cddc796a4895636add34cf2ebebcf87cc8b342eea",
+    "characters/zombie/three_quarter/body.png": "c51b0b0cb0aab8086b3b9de95da00c5117ba2bcbb1b568163525843a1795cfee",
+    "characters/zombie/three_quarter/cuff-left.png": "a249f5115bfc266cd8784fa22a0d8f707c7cd465d8ea388794c4feb79e8f795c",
+    "characters/zombie/three_quarter/cuff-right.png": "85962c24f3589671dd4e8c2e40fd8f1c001f86b4119f00845b3fc14c3f0b94c1",
+    "characters/zombie/three_quarter/head-grin.png": "16ebd8adce451eb43091f5bf84812e55e98d0a43a0791ad15fad610c335acaa1",
+    "characters/zombie/three_quarter/head-panic.png": "3f73851b1c46cb94981519ea5d4f078dcf36c8d5ec9bf61e3b8833a815cec6cf",
+    "characters/zombie/three_quarter/head-shock.png": "8d70934003e69a1c8050095be64bd184939751b6a7ca61b1f30b0915d0b0df17",
+    "characters/zombie/three_quarter/head.png": "453c4447a4a06ca818c7ab4259610b62cf9cbb5f926a462b3f21ccb75942eb97",
+    "fonts/ArchivoBlack.ttf": "dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180",
+    "fonts/OFL-ArchivoBlack.txt": "4cafdbbd100af37a23805af09b7068e4daafb4516dc3d6d52436f4a9d7b4c0d3",
+    "formats/portrait.json": "ce26155431ae26bda890e64fda25076ba80cca3de68065286b2475e1973ef300",
+    "motion_review.py": "b2f813cf6d42f65d73053eb75565e6f7ee3f32af7f58600679aa6bd042d921ed",
+    "project.json": "c0baf444cd1c0f3c4ee57e205b95c195887c54e750f3da2f5be6ecb8a93bbafd",
+    "quality-target.json": "e8103b7d353a14bb7584ebfd1da708f76e22b2da7dc80f30a13d89c3507e4f57",
+    "reference/eiffel-portrait-v44.mp4": "b0047f5889a7ca1fd47097d8c8b3db054ef412e2f4a7297d3fe04fc1083e5d79",
+    "run.py": "acc8f41ac7ac1c98b79d6a1869e03bf651107a954b88a830c2dd27d9758476c0",
+    "scene-control.json": "e904910b3b7189f3718e52ed17d98fb3a892026b0a9ddd5785e4e1c71c776e0f",
+    "scene.py": "1b6a7dab1e9a123c9eaacb3497e59d4f2398c639e2f39eafa1c0d0dfef56e074",
+    "scene_runtime.py": "da0952b7c63d440f45661c36d420ef79507bfd7e08f9f67390820bb17fafd0f7",
+    "story.json": "ead6af649e680d0df5b8b0485291c57ad398d2993fa08500ec0e81dc555aad95",
+    "engine/manifest.json": "f98cdc68410d87e6a90a8bd7f2b113b5b930d142354a4c60b8836f14d1a99a97"
+  },
+  "caption_cues": [
+    {
+      "start": 0.14,
+      "end": 1.09,
+      "text": "He crept up behind"
+    },
+    {
+      "start": 1.09,
+      "end": 1.8,
+      "text": "a midnight shopper,"
+    },
+    {
+      "start": 2.3,
+      "end": 2.9,
+      "text": "caught one glimpse"
+    },
+    {
+      "start": 2.9,
+      "end": 3.51,
+      "text": "in the mirror,"
+    },
+    {
+      "start": 4.55,
+      "end": 5.41,
+      "text": "screamed faster than"
+    },
+    {
+      "start": 5.41,
+      "end": 5.99,
+      "text": "any human,"
+    },
+    {
+      "start": 7.62,
+      "end": 8.36,
+      "text": "and hid behind"
+    },
+    {
+      "start": 8.36,
+      "end": 9.11,
+      "text": "the open sign!"
+    }
+  ],
+  "render_profile": "native",
+  "dimensions": [
+    720,
+    1280
+  ],
+  "native_dimensions": [
+    720,
+    1280
+  ],
+  "fps": 30,
+  "reviewable": true,
+  "timings": {
+    "load_seconds": 0.5483,
+    "setup_seconds": 0.1881,
+    "scene_seconds": 175.0059,
+    "validation_seconds": 7.0438,
+    "caption_seconds": 0.8747,
+    "encoder_write_seconds": 0.7888,
+    "mux_seconds": 0.1552,
+    "total_seconds": 186.2002
+  },
+  "caption_sidecars": [
+    "outputs/preview-01/captions.srt",
+    "outputs/preview-01/captions.vtt"
+  ],
+  "caption_contract": {
+    "profile": {
+      "profile": "eiffel-v44-portrait-archivo-black-v1",
+      "native_design": "9:16",
+      "font_family": "Archivo Black",
+      "font_file": "fonts/ArchivoBlack.ttf",
+      "font_sha256": "dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180",
+      "font_size": 47,
+      "stroke": 4,
+      "fill": "#ffffff",
+      "stroke_fill": "#171319",
+      "supersampling": 3,
+      "resample": "lanczos",
+      "anchor": "ms",
+      "side": 44,
+      "switch": "hard_cut",
+      "autoshrink": false,
+      "pop": false,
+      "baseline": 914,
+      "band": [
+        864,
+        951
+      ],
+      "native_layout_reason": "Single-line Archivo Black bottom caption band below focal torso height across all 9:16 closeups and wide shots"
+    },
+    "renderer_sha256": "5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b",
+    "font_sha256": "dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180",
+    "cues_sha256": "e8d42b87804c495066b83c96e3d257346df7014775e9f576493e1066efffb76e",
+    "observed_cues": [
+      {
+        "start": 0.14,
+        "end": 1.09,
+        "text": "He crept up behind",
+        "raster_bounds": [
+          112,
+          873,
+          608,
+          930
+        ]
+      },
+      {
+        "start": 1.09,
+        "end": 1.8,
+        "text": "a midnight shopper,",
+        "raster_bounds": [
+          100,
+          873,
+          619,
+          931
+        ]
+      },
+      {
+        "start": 2.3,
+        "end": 2.9,
+        "text": "caught one glimpse",
+        "raster_bounds": [
+          103,
+          873,
+          617,
+          931
+        ]
+      },
+      {
+        "start": 2.9,
+        "end": 3.51,
+        "text": "in the mirror,",
+        "raster_bounds": [
+          189,
+          873,
+          531,
+          929
+        ]
+      },
+      {
+        "start": 4.55,
+        "end": 5.41,
+        "text": "screamed faster than",
+        "raster_bounds": [
+          79,
+          873,
+          640,
+          921
+        ]
+      },
+      {
+        "start": 5.41,
+        "end": 5.99,
+        "text": "any human,",
+        "raster_bounds": [
+          207,
+          873,
+          511,
+          930
+        ]
+      },
+      {
+        "start": 7.62,
+        "end": 8.36,
+        "text": "and hid behind",
+        "raster_bounds": [
+          167,
+          873,
+          552,
+          921
+        ]
+      },
+      {
+        "start": 8.36,
+        "end": 9.11,
+        "text": "the open sign!",
+        "raster_bounds": [
+          173,
+          873,
+          546,
+          931
+        ]
+      }
+    ],
+    "limitation": "Configuration, font identity and measured caption raster only; decoded pixels, semantic speech timing and AV readability still require review."
+  },
+  "video": "outputs/preview-01/preview.mp4",
+  "video_sha256": "9e1633fb8a6422183d8fce7260e03e509ea477c7ae07cd4757863f4224f44cd8"
+}

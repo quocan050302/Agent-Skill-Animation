@@ -1,0 +1,366 @@
+{
+  "schema": "b6-puppet/1",
+  "binding_version": 2,
+  "character_id": "human",
+  "display_name": "Milo \u00b7 Late-Night Shopper",
+  "coordinate_system": {
+    "feet_origin": [
+      0,
+      0
+    ],
+    "x": "right",
+    "y": "down",
+    "units": "local painted stage pixels"
+  },
+  "views": {
+    "three_quarter": {
+      "facing": "left",
+      "sprites": {
+        "body": {
+          "path": "three_quarter/body.png",
+          "sha256": "465f89bec04f2b23578bfbd0f3eebcc0f8f331a2f589eb722bf4b7ee72b95dd2",
+          "image_to_local": [
+            [
+              0.4105263157894737,
+              0.0,
+              -64.24736842105263
+            ],
+            [
+              0.0,
+              0.4105263157894737,
+              -256.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "head": {
+          "path": "three_quarter/head.png",
+          "sha256": "63e14287da29f570d2c8a0710000b65dbdac8b2fd0c65420aa401691f3e01660",
+          "image_to_local": [
+            [
+              0.3080672268907563,
+              0.0,
+              -49.08756302521008
+            ],
+            [
+              0.0,
+              0.3080672268907563,
+              -365.7480588235294
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "heads": {
+          "neutral": {
+            "path": "three_quarter/head.png",
+            "sha256": "63e14287da29f570d2c8a0710000b65dbdac8b2fd0c65420aa401691f3e01660",
+            "image_to_local": [
+              [
+                0.3080672268907563,
+                0.0,
+                -49.08756302521008
+              ],
+              [
+                0.0,
+                0.3080672268907563,
+                -365.7480588235294
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "deadpan": {
+            "path": "three_quarter/head-deadpan.png",
+            "sha256": "9e244c65a783a3a2f086c8896be7b9f1fdfc27d52c9e499a5ea0b8440ae2e126",
+            "image_to_local": [
+              [
+                0.3080672268907563,
+                0.0,
+                -49.08756302521008
+              ],
+              [
+                0.0,
+                0.3080672268907563,
+                -365.7480588235294
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "blink": {
+            "path": "three_quarter/head-blink.png",
+            "sha256": "b274c5f676b72f92d2ab27ae0cf266e94b96e132db8f7c0b378a77f13d4173ea",
+            "image_to_local": [
+              [
+                0.3080672268907563,
+                0.0,
+                -49.08756302521008
+              ],
+              [
+                0.0,
+                0.3080672268907563,
+                -365.7480588235294
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          }
+        }
+      },
+      "head_anchor": [
+        3.9,
+        -233.421
+      ],
+      "neck_attachment": {
+        "mount_polygon": [
+          [
+            -3.6,
+            -237.42
+          ],
+          [
+            11.4,
+            -237.42
+          ],
+          [
+            11.4,
+            -229.42
+          ],
+          [
+            -3.6,
+            -229.42
+          ]
+        ],
+        "min_overlap_fraction": 0.58,
+        "min_overlap_thickness": 2.4
+      },
+      "arms": {
+        "left": {
+          "socket": [
+            46.184,
+            -185.8
+          ],
+          "exit_normal": [
+            -0.26,
+            0.966
+          ],
+          "exit_center": [
+            44.494,
+            -179.521
+          ],
+          "outlet_segment": [
+            [
+              54.154,
+              -176.921
+            ],
+            [
+              34.834,
+              -182.121
+            ]
+          ],
+          "lengths": [
+            56.0,
+            54.0
+          ],
+          "pole": 1,
+          "upper_angle_range_deg": [
+            45,
+            205
+          ],
+          "elbow_bend_range_deg": [
+            8,
+            138
+          ],
+          "max_ik_offset": 96.0,
+          "ink_width": 5.6,
+          "hand_radius": 9.8,
+          "layer": "front",
+          "cuff": {
+            "path": "three_quarter/cuff-left.png",
+            "sha256": "190d6c0766597b499afa3061a6d1857428431519a968b5e8e2bfaea28b1bab6b",
+            "image_to_local": [
+              [
+                0.4105263157894737,
+                0.0,
+                -64.24736842105263
+              ],
+              [
+                0.0,
+                0.4105263157894737,
+                -256.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "ink_path": {
+            "mode": "continuous",
+            "sag": 5.0
+          },
+          "poses": {
+            "rest": [
+              96,
+              22
+            ],
+            "reach": [
+              152,
+              42
+            ],
+            "offer": [
+              132,
+              68
+            ],
+            "receive": [
+              120,
+              74
+            ],
+            "retract": [
+              84,
+              34
+            ]
+          }
+        },
+        "right": {
+          "socket": [
+            -60.142,
+            -185.8
+          ],
+          "exit_normal": [
+            -0.82,
+            0.57
+          ],
+          "exit_center": [
+            -65.472,
+            -182.095
+          ],
+          "outlet_segment": [
+            [
+              -59.772,
+              -173.895
+            ],
+            [
+              -71.172,
+              -190.295
+            ]
+          ],
+          "lengths": [
+            56.0,
+            54.0
+          ],
+          "pole": -1,
+          "upper_angle_range_deg": [
+            45,
+            205
+          ],
+          "elbow_bend_range_deg": [
+            8,
+            138
+          ],
+          "max_ik_offset": 96.0,
+          "ink_width": 5.6,
+          "hand_radius": 9.8,
+          "layer": "back",
+          "cuff": {
+            "path": "three_quarter/cuff-right.png",
+            "sha256": "52cddc48a6bb54b2e0f5fef0457d54584d3a63fb32624b4176b3acc3376d4ab8",
+            "image_to_local": [
+              [
+                0.4105263157894737,
+                0.0,
+                -64.24736842105263
+              ],
+              [
+                0.0,
+                0.4105263157894737,
+                -256.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "ink_path": {
+            "mode": "continuous",
+            "sag": 5.0
+          },
+          "poses": {
+            "rest": [
+              96,
+              22
+            ],
+            "reach": [
+              152,
+              42
+            ],
+            "offer": [
+              132,
+              68
+            ],
+            "receive": [
+              120,
+              74
+            ],
+            "retract": [
+              84,
+              34
+            ]
+          }
+        }
+      },
+      "legs": {
+        "left": {
+          "hip": [
+            -20.0,
+            -124.0
+          ],
+          "ankle": [
+            -18.0,
+            -4.0
+          ],
+          "ink_width": 5.8,
+          "foot_size": [
+            15.0,
+            5.0
+          ]
+        },
+        "right": {
+          "hip": [
+            20.0,
+            -124.0
+          ],
+          "ankle": [
+            24.0,
+            -4.0
+          ],
+          "ink_width": 5.8,
+          "foot_size": [
+            15.0,
+            5.0
+          ]
+        }
+      },
+      "ink_color": "#171319"
+    }
+  }
+}

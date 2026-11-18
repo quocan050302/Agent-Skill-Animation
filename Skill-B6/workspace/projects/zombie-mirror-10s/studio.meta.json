@@ -1,0 +1,16 @@
+{
+  "schema": "b6-studio-meta/1",
+  "id": "zombie-mirror-10s",
+  "title": "The Zombie Who Was Afraid of a Human",
+  "brief": "",
+  "language": "en",
+  "targetDuration": 10,
+  "activeRatio": "9:16",
+  "premise": "A mischievous zombie sneaks behind a deadpan midnight convenience-store shopper, catches one glance in the shopper's pocket vanity mirror, panics at his own reflection, trips past a traffic cone, and hides behind the 24H sidewalk sign.",
+  "hook": "Why did this zombie scream louder than his victim?",
+  "createdAt": "2026-11-18T13:20:15.131Z",
+  "updatedAt": "2026-11-18T14:06:31.419Z",
+  "sceneSyncRequests": [],
+  "revision": 11,
+  "voiceTextSha256": "6cfcaf7c17f4e5e1ef1006edc432b02d6a21bbe004cbac43193f2ebdbdd1fd9b"
+}

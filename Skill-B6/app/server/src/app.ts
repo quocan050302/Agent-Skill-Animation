@@ -21,7 +21,7 @@ import {
   PROJECTS_DIR,
   TEMP_DIR,
 } from './config.js';
-import { ensureDirectories } from './utils/fs-safe.js';
+import { ensureDirectories, readJsonFile, resolveInsideRoot } from './utils/fs-safe.js';
 import { EnvDoctorService } from './services/env-doctor-service.js';
 import { UpstreamService } from './services/upstream-service.js';
 import { ProjectService } from './services/project-service.js';
@@ -370,6 +370,7 @@ export async function buildApp(deps: ServerDependencies = {}): Promise<{
       technicalStatus: qa.summary.technicalStatus,
       editorSyncState: qa.summary.editorSyncState,
       motionQcStatus: qa.summary.motionQcStatus,
+      editorialQcStatus: qa.summary.editorialQcStatus,
     });
     return { binding, qa: qa.summary };
   });
@@ -385,6 +386,7 @@ export async function buildApp(deps: ServerDependencies = {}): Promise<{
       technicalStatus: qa.summary.technicalStatus,
       editorSyncState: qa.summary.editorSyncState,
       motionQcStatus: qa.summary.motionQcStatus,
+      editorialQcStatus: qa.summary.editorialQcStatus,
     });
     const manifestPath = path.join(APP_ROOT, 'motion_runtime', 'manifest.json');
     const manifest = fs.existsSync(manifestPath)
@@ -425,6 +427,159 @@ export async function buildApp(deps: ServerDependencies = {}): Promise<{
     const { ratio } = z.object({ ratio: RatioSchema.default('9:16') }).parse(req.query ?? {});
     const review = await reviewService.getReviewState(id, ratio);
     return { qa: review };
+  });
+
+  app.get('/api/projects/:id/editorial-report', async (req) => {
+    const { id } = req.params as { id: string };
+    const query = z
+      .object({
+        ratio: RatioSchema.default('9:16'),
+        includePerSecond: z.coerce.boolean().default(true),
+        includePerShot: z.coerce.boolean().default(true),
+        reportRel: z.string().optional(),
+      })
+      .parse(req.query ?? {});
+    const dir = projectService.getProjectDir(id);
+    const qa = await qaResolver.resolveQaState(dir, query.ratio);
+    const edSummary = qa.summary.editorialQcSummary as Record<string, unknown> | undefined;
+
+    let reportAbs: string | null = null;
+    if (query.reportRel) {
+      reportAbs = resolveInsideRoot(dir, query.reportRel, true);
+    } else if (edSummary && typeof edSummary.reportPath === 'string') {
+      const candidate = resolveInsideRoot(dir, edSummary.reportPath, false);
+      if (fs.existsSync(candidate)) reportAbs = candidate;
+    }
+    if (!reportAbs && qa.latestReport?.reportRel) {
+      const candidate = path.join(dir, path.dirname(qa.latestReport.reportRel), 'editorial-report.json');
+      if (fs.existsSync(candidate)) reportAbs = candidate;
+    }
+    if (!reportAbs) {
+      const outputsDir = path.join(dir, 'outputs');
+      if (fs.existsSync(outputsDir)) {
+        const candidates: Array<{ abs: string; mtimeMs: number }> = [];
+        for (const entry of fs.readdirSync(outputsDir, { withFileTypes: true })) {
+          if (!entry.isDirectory()) continue;
+          const p = path.join(outputsDir, entry.name, 'editorial-report.json');
+          if (fs.existsSync(p)) {
+            candidates.push({ abs: p, mtimeMs: fs.statSync(p).mtimeMs });
+          }
+        }
+        candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
+        if (candidates[0]) reportAbs = candidates[0].abs;
+      }
+    }
+    if (!reportAbs && fs.existsSync(path.join(dir, 'editorial-report.json'))) {
+      reportAbs = path.join(dir, 'editorial-report.json');
+    }
+
+    if (!reportAbs) {
+      return {
+        projectId: id,
+        ratio: query.ratio,
+        available: false,
+        stale: true,
+        reportPath: null,
+        qcPath: null,
+        qcStatus: qa.summary.editorialQcStatus ?? 'pending',
+        qc: qa.summary.editorialQcSummary ?? null,
+        report: null,
+        evidenceLinks: qa.summary.evidenceLinks,
+        statusNote: 'Chưa có editorial-report.json; hãy render preview hoặc nhấn Phân tích Editorial.',
+      };
+    }
+
+    const rawReport = await readJsonFile<Record<string, unknown>>(reportAbs);
+    const qcAbs = path.join(path.dirname(reportAbs), 'editorial_qc.json');
+    const rawQc = fs.existsSync(qcAbs) ? await readJsonFile<Record<string, unknown>>(qcAbs) : null;
+    const reportRel = path.relative(dir, reportAbs).replace(/\\/g, '/');
+    const qcRel = fs.existsSync(qcAbs) ? path.relative(dir, qcAbs).replace(/\\/g, '/') : null;
+    const stale =
+      qa.summary.editorialQcStatus === 'stale' ||
+      Boolean(
+        qa.summary.previewSha256 &&
+          rawQc &&
+          typeof rawQc.video_sha256 === 'string' &&
+          rawQc.video_sha256 !== qa.summary.previewSha256,
+      ) ||
+      Boolean(
+        qa.summary.currentSourceFingerprint &&
+          rawQc &&
+          typeof rawQc.source_fingerprint === 'string' &&
+          rawQc.source_fingerprint !== qa.summary.currentSourceFingerprint,
+      );
+
+    const trimmedReport: Record<string, unknown> = { ...rawReport };
+    if (!query.includePerSecond && Array.isArray(trimmedReport.per_second)) {
+      trimmedReport.per_second_count = trimmedReport.per_second.length;
+      delete trimmedReport.per_second;
+    }
+    if (!query.includePerShot && Array.isArray(trimmedReport.per_shot)) {
+      trimmedReport.per_shot_count = trimmedReport.per_shot.length;
+      delete trimmedReport.per_shot;
+    }
+
+    return {
+      projectId: id,
+      ratio: query.ratio,
+      available: true,
+      stale,
+      reportPath: reportRel,
+      qcPath: qcRel,
+      qcStatus: qa.summary.editorialQcStatus ?? (rawQc?.status as string | undefined) ?? 'pending',
+      qc: rawQc ?? qa.summary.editorialQcSummary ?? null,
+      report: trimmedReport,
+      evidenceLinks: qa.summary.evidenceLinks,
+    };
+  });
+
+  app.post('/api/projects/:id/analyze-editorial', async (req) => {
+    const { id } = req.params as { id: string };
+    const dir = projectService.getProjectDir(id);
+    const body = z
+      .object({
+        ratio: RatioSchema.default('9:16'),
+        reportRel: z.string().min(1).optional(),
+        videoRel: z.string().min(1).optional(),
+        evidenceRel: z.string().min(1).optional(),
+      })
+      .parse(req.body ?? {});
+
+    let reportRel = body.reportRel;
+    if (!reportRel && !body.videoRel) {
+      const qa = await qaResolver.resolveQaState(dir, body.ratio);
+      if (qa.latestReport?.reportRel && fs.existsSync(path.join(dir, qa.latestReport.reportRel))) {
+        reportRel = qa.latestReport.reportRel;
+      } else {
+        const outputsDir = path.join(dir, 'outputs');
+        if (fs.existsSync(outputsDir)) {
+          const candidates: Array<{ rel: string; mtimeMs: number }> = [];
+          for (const entry of fs.readdirSync(outputsDir, { withFileTypes: true })) {
+            if (!entry.isDirectory()) continue;
+            const rp = path.join(outputsDir, entry.name, 'report.json');
+            if (fs.existsSync(rp)) {
+              candidates.push({ rel: `outputs/${entry.name}/report.json`, mtimeMs: fs.statSync(rp).mtimeMs });
+            }
+          }
+          candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
+          if (candidates[0]) reportRel = candidates[0].rel;
+        }
+      }
+    }
+
+    const spec = commandAdapter.buildAnalyzeEditorial(dir, body.ratio, {
+      reportRel,
+      videoRel: body.videoRel,
+      evidenceRel: body.evidenceRel,
+    });
+    const job = await jobQueue.enqueue({
+      projectId: id,
+      kind: 'analyze-editorial',
+      ratio: body.ratio,
+      spec,
+      heavyEncode: false,
+    });
+    return { job };
   });
 
   // Outputs & Reviews

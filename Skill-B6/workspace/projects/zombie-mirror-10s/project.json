@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "style": "B6",
+  "renderer": "b6-production-v1",
+  "purpose": "production",
+  "stage": "authored",
+  "motion_mode": "articulated_v1",
+  "editorial_mode": "editorial_v1",
+  "duration": 10,
+  "fps": 30,
+  "scene": "scene.py",
+  "story": "story.json",
+  "captions": "captions.json",
+  "formats": {
+    "9:16": "formats/portrait.json"
+  },
+  "voice": {
+    "name": "Daniel (macOS say en_GB)",
+    "path": "audio/narration_mixed.wav",
+    "sha256": "6bf91816decb3f74a2fcaa1c693d537e085fcf9248b332db8d200d493d223359",
+    "speed": 1,
+    "source": "Local macOS say Daniel en_GB narration + NumPy procedural midnight rain & synced comedy Foley mix"
+  },
+  "bindings": null,
+  "character_system": {
+    "schema": "b6-character-system/1",
+    "registry": "characters.json"
+  },
+  "quality_target": "quality-target.json",
+  "caption_font_variant": "archivo-black",
+  "inputs": [
+    "motion_review.py",
+    "b6_space.py",
+    "caption_renderer.py",
+    "b6_puppet.py",
+    "b6_asset_roles.py",
+    "b6_actions.py",
+    "b6_iteration.py",
+    "b6_character_preflight.py",
+    "b6_motion_core.py",
+    "b6_motion_render.py",
+    "b6_motion_qc.py",
+    "b6_editorial_contract.py",
+    "b6_editorial_director.py",
+    "scene_runtime.py",
+    "scene-control.json",
+    "fonts/ArchivoBlack.ttf",
+    "fonts/OFL-ArchivoBlack.txt",
+    "assets/production/bg_convenience_night.png",
+    "assets/production/fg_neon_sign.png",
+    "assets/production/prop_vanity_mirror.png",
+    "assets/production/prop_traffic_cone.png"
+  ],
+  "review": {
+    "status": "pending",
+    "art": null,
+    "acting": null,
+    "sound": null
+  }
+}

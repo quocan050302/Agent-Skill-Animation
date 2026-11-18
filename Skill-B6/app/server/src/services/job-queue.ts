@@ -325,11 +325,16 @@ export class JobQueue extends EventEmitter {
         const parsed = this.extractResultJson(allStdout.join('\n'), job.reportPath);
         job.resultJson = parsed;
         let verificationError: string | null = null;
-        const requiresArtifactCheck = ['draft', 'preview', 'render', 'review-pack'].includes(job.kind);
+        const requiresArtifactCheck = ['draft', 'preview', 'render', 'review-pack', 'analyze-editorial'].includes(job.kind);
 
         if (requiresArtifactCheck) {
           if (job.reportPath && !fs.existsSync(job.reportPath)) {
             verificationError = `Thiếu tệp báo cáo đầu ra sau khi kết thúc ${job.kind}: ${path.basename(job.reportPath)}`;
+          } else if (job.kind === 'analyze-editorial' && job.reportPath) {
+            const reportJsonPath = path.join(path.dirname(job.reportPath), 'editorial-report.json');
+            if (!fs.existsSync(reportJsonPath)) {
+              verificationError = 'Thiếu tệp editorial-report.json sau khi chạy phân tích Editorial.';
+            }
           } else if (['draft', 'preview', 'render'].includes(job.kind)) {
             const videoRel = parsed && typeof parsed.video === 'string' ? parsed.video : null;
             if (!videoRel || !job.projectId) {

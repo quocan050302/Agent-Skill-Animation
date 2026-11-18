@@ -1,0 +1,33 @@
+{
+  "schema": "b6-editorial-qc/1",
+  "status": "fail",
+  "pass": false,
+  "errors": [
+    "EDITORIAL_EXCESSIVE_DUPLICATE_SHOTS",
+    "EDITORIAL_EXTENDED_STATIC_LULL: SUSTAINED_LOW_ACTIVITY_INTERVAL (6-10s: fg_rel<0.28, y_mad<1.40)"
+  ],
+  "warnings": [
+    "TOO_SIMILAR_CONSECUTIVE_SHOTS: 'shot_01_hook' -> 'shot_02_anticipate' (SSIM=0.455, coarse_SSIM=0.821, hist_dist=0.019).",
+    "TOO_SIMILAR_CONSECUTIVE_SHOTS: 'shot_04_slash_miss' -> 'shot_05_leaf_nose' (SSIM=0.480, coarse_SSIM=0.801, hist_dist=0.028).",
+    "TOO_SIMILAR_CONSECUTIVE_SHOTS: 'shot_05_leaf_nose' -> 'shot_06_deadpan' (SSIM=0.478, coarse_SSIM=0.749, hist_dist=0.044).",
+    "SUSTAINED_LOW_ACTIVITY_INTERVAL (6-10s: fg_rel<0.28, y_mad<1.40)"
+  ],
+  "source_fingerprint": null,
+  "video_sha256": "436a13bdaf1b68de381db376a4e6721ebfa5755fc542479dfdb7bfc463687289",
+  "editorial_report_sha256": "792c8c88a187bf923033e511a8cad2fd53412b74aa2a822d2c11c46af24e7dde",
+  "frames_checked": 300,
+  "descriptive_coverage": {
+    "active_seconds": 8,
+    "total_seconds": 10,
+    "unique_compositions": 3,
+    "shots_analyzed": 6,
+    "intentional_holds_count": 0,
+    "cut_excluded_y_mad_mean": 4.0487,
+    "foreground_relative_motion_mean": 0.4907,
+    "focal_out_of_frame_count": 0,
+    "caption_collisions_count": 0
+  },
+  "audience_retention_estimate": "unavailable",
+  "human_visual_review": "PENDING",
+  "user_approval": "PENDING"
+}

@@ -1,0 +1,932 @@
+{
+  "ratio": "9:16",
+  "native_design": "9:16",
+  "width": 720,
+  "height": 1280,
+  "motionMode": "articulated_v1",
+  "editorialMode": "editorial_v1",
+  "editorialProfile": {
+    "schema": "b6-studio-editorial/1",
+    "mode": "editorial_v1",
+    "rules": {
+      "minHoldS": 0.35,
+      "maxAngularVelDegS": 85,
+      "maxCamSpeedPxS": 1100,
+      "maxCamAccelPxS2": 4500,
+      "allowStrobe": false,
+      "protectCaptionBand": true
+    }
+  },
+  "directorBeats": [
+    {
+      "id": "beat_hook",
+      "start": 0,
+      "end": 2.2,
+      "beatKind": "hook",
+      "cameraPreset": "establish",
+      "purpose": "Open tight on zombie grin then reveal midnight sidewalk stalk"
+    },
+    {
+      "id": "beat_reveal",
+      "start": 2.2,
+      "end": 4.45,
+      "beatKind": "surprise",
+      "cameraPreset": "object_insert",
+      "purpose": "Show mirror reflection then punch in to popped-eye zombie shock"
+    },
+    {
+      "id": "beat_chase",
+      "start": 4.45,
+      "end": 7.5,
+      "beatKind": "escalation",
+      "cameraPreset": "follow",
+      "purpose": "Articulated panic dash across rain puddles and orange cone stumble"
+    },
+    {
+      "id": "beat_payoff",
+      "start": 7.5,
+      "end": 10,
+      "beatKind": "payoff",
+      "cameraPreset": "reaction_closeup",
+      "purpose": "Dry shopper blink reaction followed by zombie trembling behind corner sign"
+    }
+  ],
+  "shots": [
+    {
+      "id": "shot_01_hook",
+      "start": 0,
+      "end": 1,
+      "actor": "zombie",
+      "environment": "rainy midnight convenience store corner",
+      "sceneGoal": "Hook viewer in under 1s with menacing zombie grin",
+      "composition": "Extreme close-up on zombie eyes & grin leaning slightly forward under flickering neon lamp",
+      "action": "Zombie peeks forward flexing sneaky claws with fang grin",
+      "expression": "grin",
+      "props": [
+        "mirror"
+      ],
+      "staging": {
+        "zombie": {
+          "x": 150,
+          "y": 0,
+          "z": 860
+        },
+        "human": {
+          "x": 395,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Tight push into zombie grin for instant story hook",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 150,
+          "y": -250,
+          "z": 210,
+          "fov": 52
+        },
+        {
+          "t": 1,
+          "x": 162,
+          "y": -250,
+          "z": 230,
+          "fov": 50
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "anticipate",
+        "startX": 152,
+        "endX": 152,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 1.6,
+          "strideLen": 70,
+          "footLift": 18,
+          "targetSpeed": 0,
+          "pelvisDrop": 8,
+          "armSwingAmp": 0.25,
+          "anticipateS": 0.18,
+          "settleS": 0.16,
+          "facing": 1
+        },
+        "cameraPreset": "reaction_closeup",
+        "visualBeat": "hook",
+        "headVariant": "grin"
+      },
+      "cameraPreset": "reaction_closeup",
+      "visualBeat": "hook",
+      "editorial": {
+        "role": "hook",
+        "shotSize": "close",
+        "focus": {
+          "targetKind": "actor_eyes",
+          "actorId": "zombie",
+          "propId": "",
+          "offsetXy": [
+            14,
+            24
+          ],
+          "scaleHint": 0.8,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "push",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Instant eye-level opening hook",
+          "preserveEyeline": true,
+          "matchAction": false
+        },
+        "intensity": "high",
+        "pacingAdvice": "snappy",
+        "actionOnsetS": 0.2,
+        "reactionHoldS": 0.25,
+        "notes": "Keep claws raised at chest height clear of bottom border"
+      },
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_convenience_night.png",
+        "assets/production/prop_vanity_mirror.png",
+        "assets/production/prop_traffic_cone.png"
+      ],
+      "sfx": "tiptoe_pluck"
+    },
+    {
+      "id": "shot_02_stalk",
+      "start": 1,
+      "end": 2.2,
+      "actor": "zombie",
+      "environment": "wet sidewalk outside 24H storefront",
+      "sceneGoal": "Show spatial distance closing between sneaking zombie and unaware shopper",
+      "composition": "Medium two-shot tracking zombie stalking right across puddle toward shopper",
+      "action": "Zombie walks stealthily toward human shopper",
+      "expression": "neutral",
+      "props": [
+        "mirror",
+        "cone"
+      ],
+      "staging": {
+        "zombie": {
+          "x": 162,
+          "y": 0,
+          "z": 860
+        },
+        "human": {
+          "x": 395,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Medium tracking shot following stalking zombie left-to-right",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 175,
+          "y": -210,
+          "z": 180,
+          "fov": 55
+        },
+        {
+          "t": 1.2,
+          "x": 275,
+          "y": -210,
+          "z": 180,
+          "fov": 55
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "walk",
+        "startX": 122,
+        "endX": 176,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.2,
+          "strideLen": 92,
+          "footLift": 32,
+          "targetSpeed": 86,
+          "pelvisDrop": 5,
+          "armSwingAmp": 0.42,
+          "anticipateS": 0.08,
+          "settleS": 0,
+          "facing": 1
+        },
+        "cameraPreset": "follow",
+        "visualBeat": "action",
+        "headVariant": "neutral"
+      },
+      "cameraPreset": "follow",
+      "visualBeat": "action",
+      "editorial": {
+        "role": "anticipation",
+        "shotSize": "wide",
+        "focus": {
+          "targetKind": "actor_full",
+          "actorId": "zombie",
+          "propId": "",
+          "offsetXy": [
+            24,
+            0
+          ],
+          "scaleHint": 0.94,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "track",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Pull out to medium staging to show spatial approach toward human",
+          "preserveEyeline": true,
+          "matchAction": true
+        },
+        "intensity": "normal",
+        "pacingAdvice": "auto",
+        "actionOnsetS": 1.12,
+        "reactionHoldS": 0,
+        "notes": "Reveal both actors before mirror reveal"
+      },
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_convenience_night.png",
+        "assets/production/prop_vanity_mirror.png",
+        "assets/production/prop_traffic_cone.png"
+      ],
+      "sfx": "sneak_steps"
+    },
+    {
+      "id": "shot_03_mirror_insert",
+      "start": 2.2,
+      "end": 3.2,
+      "actor": "human",
+      "environment": "glowing doorway beside shopper",
+      "sceneGoal": "Insert beat clearly showing the pocket mirror angled back at zombie",
+      "composition": "Close insert centered on oval pocket vanity mirror held by shopper's hand",
+      "action": "Human tilts vanity mirror catching zombie silhouette in the glass",
+      "expression": "deadpan",
+      "props": [
+        "mirror"
+      ],
+      "staging": {
+        "zombie": {
+          "x": 266,
+          "y": 0,
+          "z": 860
+        },
+        "human": {
+          "x": 395,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Object insert tightly framed on pocket mirror glint",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 332,
+          "y": -175,
+          "z": 240,
+          "fov": 44
+        },
+        {
+          "t": 1,
+          "x": 326,
+          "y": -178,
+          "z": 250,
+          "fov": 42
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "idle",
+        "startX": 176,
+        "endX": 176,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 1.5,
+          "strideLen": 60,
+          "footLift": 12,
+          "targetSpeed": 0,
+          "pelvisDrop": 2,
+          "armSwingAmp": 0.18,
+          "anticipateS": 0.14,
+          "settleS": 0.16,
+          "facing": 1
+        },
+        "cameraPreset": "object_insert",
+        "visualBeat": "surprise",
+        "headVariant": "neutral"
+      },
+      "cameraPreset": "object_insert",
+      "visualBeat": "surprise",
+      "editorial": {
+        "role": "prop_insert",
+        "shotSize": "insert",
+        "focus": {
+          "targetKind": "prop",
+          "actorId": "human",
+          "propId": "mirror",
+          "offsetXy": [
+            60,
+            -10
+          ],
+          "scaleHint": 0.64,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "follow_prop",
+        "transition": {
+          "kind": "match_action_cut",
+          "durationS": 0,
+          "reason": "Motivated cut to mirror insert at peak approach",
+          "preserveEyeline": true,
+          "matchAction": true
+        },
+        "intensity": "normal",
+        "pacingAdvice": "tighten_cut",
+        "actionOnsetS": 2.24,
+        "reactionHoldS": 0.26,
+        "notes": "Cutaway insert on mirror glass reflection"
+      },
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_convenience_night.png",
+        "assets/production/prop_vanity_mirror.png"
+      ],
+      "sfx": "mirror_chime"
+    },
+    {
+      "id": "shot_04_mirror_shock",
+      "start": 3.2,
+      "end": 4.5,
+      "actor": "zombie",
+      "environment": "rainy storefront reflection",
+      "sceneGoal": "Deliver hilarious instant terror reaction as zombie sees himself",
+      "composition": "Extreme close-up on zombie's popped eyes & screaming jaw with comic shock spikes",
+      "action": "Zombie reels backward in horror at own reflection",
+      "expression": "shock",
+      "props": [
+        "mirror"
+      ],
+      "staging": {
+        "zombie": {
+          "x": 266,
+          "y": 0,
+          "z": 860
+        },
+        "human": {
+          "x": 395,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Dramatic snap close-up on zombie's shock to panic expression shift",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 258,
+          "y": -250,
+          "z": 240,
+          "fov": 44
+        },
+        {
+          "t": 1.3,
+          "x": 240,
+          "y": -248,
+          "z": 230,
+          "fov": 46
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "react",
+        "startX": 176,
+        "endX": 176,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.4,
+          "strideLen": 80,
+          "footLift": 20,
+          "targetSpeed": 0,
+          "pelvisDrop": 12,
+          "armSwingAmp": 0.45,
+          "anticipateS": 0.12,
+          "settleS": 0.18,
+          "facing": 1
+        },
+        "cameraPreset": "reaction_closeup",
+        "visualBeat": "surprise",
+        "headVariant": "shock"
+      },
+      "cameraPreset": "reaction_closeup",
+      "visualBeat": "surprise",
+      "editorial": {
+        "role": "reveal",
+        "shotSize": "extreme_close",
+        "focus": {
+          "targetKind": "actor_eyes",
+          "actorId": "zombie",
+          "propId": "",
+          "offsetXy": [
+            10,
+            26
+          ],
+          "scaleHint": 0.8,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "whip_with_subject",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Snap back from mirror insert to big eye-pop reaction",
+          "preserveEyeline": true,
+          "matchAction": false
+        },
+        "intensity": "high",
+        "pacingAdvice": "hold_payoff",
+        "actionOnsetS": 3.24,
+        "reactionHoldS": 0.45,
+        "notes": "Hold long enough for expression beat shock -> panic to read cleanly"
+      },
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_convenience_night.png",
+        "assets/production/prop_vanity_mirror.png"
+      ],
+      "sfx": "shock_boing"
+    },
+    {
+      "id": "shot_05_panic_chase",
+      "start": 4.5,
+      "end": 6.2,
+      "actor": "zombie",
+      "environment": "midnight rainy sidewalk span",
+      "sceneGoal": "Execute sustained articulated 2-bone IK dash with speed lines & splashes",
+      "composition": "Wide horizontal run across wet curb away from shopper on the right",
+      "action": "Zombie sprints rapidly leftward while looking back in panic",
+      "expression": "panic",
+      "props": [
+        "cone",
+        "mirror"
+      ],
+      "staging": {
+        "zombie": {
+          "x": 240,
+          "y": 0,
+          "z": 860
+        },
+        "human": {
+          "x": 395,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Wide follow pan capturing speed and distance across streetlamp",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 255,
+          "y": -205,
+          "z": 165,
+          "fov": 58
+        },
+        {
+          "t": 1.7,
+          "x": 115,
+          "y": -205,
+          "z": 165,
+          "fov": 58
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "dash",
+        "startX": 212,
+        "endX": 108,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.6,
+          "strideLen": 96,
+          "footLift": 34,
+          "targetSpeed": 188,
+          "pelvisDrop": 5,
+          "armSwingAmp": 0.65,
+          "anticipateS": 0.06,
+          "settleS": 0,
+          "facing": -1
+        },
+        "cameraPreset": "follow",
+        "visualBeat": "escalation",
+        "headVariant": "panic"
+      },
+      "cameraPreset": "follow",
+      "visualBeat": "escalation",
+      "editorial": {
+        "role": "chase",
+        "shotSize": "wide",
+        "focus": {
+          "targetKind": "action_group",
+          "actorId": "zombie",
+          "propId": "",
+          "offsetXy": [
+            -12,
+            0
+          ],
+          "scaleHint": 0.94,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "track",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Open out to wide geography so panic sprint reads clearly",
+          "preserveEyeline": true,
+          "matchAction": true
+        },
+        "intensity": "high",
+        "pacingAdvice": "auto",
+        "actionOnsetS": 4.56,
+        "reactionHoldS": 0,
+        "notes": "Full bent-knee run with ContactPlan splashes"
+      },
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_convenience_night.png",
+        "assets/production/prop_traffic_cone.png",
+        "assets/production/prop_vanity_mirror.png"
+      ],
+      "sfx": "puddle_footsteps"
+    },
+    {
+      "id": "shot_06_cone_trip",
+      "start": 6.2,
+      "end": 7.5,
+      "actor": "zombie",
+      "environment": "curbside traffic cone",
+      "sceneGoal": "Keep late-video comedic momentum high via physical cone impact prop gag",
+      "composition": "Tight insert on bright orange cone spinning into wet curb as feet bolt past",
+      "action": "Zombie clips orange traffic cone sending it spinning across sidewalk",
+      "expression": "panic",
+      "props": [
+        "cone"
+      ],
+      "staging": {
+        "zombie": {
+          "x": 52,
+          "y": 0,
+          "z": 860
+        },
+        "human": {
+          "x": 395,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Insert framing curb impact and cone tumble",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 75,
+          "y": -95,
+          "z": 215,
+          "fov": 50
+        },
+        {
+          "t": 1.3,
+          "x": 96,
+          "y": -85,
+          "z": 210,
+          "fov": 50
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "walk",
+        "startX": 114,
+        "endX": 68,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.2,
+          "strideLen": 80,
+          "footLift": 24,
+          "targetSpeed": 65,
+          "pelvisDrop": 5,
+          "armSwingAmp": 0.45,
+          "anticipateS": 0,
+          "settleS": 0,
+          "facing": -1
+        },
+        "cameraPreset": "impact",
+        "visualBeat": "escalation",
+        "headVariant": "panic"
+      },
+      "cameraPreset": "impact",
+      "visualBeat": "escalation",
+      "editorial": {
+        "role": "impact",
+        "shotSize": "insert",
+        "focus": {
+          "targetKind": "prop",
+          "actorId": "zombie",
+          "propId": "cone",
+          "offsetXy": [
+            36,
+            -34
+          ],
+          "scaleHint": 0.7,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "follow_prop",
+        "transition": {
+          "kind": "match_action_cut",
+          "durationS": 0,
+          "reason": "Match foot impact directly onto cone insert",
+          "preserveEyeline": true,
+          "matchAction": true
+        },
+        "intensity": "high",
+        "pacingAdvice": "snappy",
+        "actionOnsetS": 6.28,
+        "reactionHoldS": 0.25,
+        "notes": "Physical slapstick cone spin breaks late-reel monotony"
+      },
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_convenience_night.png",
+        "assets/production/prop_traffic_cone.png"
+      ],
+      "sfx": "cone_bonk"
+    },
+    {
+      "id": "shot_07_human_deadpan",
+      "start": 7.5,
+      "end": 8.8,
+      "actor": "human",
+      "environment": "warm glowing storefront doorway",
+      "sceneGoal": "Deliberate deadpan shopper reaction contrast",
+      "composition": "Close-up reaction shot on unbothered shopper blinking slowly",
+      "action": "Shopper blinks calmly and casually tilts mirror wondering what happened",
+      "expression": "blink",
+      "props": [
+        "mirror"
+      ],
+      "staging": {
+        "zombie": {
+          "x": 26,
+          "y": 0,
+          "z": 860
+        },
+        "human": {
+          "x": 395,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Calm close reaction framing shopper contrast",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 392,
+          "y": -230,
+          "z": 210,
+          "fov": 48
+        },
+        {
+          "t": 1.3,
+          "x": 390,
+          "y": -230,
+          "z": 215,
+          "fov": 48
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "idle",
+        "startX": 68,
+        "endX": 68,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 1.4,
+          "strideLen": 60,
+          "footLift": 12,
+          "targetSpeed": 0,
+          "pelvisDrop": 2,
+          "armSwingAmp": 0.16,
+          "anticipateS": 0.14,
+          "settleS": 0.16,
+          "facing": -1
+        },
+        "cameraPreset": "reaction_closeup",
+        "visualBeat": "payoff",
+        "headVariant": "panic"
+      },
+      "cameraPreset": "reaction_closeup",
+      "visualBeat": "payoff",
+      "editorial": {
+        "role": "reaction",
+        "shotSize": "close",
+        "focus": {
+          "targetKind": "actor_head",
+          "actorId": "human",
+          "propId": "",
+          "offsetXy": [
+            -24,
+            24
+          ],
+          "scaleHint": 0.78,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "hold",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Comedy contrast cut to completely unbothered shopper",
+          "preserveEyeline": true,
+          "matchAction": false
+        },
+        "intensity": "low",
+        "pacingAdvice": "hold_payoff",
+        "actionOnsetS": 7.65,
+        "reactionHoldS": 0.55,
+        "notes": "Intentional deadpan blink + slight mirror tilt punchline"
+      },
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_convenience_night.png",
+        "assets/production/prop_vanity_mirror.png"
+      ],
+      "sfx": "blink_pop"
+    },
+    {
+      "id": "shot_08_sign_payoff",
+      "start": 8.8,
+      "end": 10,
+      "actor": "zombie",
+      "environment": "streetlamp & glowing foreground 24H sidewalk A-frame sign",
+      "sceneGoal": "Visual punchline: shivering zombie hiding behind A-frame sidewalk sign",
+      "composition": "Medium layered 2.5D button with foreground 24H sign & shivering zombie peeking beside it",
+      "action": "Zombie trembles peeking around the glowing sidewalk sign while rain pours",
+      "expression": "panic",
+      "props": [
+        "cone"
+      ],
+      "staging": {
+        "zombie": {
+          "x": 115,
+          "y": 0,
+          "z": 860
+        },
+        "human": {
+          "x": 395,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Slow pull revealing foreground 24H sidewalk sign button",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 122,
+          "y": -195,
+          "z": 185,
+          "fov": 54
+        },
+        {
+          "t": 1.2,
+          "x": 135,
+          "y": -198,
+          "z": 175,
+          "fov": 55
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "react",
+        "startX": 158,
+        "endX": 158,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2,
+          "strideLen": 80,
+          "footLift": 18,
+          "targetSpeed": 0,
+          "pelvisDrop": 10,
+          "armSwingAmp": 0.35,
+          "anticipateS": 0.14,
+          "settleS": 0.18,
+          "facing": 1
+        },
+        "cameraPreset": "settle",
+        "visualBeat": "payoff",
+        "headVariant": "panic"
+      },
+      "cameraPreset": "settle",
+      "visualBeat": "payoff",
+      "editorial": {
+        "role": "payoff",
+        "shotSize": "medium",
+        "focus": {
+          "targetKind": "actor_full",
+          "actorId": "zombie",
+          "propId": "",
+          "offsetXy": [
+            12,
+            -16
+          ],
+          "scaleHint": 0.96,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "pull",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Final comedic button framing shivering zombie beside 24H foreground sign",
+          "preserveEyeline": true,
+          "matchAction": false
+        },
+        "intensity": "normal",
+        "pacingAdvice": "hold_payoff",
+        "actionOnsetS": 8.88,
+        "reactionHoldS": 0.35,
+        "notes": "Keep foreground 24H sign clear of legs/ankles for clean silhouette & puppet QA"
+      },
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_convenience_night.png",
+        "assets/production/fg_neon_sign.png",
+        "assets/production/prop_traffic_cone.png"
+      ],
+      "sfx": "neon_hum"
+    }
+  ],
+  "cast_inventory": [
+    {
+      "id": "zombie",
+      "role": "Mischievous midnight zombie who scares himself in a mirror",
+      "shot_ids": [
+        "shot_01_hook",
+        "shot_02_stalk",
+        "shot_03_mirror_insert",
+        "shot_04_mirror_shock",
+        "shot_05_panic_chase",
+        "shot_06_cone_trip",
+        "shot_07_human_deadpan",
+        "shot_08_sign_payoff"
+      ]
+    },
+    {
+      "id": "human",
+      "role": "Deadpan unbothered midnight shopper holding a pocket vanity mirror",
+      "shot_ids": [
+        "shot_01_hook",
+        "shot_02_stalk",
+        "shot_03_mirror_insert",
+        "shot_04_mirror_shock",
+        "shot_05_panic_chase",
+        "shot_06_cone_trip",
+        "shot_07_human_deadpan",
+        "shot_08_sign_payoff"
+      ]
+    }
+  ],
+  "caption": {
+    "profile": "eiffel-v44-portrait-archivo-black-v1",
+    "native_design": "9:16",
+    "font_family": "Archivo Black",
+    "font_file": "fonts/ArchivoBlack.ttf",
+    "font_sha256": "dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180",
+    "font_size": 47,
+    "stroke": 4,
+    "fill": "#ffffff",
+    "stroke_fill": "#171319",
+    "supersampling": 3,
+    "resample": "lanczos",
+    "anchor": "ms",
+    "side": 44,
+    "switch": "hard_cut",
+    "autoshrink": false,
+    "pop": false,
+    "baseline": 914,
+    "band": [
+      864,
+      951
+    ],
+    "native_layout_reason": "Single-line Archivo Black bottom caption band below focal torso height across all 9:16 closeups and wide shots"
+  }
+}

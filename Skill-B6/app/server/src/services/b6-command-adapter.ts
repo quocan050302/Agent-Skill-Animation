@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
+  APP_ROOT,
   FFMPEG_COMPAT_DIR,
   PYCACHE_DIR,
   SKILL_DIR,
@@ -311,6 +312,86 @@ export class B6CommandAdapter {
       displayCommand: `node scripts/autopilot.mjs doctor --style B6`,
       outputDir: null,
       reportPath: null,
+    };
+  }
+
+  buildAnalyzeEditorial(
+    projectDir: string,
+    ratio: '9:16' | '16:9',
+    opts: {
+      videoRel?: string;
+      reportRel?: string;
+      evidenceRel?: string;
+    } = {},
+  ): CommandSpec {
+    const pythonExe = resolvePythonExe();
+    const cliPath = path.join(APP_ROOT, 'editorial_runtime', 'b6_editorial_cli.py');
+    if (!fs.existsSync(cliPath)) {
+      throw new Error('Không tìm thấy editorial_runtime/b6_editorial_cli.py.');
+    }
+
+    let reportAbs: string | null = null;
+    if (opts.reportRel) {
+      reportAbs = resolveInsideRoot(projectDir, opts.reportRel, true);
+    }
+
+    let videoRel = opts.videoRel;
+    if (!videoRel && reportAbs) {
+      try {
+        const rep = JSON.parse(fs.readFileSync(reportAbs, 'utf8')) as { video?: string };
+        if (typeof rep.video === 'string' && rep.video.length > 0) {
+          videoRel = rep.video;
+        }
+      } catch {
+        throw new Error(`Không đọc được report JSON hợp lệ từ "${opts.reportRel}".`);
+      }
+    }
+    if (!videoRel) {
+      throw new Error('Cần có videoRel hoặc preview report chứa đường dẫn video MP4 để phân tích Editorial.');
+    }
+    const videoAbs = resolveInsideRoot(projectDir, videoRel, true);
+
+    const outDirAbs = reportAbs ? path.dirname(reportAbs) : this.nextOutputDir(projectDir, 'editorial').abs;
+    const outDirRel = path.relative(projectDir, outDirAbs).replace(/\\/g, '/');
+
+    const args = [
+      cliPath,
+      '--video',
+      videoAbs,
+      '--out-dir',
+      outDirAbs,
+      '--ratio',
+      ratio,
+      '--chart',
+      '--contact-sheet',
+    ];
+
+    const sceneControlPath = path.join(projectDir, 'scene-control.json');
+    if (fs.existsSync(sceneControlPath)) {
+      args.push('--scene-control', sceneControlPath);
+    }
+    if (reportAbs) {
+      args.push('--report', reportAbs);
+    }
+
+    const evCandidates = [
+      opts.evidenceRel ? resolveInsideRoot(projectDir, opts.evidenceRel, false) : null,
+      path.join(outDirAbs, 'editorial_evidence.json'),
+      path.join(outDirAbs, 'motion_evidence.json'),
+    ].filter((p): p is string => Boolean(p && fs.existsSync(p)));
+    if (evCandidates[0]) {
+      args.push('--evidence', evCandidates[0]);
+    }
+
+    return {
+      executable: pythonExe,
+      args,
+      cwd: APP_ROOT,
+      env: this.buildEnv(),
+      displayCommand: `${path.basename(pythonExe)} editorial_runtime/b6_editorial_cli.py --video ${videoRel} --out-dir ${outDirRel} --ratio ${ratio}`,
+      // Never point outputDir at an existing preview folder so job cancel cannot delete rendered preview artifacts.
+      outputDir: null,
+      reportPath: path.join(outDirAbs, 'editorial_qc.json'),
     };
   }
 

@@ -1,0 +1,25 @@
+{
+  "schema": "b6-editorial-qc/1",
+  "status": "pass",
+  "pass": true,
+  "errors": [],
+  "warnings": [],
+  "source_fingerprint": "0100d364451e00a7dbf60f3bf98222b715030dabc3cbd3b626b204cec0345def",
+  "video_sha256": "9e1633fb8a6422183d8fce7260e03e509ea477c7ae07cd4757863f4224f44cd8",
+  "editorial_report_sha256": "405691b1dfecd54eaa0548504905f8d7f539ed817238d2b098fe1602bc204d85",
+  "frames_checked": 300,
+  "descriptive_coverage": {
+    "active_seconds": 10,
+    "total_seconds": 10,
+    "unique_compositions": 8,
+    "shots_analyzed": 8,
+    "intentional_holds_count": 0,
+    "cut_excluded_y_mad_mean": 3.7545,
+    "foreground_relative_motion_mean": 0.8994,
+    "focal_out_of_frame_count": 0,
+    "caption_collisions_count": 0
+  },
+  "audience_retention_estimate": "unavailable",
+  "human_visual_review": "PENDING",
+  "user_approval": "PENDING"
+}

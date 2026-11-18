@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
 import { AlertTriangle, CheckCircle2, Code2, Copy, FolderOpen, Play, Plus, RefreshCw, ShieldAlert, Trash2, Undo2, Save } from 'lucide-react';
-import type {
-  ActorPoseState,
-  CameraPreset,
-  CaptionCue,
-  JobRecord,
-  MotionPreset,
-  PropKeyframe,
-  Ratio,
-  ShotEasing,
-  ShotItem,
-  ShotMotionSpec,
-  VisualBeatKind,
+import {
+  migrateShotToEditorial,
+  type ActorPoseState,
+  type CameraPreset,
+  type CaptionCue,
+  type EditorialCameraMovement,
+  type EditorialFocusTargetKind,
+  type EditorialIntensity,
+  type EditorialPacingAdvice,
+  type EditorialRole,
+  type EditorialShotConfig,
+  type EditorialShotSize,
+  type EditorialTransitionKind,
+  type JobRecord,
+  type MotionPreset,
+  type PropKeyframe,
+  type Ratio,
+  type ShotEasing,
+  type ShotItem,
+  type ShotMotionSpec,
+  type VisualBeatKind,
 } from '@b6-studio/shared';
 import type {
   CharacterActorDto,
@@ -817,6 +826,209 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                   })()}
                 </div>
 
+                {/* Editorial Director Controls */}
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
+                    <span className="section-label" style={{ margin: 0 }}>Editorial Director (Framing & Rhythm)</span>
+                    <span className={`badge ${editorBinding?.editorialMode === 'editorial_verified' ? 'badge-success' : editorBinding?.editorialMode === 'editorial_v1' ? 'badge-primary' : 'badge-neutral'}`}>
+                      {editorBinding?.editorialMode === 'editorial_verified'
+                        ? 'EDITORIAL QC PASS'
+                        : editorBinding?.editorialMode === 'editorial_v1'
+                        ? 'Editorial v1'
+                        : 'Legacy'}
+                    </span>
+                  </div>
+                  {(editorBinding?.shotVarietyWarnings?.length ?? 0) > 0 && (
+                    <div
+                      data-testid="editorial-variety-warnings"
+                      style={{ fontSize: 11, color: 'var(--warning)', background: 'var(--warning-soft)', padding: '6px 8px', borderRadius: 6 }}
+                    >
+                      {editorBinding?.shotVarietyWarnings?.map((w, i) => (
+                        <div key={i}>• {w}</div>
+                      ))}
+                    </div>
+                  )}
+                  {!selectedShot.editorial ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      data-testid="enable-editorial-shot-btn"
+                      onClick={() => onUpdateShot(selectedShotIndex, migrateShotToEditorial(selectedShot))}
+                    >
+                      Bật Editorial Director (Shot)
+                    </button>
+                  ) : (() => {
+                    const ed = selectedShot.editorial;
+                    const edFocus = ed.focus ?? { targetKind: 'actor_full' as const, actorId: '', propId: '', offsetXy: [0, 0] as [number, number], scaleHint: 1, safeMargin: 0.08 };
+                    const edTrans = ed.transition ?? { kind: 'hard_cut' as const, durationS: 0, reason: '', preserveEyeline: true, matchAction: false };
+                    const updateEd = (patch: Partial<EditorialShotConfig>) =>
+                      onUpdateShot(selectedShotIndex, {
+                        ...selectedShot,
+                        editorial: { ...ed, ...patch },
+                      });
+                    return (
+                      <div style={{ padding: 8, border: '1px solid var(--border)', borderRadius: 8, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6, fontSize: 12 }}>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Editorial Role</span>
+                          <select
+                            className="select"
+                            data-testid="editorial-role-select"
+                            style={{ minHeight: 28, padding: '2px 4px' }}
+                            value={ed.role}
+                            onChange={(e) => updateEd({ role: e.target.value as EditorialRole })}
+                          >
+                            {(['hook', 'anticipation', 'escalation', 'reveal', 'threat', 'prop_insert', 'chase', 'impact', 'reaction', 'reversal', 'payoff', 'exit'] as const).map((r) => (
+                              <option key={r} value={r}>{r}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Shot Size (Scale)</span>
+                          <select
+                            className="select"
+                            data-testid="editorial-shot-size-select"
+                            style={{ minHeight: 28, padding: '2px 4px' }}
+                            value={ed.shotSize}
+                            onChange={(e) => updateEd({ shotSize: e.target.value as EditorialShotSize })}
+                          >
+                            <option value="extreme_close">extreme_close (ECU)</option>
+                            <option value="close">close (CU)</option>
+                            <option value="insert">insert (Prop)</option>
+                            <option value="medium">medium (MS)</option>
+                            <option value="wide">wide (WS)</option>
+                          </select>
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Focus Target</span>
+                          <select
+                            className="select"
+                            data-testid="editorial-focus-target-select"
+                            style={{ minHeight: 28, padding: '2px 4px' }}
+                            value={edFocus.targetKind}
+                            onChange={(e) => updateEd({ focus: { ...edFocus, targetKind: e.target.value as EditorialFocusTargetKind } })}
+                          >
+                            {(['actor_eyes', 'actor_head', 'actor_hand', 'actor_full', 'prop', 'action_group', 'world_point'] as const).map((tk) => (
+                              <option key={tk} value={tk}>{tk}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Cam Movement</span>
+                          <select
+                            className="select"
+                            data-testid="editorial-cam-move-select"
+                            style={{ minHeight: 28, padding: '2px 4px' }}
+                            value={ed.cameraMovement}
+                            onChange={(e) => updateEd({ cameraMovement: e.target.value as EditorialCameraMovement })}
+                          >
+                            {(['hold', 'track', 'push', 'pull', 'whip_with_subject', 'follow_prop'] as const).map((cm) => (
+                              <option key={cm} value={cm}>{cm}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Focus Actor ID</span>
+                          <input
+                            className="input"
+                            data-testid="editorial-focus-actor-input"
+                            style={{ minHeight: 28, padding: '2px 6px' }}
+                            value={edFocus.actorId}
+                            onChange={(e) => updateEd({ focus: { ...edFocus, actorId: e.target.value } })}
+                          />
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Focus Prop ID</span>
+                          <input
+                            className="input"
+                            style={{ minHeight: 28, padding: '2px 6px' }}
+                            value={edFocus.propId}
+                            onChange={(e) => updateEd({ focus: { ...edFocus, propId: e.target.value } })}
+                          />
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Transition</span>
+                          <select
+                            className="select"
+                            data-testid="editorial-transition-select"
+                            style={{ minHeight: 28, padding: '2px 4px' }}
+                            value={edTrans.kind}
+                            onChange={(e) => updateEd({ transition: { ...edTrans, kind: e.target.value as EditorialTransitionKind } })}
+                          >
+                            {(['hard_cut', 'match_action_cut', 'motivated_whip', 'hold'] as const).map((tr) => (
+                              <option key={tr} value={tr}>{tr}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Intensity</span>
+                          <select
+                            className="select"
+                            style={{ minHeight: 28, padding: '2px 4px' }}
+                            value={ed.intensity}
+                            onChange={(e) => updateEd({ intensity: e.target.value as EditorialIntensity })}
+                          >
+                            <option value="low">low</option>
+                            <option value="normal">normal</option>
+                            <option value="high">high</option>
+                          </select>
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Action Onset (s)</span>
+                          <input
+                            type="number"
+                            step={0.05}
+                            min={0}
+                            className="input"
+                            style={{ minHeight: 28, padding: '2px 6px' }}
+                            value={ed.actionOnsetS ?? ''}
+                            placeholder="auto"
+                            onChange={(e) =>
+                              updateEd({
+                                actionOnsetS: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)),
+                              })
+                            }
+                          />
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Reaction Hold (s)</span>
+                          <input
+                            type="number"
+                            step={0.05}
+                            min={0}
+                            max={3}
+                            className="input"
+                            style={{ minHeight: 28, padding: '2px 6px' }}
+                            value={ed.reactionHoldS ?? 0}
+                            onChange={(e) => updateEd({ reactionHoldS: Math.max(0, Number(e.target.value)) })}
+                          />
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Pacing Advice</span>
+                          <select
+                            className="select"
+                            style={{ minHeight: 28, padding: '2px 4px' }}
+                            value={ed.pacingAdvice}
+                            onChange={(e) => updateEd({ pacingAdvice: e.target.value as EditorialPacingAdvice })}
+                          >
+                            {(['auto', 'snappy', 'hold_payoff', 'tighten_cut', 'contrast_angle', 'keep'] as const).map((pa) => (
+                              <option key={pa} value={pa}>{pa}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Lý do chuyển cảnh</span>
+                          <input
+                            className="input"
+                            style={{ minHeight: 28, padding: '2px 6px' }}
+                            value={edTrans.reason}
+                            onChange={(e) => updateEd({ transition: { ...edTrans, reason: e.target.value } })}
+                          />
+                        </label>
+                      </div>
+                    );
+                  })()}
+                </div>
+
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span className="section-label" style={{ margin: 0 }}>Vị trí & Tư thế Actor (Start → End)</span>
@@ -1005,6 +1217,15 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                     onChange={(e) => onUpdateShot(selectedShotIndex, { ...selectedShot, camera: e.target.value })}
                   />
                 </label>
+
+                {selectedShot.editorial && (
+                  <div style={{ fontSize: 12, padding: '6px 10px', borderRadius: 6, background: 'var(--surface-subtle)', border: '1px solid var(--border)' }}>
+                    Editorial Focus: <strong>{selectedShot.editorial.shotSize}</strong> ·{' '}
+                    <code>{selectedShot.editorial.cameraMovement}</code> →{' '}
+                    <code>{selectedShot.editorial.focus?.targetKind ?? 'actor_full'}</code>
+                    {selectedShot.editorial.focus?.actorId ? ` (${selectedShot.editorial.focus.actorId})` : ''}
+                  </div>
+                )}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span className="section-label" style={{ margin: 0 }}>Keyframes ({selectedShot.cameraKeys?.length ?? 0})</span>
@@ -1347,6 +1568,30 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                         : reviewState.motionQcStatus === 'stale'
                         ? 'STALE (Cần QC lại)'
                         : 'Chờ QC'}
+                    </span>
+                  </div>
+                )}
+                {reviewState.editorialQcStatus && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    <span>Editorial QC (Pacing & Framing):</span>
+                    <span
+                      className={`badge ${
+                        reviewState.editorialQcStatus === 'pass'
+                          ? 'badge-success'
+                          : reviewState.editorialQcStatus === 'fail'
+                          ? 'badge-danger'
+                          : reviewState.editorialQcStatus === 'stale'
+                          ? 'badge-warning'
+                          : 'badge-neutral'
+                      }`}
+                    >
+                      {reviewState.editorialQcStatus === 'pass'
+                        ? 'PASS Editorial QC'
+                        : reviewState.editorialQcStatus === 'fail'
+                        ? 'FAIL Editorial QC'
+                        : reviewState.editorialQcStatus === 'stale'
+                        ? 'STALE (Cần phân tích lại)'
+                        : 'Chờ Editorial QC'}
                     </span>
                   </div>
                 )}

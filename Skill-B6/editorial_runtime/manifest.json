@@ -1,0 +1,31 @@
+{
+  "schema": "b6-editorial-runtime-manifest/1",
+  "version": "1.0.0",
+  "editorial_schema": "b6-studio-editorial/1",
+  "files": {
+    "__init__.py": {
+      "sha256": "a8d0e6afc6ad2d68cc80b15a02b7c6eafd3d63ee1c138325b6439248e4bab9aa",
+      "bytes": 2300
+    },
+    "b6_editorial_contract.py": {
+      "sha256": "0dbda686a0d644f38e585db6f0ff97b2b355ff52d221a72aa5f988c6164a61c6",
+      "bytes": 28670
+    },
+    "b6_editorial_director.py": {
+      "sha256": "204d3b230f402e384d3e981da9a2e9f5f22a49aa95cb2883b1c90e980cce1fdf",
+      "bytes": 12611
+    },
+    "b6_editorial_metrics.py": {
+      "sha256": "08a3bf72b7fcb6a69f3270e4e3bb7ddf58846c2dafa32cb78c7d255a2faa747b",
+      "bytes": 47412
+    },
+    "b6_editorial_qc.py": {
+      "sha256": "9cd4dc059fe76cf0b48d4d9952aa9fe7e2e9c57096d6798bfa4719efb1689d37",
+      "bytes": 9866
+    },
+    "b6_editorial_cli.py": {
+      "sha256": "a5f46d942681e94051e41f7bdd8369a06342486ab855926fa239c9c6889b0c9d",
+      "bytes": 4363
+    }
+  }
+}

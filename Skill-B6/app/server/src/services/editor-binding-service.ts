@@ -5,6 +5,8 @@ import type {
   CanonicalScenePlan,
   CaptionCue,
   DirectorBeat,
+  EditorialMode,
+  EditorialProfile,
   EditorSyncState,
   MotionMode,
   Ratio,
@@ -34,6 +36,9 @@ export interface EditorBindingStatus {
   motionEngineMode: 'legacy_stance' | 'articulated_v1' | 'articulated_verified';
   motionQcVerified: boolean;
   gaitHonestyNote: string;
+  editorialMode: 'none' | 'editorial_v1' | 'editorial_verified';
+  editorialQcVerified: boolean;
+  shotVarietyWarnings: string[];
   mappings: FieldRuntimeBindingRow[];
 }
 
@@ -94,6 +99,13 @@ export const FIELD_RUNTIME_MAPPINGS: Omit<FieldRuntimeBindingRow, 'liveBound'>[]
     affectedRegion: 'Khung hình có chủ đích theo nhịp kể chuyện (hook/action/escalation/payoff)',
     verificationMethod: 'Đổi cameraPreset / visualBeat -> kiểm tra shot trace & contact sheet framing',
   },
+  {
+    uiField: 'Editorial Director (role, shotSize, focus, cameraMovement, transition, intensity, pacingAdvice)',
+    jsonPath: 'scene-control.json -> {editorialMode, editorialProfile, shots[].editorial}',
+    pythonFunction: 'scene_runtime.editorial_state_at(context, t, sem) + camera_editorial_at(...)',
+    affectedRegion: 'Cỡ cảnh (extreme_close/close/insert/medium/wide), mục tiêu focus (actor/eyes/prop), look-ahead & bảo vệ vùng phụ đề',
+    verificationMethod: 'Đổi shotSize / focus.targetKind / transition / cameraMovement -> preview -> kiểm tra pixel MAD & decoded shot scale',
+  },
 ];
 
 export const SCENE_RUNTIME_PY_SOURCE = `"""Canonical editor-to-renderer runtime adapter for B6 Local Studio.
@@ -107,6 +119,7 @@ import math
 from typing import Any
 
 _PLAN_CACHE: dict[tuple[str, str], dict[str, Any]] = {}
+_EDITORIAL_CACHE: dict[tuple[str, str], Any] = {}
 
 
 def _clamp01(x: float) -> float:
@@ -462,6 +475,29 @@ def director_beat_at(context, t: float) -> dict[str, Any] | None:
 
 
 def camera_director_at(context, t: float, base_cam=None, focus_world_xy: tuple[float, float] | None = None):
+    compiled = _get_compiled_editorial(context)
+    if compiled is not None:
+        try:
+            import b6_editorial_director as ed
+            Cam = context.space.Camera
+            plan = load_scene_plan(context)
+            w = int(plan.get("width", 720))
+            h = int(plan.get("height", 1280))
+            b_cam = base_cam if base_cam is not None else Cam(
+                width=w, height=h, focal=1040.0 * w / 720.0, x=0.0, y=-210.0, z=180.0, principal_y=round(h * 0.44)
+            )
+            sem = None
+            if focus_world_xy is not None:
+                sem = {
+                    "targets": {
+                        "primary": [float(focus_world_xy[0]), float(focus_world_xy[1])],
+                        "actor_head:default": [float(focus_world_xy[0]), float(focus_world_xy[1]) - 240.0],
+                        "actor_eyes:default": [float(focus_world_xy[0]), float(focus_world_xy[1]) - 265.0],
+                    }
+                }
+            return ed.resolve_editorial_camera(compiled, t, b_cam, scene_semantics=sem, camera_cls=Cam)
+        except Exception:
+            pass
     cam = camera_at(context, t, base_cam=base_cam)
     ms = motion_state_at(context, t)
     preset = str(ms.get("camera_preset") or "establish")
@@ -495,12 +531,81 @@ def camera_director_at(context, t: float, base_cam=None, focus_world_xy: tuple[f
     )
 
 
+def _get_compiled_editorial(context):
+    key = (str(context.base), str(getattr(context, "fingerprint", "")))
+    if key in _EDITORIAL_CACHE:
+        return _EDITORIAL_CACHE[key]
+    plan = load_scene_plan(context)
+    if str(plan.get("editorialMode") or "none") != "editorial_v1":
+        _EDITORIAL_CACHE[key] = None
+        return None
+    try:
+        import b6_editorial_contract as ec
+        compiled = ec.compile_editorial_timeline(plan, strict=False)
+        _EDITORIAL_CACHE[key] = compiled
+        return compiled
+    except Exception:
+        _EDITORIAL_CACHE[key] = None
+        return None
+
+
+def editorial_state_at(context, t: float, scene_semantics: dict[str, Any] | None = None) -> dict[str, Any]:
+    compiled = _get_compiled_editorial(context)
+    plan = load_scene_plan(context)
+    w = int(plan.get("width", 720))
+    h = int(plan.get("height", 1280))
+    if compiled is not None:
+        try:
+            import b6_editorial_director as ed
+            return ed.editorial_state_at(compiled, t, scene_semantics, width=w, height=h)
+        except Exception:
+            pass
+    shot, u = shot_at(context, t)
+    cam = camera_director_at(context, t)
+    ed_cfg = (shot or {}).get("editorial") or {}
+    return {
+        "schema": "b6-studio-editorial/legacy-fallback",
+        "t": round(float(t), 5),
+        "shot_id": (shot or {}).get("id", ""),
+        "role": ed_cfg.get("role", "reveal"),
+        "shot_size": ed_cfg.get("shotSize", "medium"),
+        "camera_movement": ed_cfg.get("cameraMovement", "hold"),
+        "intensity": ed_cfg.get("intensity", "normal"),
+        "pacing_advice": ed_cfg.get("pacingAdvice", "auto"),
+        "shot_u": round(u, 5),
+        "camera": {"width": cam.width, "height": cam.height, "x": cam.x, "y": cam.y, "z": cam.z, "focal": cam.focal, "principal_y": cam.principal_y},
+    }
+
+
+def camera_editorial_at(context, t: float, base_cam=None, scene_semantics: dict[str, Any] | None = None):
+    Cam = context.space.Camera
+    plan = load_scene_plan(context)
+    w = int(plan.get("width", 720))
+    h = int(plan.get("height", 1280))
+    if base_cam is None:
+        base_cam = Cam(width=w, height=h, focal=1040.0 * w / 720.0, x=0.0, y=-210.0, z=180.0, principal_y=round(h * 0.44))
+    compiled = _get_compiled_editorial(context)
+    if compiled is not None:
+        try:
+            import b6_editorial_director as ed
+            return ed.resolve_editorial_camera(compiled, t, base_cam, scene_semantics=scene_semantics, camera_cls=Cam)
+        except Exception:
+            pass
+    focus_xy = None
+    if scene_semantics and isinstance(scene_semantics.get("targets"), dict):
+        first_pt = next(iter(scene_semantics["targets"].values()), None)
+        if first_pt and len(first_pt) >= 2:
+            focus_xy = (float(first_pt[0]), float(first_pt[1]))
+    return camera_director_at(context, t, base_cam=base_cam, focus_world_xy=focus_xy)
+
+
 def qa_trace_at(context, t: float) -> dict[str, Any]:
     shot, u = shot_at(context, t)
     cam = camera_at(context, t)
     actor = actor_state_at(context, t)
     ms = motion_state_at(context, t)
     beat = director_beat_at(context, t)
+    ed = editorial_state_at(context, t)
     return {
         "t": round(float(t), 4),
         "shot_id": shot.get("id") if shot else None,
@@ -508,6 +613,7 @@ def qa_trace_at(context, t: float) -> dict[str, Any]:
         "camera": {"x": round(cam.x, 2), "y": round(cam.y, 2), "z": round(cam.z, 2), "focal": round(cam.focal, 2)},
         "actor": {"x": round(actor["x"], 2), "y": round(actor["y"], 2), "head_angle_deg": round(actor["head_angle_deg"], 2), "expression": actor["expression"]},
         "motion": {"mode": ms["mode"], "preset": ms["preset"], "camera_preset": ms["camera_preset"], "visual_beat": ms["visual_beat"]},
+        "editorial": {"shot_size": ed.get("shot_size"), "role": ed.get("role"), "camera_movement": ed.get("camera_movement")},
         "director_beat": beat.get("beatKind") if beat else None,
     }
 `;
@@ -523,6 +629,8 @@ export class EditorBindingService {
     voiceSha256: string | null;
     voiceTextSha256: string | null;
     motionMode?: MotionMode;
+    editorialMode?: EditorialMode;
+    editorialProfile?: EditorialProfile;
     directorBeats?: DirectorBeat[];
     shots: ShotItem[];
     captions: CaptionCue[];
@@ -547,6 +655,8 @@ export class EditorBindingService {
       narration_sha256: narrationSha,
       voice_stale: voiceStale,
       ...(params.motionMode ? { motionMode: params.motionMode } : {}),
+      ...(params.editorialMode ? { editorialMode: params.editorialMode } : {}),
+      ...(params.editorialProfile ? { editorialProfile: params.editorialProfile } : {}),
       ...(params.directorBeats?.length ? { directorBeats: params.directorBeats } : {}),
       shots: params.shots,
       captions: params.captions,
@@ -632,11 +742,77 @@ export class EditorBindingService {
           errors.push(`Canonical plan: asset_inputs "${aRef}" không tồn tại hoặc vượt phạm vi dự án.`);
         }
       }
+
+      // Editorial Director validation when editorialMode === 'editorial_v1' or shot.editorial is set
+      if (plan.editorialMode === 'editorial_v1' || sh.editorial) {
+        const span = sh.end - sh.start;
+        if (span > 0 && span < 3 / 30) {
+          errors.push(`Canonical plan: shot "${sh.id}" quá ngắn (${span.toFixed(3)}s < 3 frames), vi phạm quy tắc chống nhấp nháy.`);
+        }
+        const ed = sh.editorial;
+        if (ed) {
+          const reason = (sh.short_cut_reason ?? '').trim() || (ed.transition?.reason ?? '').trim();
+          if (span < 0.9 && !reason) {
+            errors.push(`Canonical plan: shot "${sh.id}" (<0.9s) thiếu lý do chuyển cảnh (transition.reason / short_cut_reason).`);
+          }
+          if (ed.actionOnsetS !== undefined && (ed.actionOnsetS < sh.start - 0.002 || ed.actionOnsetS > sh.end + 0.002)) {
+            errors.push(`Canonical plan: actionOnsetS (${ed.actionOnsetS}s) nằm ngoài khoảng shot "${sh.id}".`);
+          }
+          if (ed.focus.targetKind.startsWith('actor_')) {
+            const targetActor = (ed.focus.actorId || sh.actor || '').trim();
+            if (!targetActor) {
+              errors.push(`Canonical plan: shot "${sh.id}" đặt focus "${ed.focus.targetKind}" nhưng thiếu actorId.`);
+            } else if (knownActors.size > 0 && !knownActors.has(targetActor)) {
+              errors.push(`Canonical plan: focus actor "${targetActor}" trong shot "${sh.id}" không tồn tại trong characters.json.`);
+            }
+          }
+          if (ed.focus.targetKind === 'prop') {
+            const targetProp = (ed.focus.propId || '').trim();
+            if (!targetProp) {
+              errors.push(`Canonical plan: shot "${sh.id}" đặt focus "prop" nhưng thiếu propId.`);
+            } else {
+              const knownInShot =
+                (sh.props ?? []).some((p) => p === targetProp || p.includes(targetProp)) ||
+                (sh.propKeyframes ?? []).some((pk) => pk.propId === targetProp) ||
+                (sh.asset_inputs ?? []).some((a) => a.includes(targetProp));
+              if (!knownInShot) {
+                errors.push(`Canonical plan: prop focus "${targetProp}" trong shot "${sh.id}" chưa có trong props/propKeyframes/asset_inputs.`);
+              }
+            }
+          }
+        }
+      }
       cursor = sh.end;
     }
 
     if (plan.shots.length > 0 && Math.abs(cursor - plan.duration) > 1 / 30) {
       errors.push(`Canonical plan: tổng shot (${cursor.toFixed(3)}s) lệch duration (${plan.duration}s).`);
+    }
+
+    if (plan.editorialMode === 'editorial_v1' && plan.shots.length >= 2) {
+      const sizes = new Set<string>();
+      for (let i = 0; i < plan.shots.length; i++) {
+        const curEd = plan.shots[i].editorial;
+        if (curEd) sizes.add(curEd.shotSize);
+        if (i > 0 && curEd && plan.shots[i - 1].editorial) {
+          const prevEd = plan.shots[i - 1].editorial!;
+          if (
+            prevEd.shotSize === curEd.shotSize &&
+            prevEd.focus.targetKind === curEd.focus.targetKind &&
+            prevEd.focus.actorId === curEd.focus.actorId &&
+            prevEd.focus.propId === curEd.focus.propId &&
+            prevEd.cameraMovement === curEd.cameraMovement &&
+            curEd.transition.kind === 'hard_cut'
+          ) {
+            warnings.push(
+              `Shot "${plan.shots[i - 1].id}" -> "${plan.shots[i].id}" lặp cùng cỡ cảnh (${curEd.shotSize}) và mục tiêu focus.`,
+            );
+          }
+        }
+      }
+      if (plan.shots.length >= 3 && sizes.size === 1) {
+        warnings.push(`Toàn bộ ${plan.shots.length} shots chỉ dùng một cỡ cảnh (${Array.from(sizes)[0]}).`);
+      }
     }
 
     return { valid: errors.length === 0, errors, warnings };
@@ -650,6 +826,7 @@ export class EditorBindingService {
       technicalStatus: string;
       editorSyncState: EditorSyncState;
       motionQcStatus?: string;
+      editorialQcStatus?: string;
     },
   ): Promise<EditorBindingStatus> {
     const hasRuntimeFile = fs.existsSync(path.join(projectDir, 'scene_runtime.py'));
@@ -658,28 +835,72 @@ export class EditorBindingService {
     const isBound = hasRuntimeFile && hasControlFile && sceneImportsRuntime;
 
     let optsArticulated = detail.projectJson?.motion_mode === 'articulated_v1';
-    if (!optsArticulated && hasControlFile) {
+    let optsEditorial = detail.projectJson?.editorial_mode === 'editorial_v1';
+    const shotVarietyWarnings: string[] = [];
+    if (hasControlFile) {
       try {
-        const ctrl = await readJsonFile<{ motionMode?: string; shots?: Array<{ motion?: { mode?: string }; motionMode?: string }> }>(
-          path.join(projectDir, 'scene-control.json'),
-        );
-        optsArticulated =
-          ctrl?.motionMode === 'articulated_v1' ||
-          Boolean(ctrl?.shots?.some((s) => (s.motion?.mode ?? s.motionMode) === 'articulated_v1'));
+        const ctrl = await readJsonFile<{
+          motionMode?: string;
+          editorialMode?: string;
+          shots?: Array<{
+            id?: string;
+            motion?: { mode?: string };
+            motionMode?: string;
+            editorial?: {
+              shotSize?: string;
+              cameraMovement?: string;
+              focus?: { targetKind?: string; actorId?: string; propId?: string };
+            };
+          }>;
+        }>(path.join(projectDir, 'scene-control.json'));
+        if (!optsArticulated) {
+          optsArticulated =
+            ctrl?.motionMode === 'articulated_v1' ||
+            Boolean(ctrl?.shots?.some((s) => (s.motion?.mode ?? s.motionMode) === 'articulated_v1'));
+        }
+        if (!optsEditorial) {
+          optsEditorial = ctrl?.editorialMode === 'editorial_v1';
+        }
+        const shots = ctrl?.shots ?? [];
+        for (let i = 1; i < shots.length; i++) {
+          const prev = shots[i - 1]?.editorial;
+          const cur = shots[i]?.editorial;
+          if (
+            prev &&
+            cur &&
+            prev.shotSize === cur.shotSize &&
+            prev.focus?.targetKind === cur.focus?.targetKind &&
+            prev.focus?.actorId === cur.focus?.actorId &&
+            prev.cameraMovement === cur.cameraMovement
+          ) {
+            shotVarietyWarnings.push(
+              `Shot "${shots[i - 1].id ?? i}" -> "${shots[i].id ?? i + 1}" lặp cỡ cảnh (${cur.shotSize}) và focus.`,
+            );
+          }
+        }
       } catch {
-        optsArticulated = false;
+        // preserve projectJson defaults
       }
     }
     const hasArticulatedFiles =
       fs.existsSync(path.join(projectDir, 'b6_motion_core.py')) &&
       fs.existsSync(path.join(projectDir, 'b6_motion_render.py')) &&
       fs.existsSync(path.join(projectDir, 'b6_motion_qc.py'));
+    const hasEditorialFiles =
+      fs.existsSync(path.join(projectDir, 'b6_editorial_contract.py')) &&
+      fs.existsSync(path.join(projectDir, 'b6_editorial_director.py'));
     const qcPassed = qaState.motionQcStatus === 'pass' && qaState.technicalStatus === 'pass';
+    const edQcPassed = qaState.editorialQcStatus === 'pass' && qaState.technicalStatus === 'pass';
     const motionEngineMode: EditorBindingStatus['motionEngineMode'] = !optsArticulated
       ? 'legacy_stance'
       : qcPassed && hasArticulatedFiles
       ? 'articulated_verified'
       : 'articulated_v1';
+    const editorialMode: EditorBindingStatus['editorialMode'] = !optsEditorial
+      ? 'none'
+      : edQcPassed && hasEditorialFiles
+      ? 'editorial_verified'
+      : 'editorial_v1';
 
     const revision = Number(detail.meta.revision ?? 1);
     const lastRenderedRevision =
@@ -704,6 +925,9 @@ export class EditorBindingService {
       motionEngineMode,
       motionQcVerified: motionEngineMode === 'articulated_verified',
       gaitHonestyNote,
+      editorialMode,
+      editorialQcVerified: editorialMode === 'editorial_verified',
+      shotVarietyWarnings,
       mappings: FIELD_RUNTIME_MAPPINGS.map((m) => ({
         ...m,
         liveBound: isBound || m.uiField.includes('Phụ đề') || m.uiField.includes('Lời thoại'),

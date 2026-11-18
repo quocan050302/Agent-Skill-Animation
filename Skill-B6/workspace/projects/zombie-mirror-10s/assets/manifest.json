@@ -1,0 +1,34 @@
+{
+  "schema": "b6-studio-asset-manifest/1",
+  "generated_by": "Antigravity image-generator + flood-fill RGBA matte extractor",
+  "assets": [
+    {
+      "id": "bg_convenience_night",
+      "path": "assets/production/bg_convenience_night.png",
+      "role": "background",
+      "classification": "PRODUCTION ASSET",
+      "sha256": "64bab975bc7635422af8206c84f5f044a949c23fd3c330af738fd309dfcb6b24"
+    },
+    {
+      "id": "fg_neon_sign",
+      "path": "assets/production/fg_neon_sign.png",
+      "role": "foreground",
+      "classification": "PRODUCTION ASSET",
+      "sha256": "2b88ee8e5f2a3acf028323ea173adc5bdebf6e17ec3748d8bb83bb3150356e3a"
+    },
+    {
+      "id": "prop_vanity_mirror",
+      "path": "assets/production/prop_vanity_mirror.png",
+      "role": "prop",
+      "classification": "PRODUCTION ASSET",
+      "sha256": "4e175861243c393d8bef9d05aa9a98ad6800892d5e65220a2f66f21b9de50d61"
+    },
+    {
+      "id": "prop_traffic_cone",
+      "path": "assets/production/prop_traffic_cone.png",
+      "role": "prop",
+      "classification": "PRODUCTION ASSET",
+      "sha256": "cc139a91d389f8e58cacf8880b06fe793d5dd7e1b8438e988585af9ec934a009"
+    }
+  ]
+}

@@ -152,6 +152,22 @@ if (motionManifest?.files) {
 
 const ARTICULATED_RUNTIME_FILES = ['b6_motion_core.py', 'b6_motion_render.py', 'b6_motion_qc.py'];
 
+const EDITORIAL_RUNTIME_DIR = path.join(APP_ROOT, 'editorial_runtime');
+const EDITORIAL_MANIFEST_PATH = path.join(EDITORIAL_RUNTIME_DIR, 'manifest.json');
+const editorialManifest = fs.existsSync(EDITORIAL_MANIFEST_PATH)
+  ? JSON.parse(fs.readFileSync(EDITORIAL_MANIFEST_PATH, 'utf8'))
+  : null;
+if (editorialManifest?.files) {
+  for (const [fname, meta] of Object.entries(editorialManifest.files)) {
+    const abs = path.join(EDITORIAL_RUNTIME_DIR, fname);
+    if (!fs.existsSync(abs) || sha256File(abs) !== meta.sha256) {
+      throw new Error(`Shared editorial_runtime integrity mismatch for ${fname} against editorial_runtime/manifest.json`);
+    }
+  }
+}
+
+const EDITORIAL_RUNTIME_FILES = ['b6_editorial_contract.py', 'b6_editorial_director.py'];
+
 const HELPER_SCRIPTS = [
   ['b6_production.py', 'run.py'],
   ['b6_motion_review.py', 'motion_review.py'],
@@ -282,6 +298,28 @@ for (const projDir of projectTargets) {
         } else {
           fs.copyFileSync(srcAbs, destAbs);
           actions.push(`hydrated_motion:${fname}`);
+        }
+      }
+    }
+  }
+
+  // 4c. Hydrate editorial_runtime helpers ONLY for projects opting into editorial_v1
+  const usesEditorial =
+    projectJson?.editorial_mode === 'editorial_v1' || controlJson?.editorialMode === 'editorial_v1';
+  if (usesEditorial && editorialManifest?.files) {
+    for (const fname of EDITORIAL_RUNTIME_FILES) {
+      const destAbs = path.join(projDir, fname);
+      const srcAbs = path.join(EDITORIAL_RUNTIME_DIR, fname);
+      const expectedSha = editorialManifest.files[fname]?.sha256;
+      const missingOrStale = !fs.existsSync(destAbs) || (expectedSha && sha256File(destAbs) !== expectedSha);
+      if (missingOrStale) {
+        if (verifyOnly) {
+          errors.push(`editorial_runtime helper missing/mismatch: ${fname}`);
+        } else if (dryRun) {
+          actions.push(`would_hydrate_editorial:${fname}`);
+        } else {
+          fs.copyFileSync(srcAbs, destAbs);
+          actions.push(`hydrated_editorial:${fname}`);
         }
       }
     }

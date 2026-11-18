@@ -1,0 +1,209 @@
+{
+  "schema": "b6-output-manifest/1",
+  "run_id": "B6-LOCAL-STUDIO-04",
+  "branch": "master",
+  "starting_commit_sha": "8433384f10632b1bc0896992d03d2e17980fe9fd",
+  "upstream_lock_sha": "833e277cab230f22e6d9c24b31a1baccaae0e22d",
+  "editorial_runtime_version": "1.0.0",
+  "project": "workspace/projects/zombie-mirror-10s",
+  "verification": {
+    "ok": true,
+    "tier": "release",
+    "parityOk": true,
+    "decodedPixelsParity": true,
+    "containerByteParity": true,
+    "parityClassification": "exact_decoded_and_container_match",
+    "speedupRatio": 1.12
+  },
+  "qa_verdicts": {
+    "technical_preview": "pass",
+    "motion_qc": "pass",
+    "editorial_qc": "pass",
+    "visual_motion_review_35": "PENDING",
+    "user_approval": "PENDING",
+    "audience_retention_estimate": "unavailable",
+    "render_unlocked": false
+  },
+  "artifacts": {
+    "ARCHITECTURE-EDITORIAL.md": {
+      "bytes": 8380,
+      "sha256": "1a22fc69b84e8f6d3bb71f16ebb99e6078cd7cd38c44c7b73be9eca1d4f4aef8"
+    },
+    "BENCHMARK.md": {
+      "bytes": 3101,
+      "sha256": "75044efab95a971541162d83480950b645d94cde31e7a0431695c6e76668f891"
+    },
+    "EDITORIAL-METRICS.md": {
+      "bytes": 6311,
+      "sha256": "1f33db962d5c2af69e0721d68550e4980ee0212ae1ed41f37b28bd51fa6282b0"
+    },
+    "QA-REPORT.md": {
+      "bytes": 3599,
+      "sha256": "d2ef68d25202a94b9c1812d30c3e8ccf578de49500e1879e4a11e7b80b32f4f3"
+    },
+    "README.md": {
+      "bytes": 5075,
+      "sha256": "14e367e09d4ce4962cfac940331dd6f3324384bea4efcc1c79f35d47a4ad1910"
+    },
+    "TEST-MATRIX.md": {
+      "bytes": 5037,
+      "sha256": "65e7c46d931912da88b27d91bb80e7031a087df8e326a317d6e692f37a7be7c2"
+    },
+    "ZOMBIE-STORYBOARD.md": {
+      "bytes": 4608,
+      "sha256": "11dae09875475c99265a6f10b438948262ee03eee7e6670016e09eb67ff52ae2"
+    },
+    "baselines/legacy-project-hashes.json": {
+      "bytes": 9998,
+      "sha256": "4efa90e9434dd20ea0c6314004619115c29ebf6d4282b06142a5689390f9188e"
+    },
+    "baselines/samurai-editorial-metrics.json": {
+      "bytes": 26633,
+      "sha256": "792c8c88a187bf923033e511a8cad2fd53412b74aa2a822d2c11c46af24e7dde"
+    },
+    "baselines/samurai-editorial-qc.json": {
+      "bytes": 1397,
+      "sha256": "0101c1efed5b86544fac9f76369214d09b6cd465db9acf342f9f6e0eb96c98f8"
+    },
+    "baselines/samurai-pacing-chart.svg": {
+      "bytes": 2726,
+      "sha256": "9180aa3ba6a2ac829007c15c0a565fae57a5c37ec782a2360c59c4b59e2fbfac"
+    },
+    "evidence/zombie-editorial-pacing-chart.svg": {
+      "bytes": 2730,
+      "sha256": "c70c77d5bbf422b74d12faaf8494bef846bbc314e0f78be27ac05ddf997f2183"
+    },
+    "evidence/zombie-editorial-qc.json": {
+      "bytes": 848,
+      "sha256": "d4507b336cdb1588ced75d0dcad890af93b2fbe667810e6b86bfa55e4d8bbe8e"
+    },
+    "evidence/zombie-editorial-report.json": {
+      "bytes": 28703,
+      "sha256": "405691b1dfecd54eaa0548504905f8d7f539ed817238d2b098fe1602bc204d85"
+    },
+    "evidence/zombie-ffprobe.json": {
+      "bytes": 3669,
+      "sha256": "d841a5b1b5c8adedec6ebf8d191d66ef16042d5b30d947a00dc0c4cc01761d6a"
+    },
+    "evidence/zombie-motion-qc.json": {
+      "bytes": 883,
+      "sha256": "34ae08a5a992cc6059e554c32fdcb14bd66c7465be07560d2bc6db34b1f9ca75"
+    },
+    "evidence/zombie-preview-report.json": {
+      "bytes": 9880,
+      "sha256": "e86159ccde00575d7a8c8dd154ac8e33da90dfec75d666c9d04193ea5c6b7954"
+    },
+    "sample-frames/frame-0000.png": {
+      "bytes": 900038,
+      "sha256": "afa69cbab57fb0f764f31860a77790d37360f0612d6748a0c21d835ef5d1d674"
+    },
+    "sample-frames/frame-0027.png": {
+      "bytes": 889401,
+      "sha256": "9f801b30df2f1ccf5afca91d3e77b8bc33ae4517225c8337e9d4cd4e9afaed37"
+    },
+    "sample-frames/frame-0054.png": {
+      "bytes": 921767,
+      "sha256": "ca5476f7e19510f813080c3c065dc9dca16bae7409e5231d8b3c7deb75319a96"
+    },
+    "sample-frames/frame-0081.png": {
+      "bytes": 941855,
+      "sha256": "0f7c1bd20ba8ece006a09ca60b6f67f80e201283b028a142443c65f0722fb68f"
+    },
+    "sample-frames/frame-0108.png": {
+      "bytes": 877412,
+      "sha256": "744f5b9c016d4fe23f6fa89e338838c4493ffb1b770c0c2e4ecbd5fb593a78a0"
+    },
+    "sample-frames/frame-0135.png": {
+      "bytes": 931234,
+      "sha256": "6d726397472ad16653085c2efaa4936495bb06e22411bbb02cdd4b8558169fe9"
+    },
+    "sample-frames/frame-0163.png": {
+      "bytes": 921859,
+      "sha256": "c911061bddcebce03c0a0f5e91fb05cd29c75637001bc576d9728e0b845c78a6"
+    },
+    "sample-frames/frame-0190.png": {
+      "bytes": 900348,
+      "sha256": "2eb133bbc038a2e1c6fa0661b37149c241090cfb8bab07c2d31691f3e3dd990e"
+    },
+    "sample-frames/frame-0217.png": {
+      "bytes": 881185,
+      "sha256": "3cb2f51c0bb0d96021ca65084d03c460de911f79a1250daf9a4de5cc8fa49e0e"
+    },
+    "sample-frames/frame-0244.png": {
+      "bytes": 928215,
+      "sha256": "cc4ff9522a64af6b55d299fea325b836f92f8f22a309e643339c967a92beb61f"
+    },
+    "sample-frames/frame-0271.png": {
+      "bytes": 988799,
+      "sha256": "7beee34ce447f4d21b88a1ede01b93b1ceb17075805d49227e7b10cbb631dbfa"
+    },
+    "sample-frames/frame-0299.png": {
+      "bytes": 985061,
+      "sha256": "6735107d1fb0e1ee586362d5f9c61c6ef25f18ef4de8bb110e056bde4e2aca80"
+    },
+    "screenshots/desktop-1440-projects.png": {
+      "bytes": 121683,
+      "sha256": "4b971f6dec3ddc076bcbebff4608d49fde17c5b774e244ea161b03fcfa16a1f6"
+    },
+    "screenshots/desktop-1440-qa-cowboy.png": {
+      "bytes": 268059,
+      "sha256": "1ee8c94bf8012d11e3943e211b5a9e0f3de7f1349f4fe48abcc1b55c79c3f0eb"
+    },
+    "screenshots/desktop-1440-samurai-shot-motion.png": {
+      "bytes": 343765,
+      "sha256": "86ebaa91086e23c10e18f38bce74cb2dfd177f485adc62a46171de91803b19e3"
+    },
+    "screenshots/desktop-1440-studio-cowboy.png": {
+      "bytes": 178993,
+      "sha256": "3ed63ee6ff864c34d841d52662e83f6900020903fa35c66fcf7e7b95e4fa4feb"
+    },
+    "screenshots/desktop-1440-studio-samurai.png": {
+      "bytes": 343118,
+      "sha256": "e2c890368b3142f80d98f04c35d2a515c16efb67cd5ab5097deda5b232e9e3a8"
+    },
+    "screenshots/desktop-1440-studio-zombie.png": {
+      "bytes": 357567,
+      "sha256": "3c328b3eca45e07cc4317fd3d817d750ff005371b23738a20fca35ca10f00056"
+    },
+    "screenshots/desktop-1440-zombie-editorial-qa.png": {
+      "bytes": 163767,
+      "sha256": "89e8dcb7159bd2bb0ad3a2b7e67d497a9b53741a1dbcd109686c26bc297d35b9"
+    },
+    "screenshots/desktop-1440-zombie-editorial-shot.png": {
+      "bytes": 335772,
+      "sha256": "041fab7f26fa7e873ff2629ed345dfb48cea5935e8eccff5c64f409d697462de"
+    },
+    "screenshots/mobile-375-projects.png": {
+      "bytes": 75935,
+      "sha256": "2e14336e41c82b87ea3f00ea0fb4703a827e37839c82d2dbd979f67d06acc4c9"
+    },
+    "screenshots/mobile-375-studio.png": {
+      "bytes": 54697,
+      "sha256": "0bf342ffc2e96a9ebd7dd26c08920f61c8ad5cdffb76cafcf0e03391d6b6f2e4"
+    },
+    "screenshots/mobile-375-zombie-studio.png": {
+      "bytes": 143741,
+      "sha256": "9fb89bd8fa0a58206577d51c1d9cc7479165c6b645cc056c6c5fe77f4ac772c4"
+    },
+    "verify-all-summary.json": {
+      "bytes": 49879,
+      "sha256": "6e0f5fd4d03bda9c1d8a36ec304ed1abbfb1e276aaabc501f5bb34670d908485"
+    },
+    "verify-all.jsonl": {
+      "bytes": 13133,
+      "sha256": "68c08ba147f66bae3ed7b6f6f0ba74acc790d4d8427622441fc5eff155a7e11e"
+    },
+    "zombie-contact-sheet.jpg": {
+      "bytes": 1508172,
+      "sha256": "babf1b9a36b08b91df4ed4b8520874c88ab507cd7ead32dcc0eabb043b70de18"
+    },
+    "zombie-preview-10s.mp4": {
+      "bytes": 4211631,
+      "sha256": "9e1633fb8a6422183d8fce7260e03e509ea477c7ae07cd4757863f4224f44cd8"
+    },
+    "zombie-puppet-contact-sheet.jpg": {
+      "bytes": 754135,
+      "sha256": "b84fd0569443c0380e4768e256a5cbda812d73b7c8fb8ebd768875a0667ef491"
+    }
+  }
+}

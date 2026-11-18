@@ -216,6 +216,12 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
                 {currentShot.cameraPreset ?? currentShot.motion?.cameraPreset ?? 'establish'} · beat:{' '}
                 {currentShot.visualBeat ?? currentShot.motion?.visualBeat ?? 'action'}
               </div>
+              {currentShot.editorial && (
+                <div>
+                  ed: {currentShot.editorial.shotSize} · {currentShot.editorial.role} →{' '}
+                  {currentShot.editorial.focus?.targetKind ?? 'actor_full'}
+                </div>
+              )}
               {currentShot.motion?.gait && (
                 <div>
                   cadence {currentShot.motion.gait.cadenceHz}Hz · stride {currentShot.motion.gait.strideLen}px ·
@@ -387,8 +393,27 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
                 <div style={{ fontSize: 12, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {shot.action}
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--muted)' }}>
-                  {shot.actor || 'Cảnh nền'} · {shot.expression || 'neutral'}
+                <div style={{ fontSize: 11, color: 'var(--muted)', display: 'flex', justifyContent: 'space-between', gap: 4 }}>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {shot.actor || 'Cảnh nền'} · {shot.expression || 'neutral'}
+                  </span>
+                  {shot.editorial && (
+                    <span
+                      style={{ flexShrink: 0, fontWeight: 600, color: 'var(--primary)' }}
+                      title={shot.editorial.transition?.reason || shot.short_cut_reason || ''}
+                    >
+                      {shot.editorial.shotSize === 'extreme_close'
+                        ? 'ECU'
+                        : shot.editorial.shotSize === 'close'
+                        ? 'CU'
+                        : shot.editorial.shotSize === 'insert'
+                        ? 'INS'
+                        : shot.editorial.shotSize === 'wide'
+                        ? 'WS'
+                        : 'MS'}{' '}
+                      · {shot.editorial.role}
+                    </span>
+                  )}
                 </div>
               </button>
             ))}

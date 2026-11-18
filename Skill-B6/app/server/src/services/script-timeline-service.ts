@@ -3,9 +3,9 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { CaptionCue, PatchProjectInput, ShotItem } from '@b6-studio/shared';
-import { resolvePythonExe, resolveRealFfprobe } from '../config.js';
+import { APP_ROOT, resolvePythonExe, resolveRealFfprobe } from '../config.js';
 import { readJsonFile, resolveInsideRoot, sha256File, writeAtomicFile, writeAtomicJson } from '../utils/fs-safe.js';
-import { EditorBindingService } from './editor-binding-service.js';
+import { EditorBindingService, SCENE_RUNTIME_PY_SOURCE } from './editor-binding-service.js';
 import type { ProjectDetail, ProjectService } from './project-service.js';
 import type { QaEvidenceResolver } from './qa-evidence-service.js';
 
@@ -155,6 +155,7 @@ function normalizeShotsFromPlan(rawShots: Array<Record<string, unknown>>): ShotI
     motion: s.motion as ShotItem['motion'],
     cameraPreset: s.cameraPreset as ShotItem['cameraPreset'],
     visualBeat: s.visualBeat as ShotItem['visualBeat'],
+    editorial: s.editorial as ShotItem['editorial'],
     transition: String(s.transition ?? 'cut'),
     short_cut_reason: typeof s.short_cut_reason === 'string' ? s.short_cut_reason : undefined,
     asset_inputs: Array.isArray(s.asset_inputs) ? s.asset_inputs.map(String) : [],
@@ -292,6 +293,7 @@ export class ScriptTimelineService {
             ...(s.motion ? { motion: s.motion } : {}),
             ...(s.cameraPreset ? { cameraPreset: s.cameraPreset } : {}),
             ...(s.visualBeat ? { visualBeat: s.visualBeat } : {}),
+            ...(s.editorial ? { editorial: s.editorial } : {}),
             transition: s.transition,
             ...(s.short_cut_reason ? { short_cut_reason: s.short_cut_reason } : {}),
             ...(s.asset_inputs?.length ? { asset_inputs: s.asset_inputs } : {}),
@@ -332,6 +334,13 @@ export class ScriptTimelineService {
         patch.motionMode ??
         (projectJson.motion_mode as ShotItem['motionMode'] | undefined) ??
         (existingControl?.motionMode as ShotItem['motionMode'] | undefined);
+      const effectiveEditorialMode =
+        patch.editorialMode ??
+        (projectJson.editorial_mode as PatchProjectInput['editorialMode'] | undefined) ??
+        (existingControl?.editorialMode as PatchProjectInput['editorialMode'] | undefined);
+      const effectiveEditorialProfile =
+        patch.editorialProfile ??
+        (existingControl?.editorialProfile as PatchProjectInput['editorialProfile'] | undefined);
       const effectiveDirectorBeats =
         patch.directorBeats ??
         (Array.isArray(existingControl?.directorBeats)
@@ -339,6 +348,13 @@ export class ScriptTimelineService {
           : undefined);
       if (patch.motionMode !== undefined) {
         projectJson.motion_mode = patch.motionMode;
+      }
+      if (patch.editorialMode !== undefined) {
+        projectJson.editorial_mode = patch.editorialMode;
+        if (planObj) planObj.editorialMode = patch.editorialMode;
+      }
+      if (patch.editorialProfile !== undefined && planObj) {
+        planObj.editorialProfile = patch.editorialProfile;
       }
       if (patch.directorBeats !== undefined && planObj) {
         planObj.directorBeats = patch.directorBeats;
@@ -353,9 +369,10 @@ export class ScriptTimelineService {
             s.motion ||
             s.motionMode === 'articulated_v1' ||
             s.cameraPreset ||
-            s.visualBeat,
+            s.visualBeat ||
+            s.editorial,
         ),
-      );
+      ) || effectiveEditorialMode === 'editorial_v1';
       const voiceCfg = projectJson.voice as { sha256?: string } | undefined;
 
       const canonicalPlan = this.editorBindingService.buildCanonicalScenePlan({
@@ -368,6 +385,8 @@ export class ScriptTimelineService {
         voiceSha256: typeof voiceCfg?.sha256 === 'string' ? voiceCfg.sha256 : null,
         voiceTextSha256: typeof meta.voiceTextSha256 === 'string' ? meta.voiceTextSha256 : null,
         ...(effectiveMotionMode ? { motionMode: effectiveMotionMode } : {}),
+        ...(effectiveEditorialMode ? { editorialMode: effectiveEditorialMode } : {}),
+        ...(effectiveEditorialProfile ? { editorialProfile: effectiveEditorialProfile } : {}),
         ...(effectiveDirectorBeats?.length ? { directorBeats: effectiveDirectorBeats } : {}),
         shots: updatedShots,
         captions: captionsJson,
@@ -402,8 +421,36 @@ export class ScriptTimelineService {
         const curInputs = Array.isArray(projectJson.inputs) ? [...(projectJson.inputs as string[])] : [];
         if (!curInputs.includes('scene-control.json')) {
           curInputs.push('scene-control.json');
-          projectJson.inputs = curInputs;
         }
+        const sceneRuntimeAbs = path.join(dir, 'scene_runtime.py');
+        const curRuntimeText = fs.existsSync(sceneRuntimeAbs) ? fs.readFileSync(sceneRuntimeAbs, 'utf8') : '';
+        if (!curRuntimeText || (effectiveEditorialMode === 'editorial_v1' && !curRuntimeText.includes('camera_editorial_at'))) {
+          stagedWrites.push({
+            relPath: 'scene_runtime.py',
+            absPath: sceneRuntimeAbs,
+            content: SCENE_RUNTIME_PY_SOURCE,
+          });
+          if (!curInputs.includes('scene_runtime.py')) {
+            curInputs.push('scene_runtime.py');
+          }
+        }
+        if (effectiveEditorialMode === 'editorial_v1') {
+          for (const edFile of ['b6_editorial_contract.py', 'b6_editorial_director.py']) {
+            if (!curInputs.includes(edFile)) {
+              curInputs.push(edFile);
+            }
+            const srcAbs = path.join(APP_ROOT, 'editorial_runtime', edFile);
+            const destAbs = path.join(dir, edFile);
+            if (fs.existsSync(srcAbs)) {
+              const srcContent = fs.readFileSync(srcAbs, 'utf8');
+              const destContent = fs.existsSync(destAbs) ? fs.readFileSync(destAbs, 'utf8') : '';
+              if (destContent !== srcContent) {
+                stagedWrites.push({ relPath: edFile, absPath: destAbs, content: srcContent });
+              }
+            }
+          }
+        }
+        projectJson.inputs = curInputs;
       }
       const storyAbs = resolveInsideRoot(dir, String(projectJson.story ?? 'story.json'));
       const captionsAbs = resolveInsideRoot(dir, String(projectJson.captions ?? 'captions.json'));

@@ -962,6 +962,10 @@ describe('B6-03 Articulated Motion, Multi-File Rollback & Motion-QC Truth', () =
       });
       expect(d1.statusCode).toBe(200);
       const j1 = await waitJob(d1.json().job.id);
+      if (j1.status !== 'succeeded') {
+        const logRes = await pixApp.app.inject({ method: 'GET', url: `/api/jobs/${j1.id}` });
+        throw new Error(`d1 failed: ${j1.errorMessage} | logs: ${(logRes.json().logs as string[]).slice(-10).join('\n')}`);
+      }
       expect(j1.status).toBe('succeeded');
 
       const { resolveRealFfmpeg } = await import('../src/config.js');
@@ -1006,6 +1010,10 @@ describe('B6-03 Articulated Motion, Multi-File Rollback & Motion-QC Truth', () =
       });
       expect(d2.statusCode).toBe(200);
       const j2 = await waitJob(d2.json().job.id);
+      if (j2.status !== 'succeeded') {
+        const logRes = await pixApp.app.inject({ method: 'GET', url: `/api/jobs/${j2.id}` });
+        throw new Error(`d2 failed: ${j2.errorMessage} | logs: ${(logRes.json().logs as string[]).slice(-12).join('\n')}`);
+      }
       expect(j2.status).toBe('succeeded');
       spawnSync(ffmpeg, ['-v', 'error', '-y', '-i', path.join(projDir, j2.videoPath as string), '-vf', 'select=eq(n\\,5)', '-vframes', '1', png2], { shell: false });
 
@@ -1017,6 +1025,290 @@ describe('B6-03 Articulated Motion, Multi-File Rollback & Motion-QC Truth', () =
     } finally {
       await mdApp.app.close();
       await fsp.rm(mdRoot, { recursive: true, force: true });
+    }
+  }, 60000);
+});
+
+describe('Editorial Director Contract, QC Gate & Real Render Binding (B6-04)', () => {
+  it('supports opt-in editorial_v1 schema migration, emits scene_runtime bindings, and flags consecutive shot repetition', async () => {
+    const edRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-ed-contract-'));
+    const edProjects = path.join(edRoot, 'projects');
+    const edJobs = path.join(edRoot, 'jobs');
+    const srcSamurai = path.join(process.cwd(), '..', '..', 'workspace', 'projects', 'samurai-red-leaf-10s');
+    const projDir = path.join(edProjects, 'ed-samurai');
+    fs.mkdirSync(edProjects, { recursive: true });
+    fs.mkdirSync(edJobs, { recursive: true });
+    fs.cpSync(srcSamurai, projDir, {
+      recursive: true,
+      filter: (src) => !src.includes(`${path.sep}outputs`),
+    });
+
+    const edApp = await buildApp({ projectsDir: edProjects, jobsDir: edJobs });
+    try {
+      const cur = (await edApp.app.inject({ method: 'GET', url: '/api/projects/ed-samurai' })).json().project;
+      const shots = cur.formats['9:16'].shots.map((s: Record<string, unknown>, idx: number) => ({
+        ...s,
+        cameraKeys: s.camera_keys ?? s.cameraKeys,
+        editorial: {
+          role: idx === 0 ? 'hook' : 'reveal',
+          shotSize: 'wide',
+          focus: { targetKind: 'actor_full', actorId: 'ren', propId: '', offsetXy: [0, 0], scaleHint: 1, safeMargin: 0.08 },
+          cameraMovement: 'hold',
+          transition: { kind: 'hard_cut', durationS: 0, reason: 'Same composition negative check', preserveEyeline: true, matchAction: false },
+          intensity: 'normal',
+          pacingAdvice: 'auto',
+          reactionHoldS: 0,
+          notes: '',
+        },
+      }));
+
+      const patchRes = await edApp.app.inject({
+        method: 'PATCH',
+        url: '/api/projects/ed-samurai',
+        payload: {
+          expectedRevision: cur.meta.revision,
+          editorialMode: 'editorial_v1',
+          shots,
+        },
+      });
+      expect(patchRes.statusCode).toBe(200);
+      expect(patchRes.json().detail.projectJson.editorial_mode).toBe('editorial_v1');
+
+      const bindRes = await edApp.app.inject({ method: 'GET', url: '/api/projects/ed-samurai/editor-binding?ratio=9:16' });
+      expect(bindRes.statusCode).toBe(200);
+      expect(bindRes.json().binding.editorialMode).toBe('editorial_v1');
+      expect(bindRes.json().binding.shotVarietyWarnings.length).toBeGreaterThan(0);
+
+      const runtimeSrc = fs.readFileSync(path.join(projDir, 'scene_runtime.py'), 'utf8');
+      expect(runtimeSrc).toContain('def camera_editorial_at(');
+      expect(runtimeSrc).toContain('def editorial_state_at(');
+
+      // Atomic rollback fault injection: reject invalid editorial field + stale expectedRevision
+      const revBefore = patchRes.json().detail.meta.revision as number;
+      const badEditorialPatch = await edApp.app.inject({
+        method: 'PATCH',
+        url: '/api/projects/ed-samurai',
+        payload: {
+          expectedRevision: revBefore,
+          shots: [{ ...shots[0], editorial: { ...shots[0].editorial, shotSize: 'invalid_size' } }],
+        },
+      });
+      expect(badEditorialPatch.statusCode).toBe(400);
+
+      const conflictPatch = await edApp.app.inject({
+        method: 'PATCH',
+        url: '/api/projects/ed-samurai',
+        payload: {
+          expectedRevision: revBefore + 99,
+          title: 'Should Conflict And Rollback',
+        },
+      });
+      expect(conflictPatch.statusCode).toBe(409);
+
+      const afterErr = (await edApp.app.inject({ method: 'GET', url: '/api/projects/ed-samurai' })).json().project;
+      expect(afterErr.meta.revision).toBe(revBefore);
+      expect(afterErr.projectJson.editorial_mode).toBe('editorial_v1');
+    } finally {
+      await edApp.app.close();
+      await fsp.rm(edRoot, { recursive: true, force: true });
+    }
+  }, 40000);
+
+  it('rejects tampered/stale editorial_qc.json, blocks renderUnlocked, and validates path safety', async () => {
+    const qcRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-ed-qc-trap-'));
+    const qcProjects = path.join(qcRoot, 'projects');
+    const qcJobs = path.join(qcRoot, 'jobs');
+    const srcSamurai = path.join(process.cwd(), '..', '..', 'workspace', 'projects', 'samurai-red-leaf-10s');
+    const projDir = path.join(qcProjects, 'ed-qc-trap');
+    fs.mkdirSync(qcProjects, { recursive: true });
+    fs.mkdirSync(qcJobs, { recursive: true });
+    fs.cpSync(srcSamurai, projDir, {
+      recursive: true,
+      filter: (src) => !src.includes(`${path.sep}outputs`),
+    });
+
+    const pJsonPath = path.join(projDir, 'project.json');
+    const pJson = JSON.parse(fs.readFileSync(pJsonPath, 'utf8'));
+    pJson.editorial_mode = 'editorial_v1';
+    fs.writeFileSync(pJsonPath, JSON.stringify(pJson, null, 2));
+
+    const qcApp = await buildApp({ projectsDir: qcProjects, jobsDir: qcJobs });
+    try {
+      // Missing editorial_qc.json -> editorialQcStatus = 'pending', renderUnlocked = false
+      const qaPending = (await qcApp.app.inject({ method: 'GET', url: '/api/projects/ed-qc-trap/qa?ratio=9:16' })).json().qa;
+      expect(qaPending.editorialQcStatus).toBe('pending');
+      expect(qaPending.reasonCodes).toContain('EDITORIAL_QC_PENDING');
+      expect(qaPending.renderUnlocked).toBe(false);
+
+      // Fake pass editorial_qc.json with mismatched report sha or missing report -> stale / fail
+      const outDir = path.join(projDir, 'outputs', 'preview-01');
+      fs.mkdirSync(outDir, { recursive: true });
+      fs.writeFileSync(path.join(outDir, 'editorial-report.json'), JSON.stringify({ schema: 'b6-editorial-report/1', summary: {} }));
+      fs.writeFileSync(
+        path.join(outDir, 'editorial_qc.json'),
+        JSON.stringify({
+          schema: 'b6-editorial-qc/1',
+          status: 'pass',
+          pass: true,
+          source_fingerprint: 'deadbeef_fake',
+          editorial_report_sha256: '0'.repeat(64),
+          frames_checked: 300,
+        }),
+      );
+      const qaStale = (await qcApp.app.inject({ method: 'GET', url: '/api/projects/ed-qc-trap/qa?ratio=9:16' })).json().qa;
+      expect(qaStale.editorialQcStatus).toBe('stale');
+      expect(qaStale.reasonCodes).toContain('EDITORIAL_QC_STALE');
+      expect(qaStale.renderUnlocked).toBe(false);
+
+      // Path traversal trap on POST /analyze-editorial & GET /editorial-report
+      const travPost = await qcApp.app.inject({
+        method: 'POST',
+        url: '/api/projects/ed-qc-trap/analyze-editorial',
+        payload: { ratio: '9:16', reportRel: '../../etc/passwd' },
+      });
+      expect(travPost.statusCode).toBe(400);
+
+      const travGet = await qcApp.app.inject({
+        method: 'GET',
+        url: '/api/projects/ed-qc-trap/editorial-report?ratio=9:16&reportRel=../../etc/passwd',
+      });
+      expect(travGet.statusCode).toBe(400);
+    } finally {
+      await qcApp.app.close();
+      await fsp.rm(qcRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('proves editorial.shotSize UI edit alters rendered pixels and analyze-editorial writes real report', async () => {
+    const pixRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-ed-pix-'));
+    const pixProjects = path.join(pixRoot, 'projects');
+    const pixJobs = path.join(pixRoot, 'jobs');
+    const srcSamurai = path.join(process.cwd(), '..', '..', 'workspace', 'projects', 'samurai-red-leaf-10s');
+    const projDir = path.join(pixProjects, 'ed-pix');
+    fs.mkdirSync(pixProjects, { recursive: true });
+    fs.mkdirSync(pixJobs, { recursive: true });
+    fs.cpSync(srcSamurai, projDir, {
+      recursive: true,
+      filter: (src) => !src.includes(`${path.sep}outputs`),
+    });
+
+    // Hydrate editorial_runtime helpers into sandbox project
+    const edRuntimeDir = path.join(process.cwd(), '..', '..', 'editorial_runtime');
+    for (const f of ['b6_editorial_contract.py', 'b6_editorial_director.py']) {
+      fs.copyFileSync(path.join(edRuntimeDir, f), path.join(projDir, f));
+    }
+
+    const pixApp = await buildApp({ projectsDir: pixProjects, jobsDir: pixJobs });
+    try {
+      const waitJob = async (jobId: string) => {
+        const deadline = Date.now() + 60000;
+        while (Date.now() < deadline) {
+          const r = await pixApp.app.inject({ method: 'GET', url: `/api/jobs/${jobId}` });
+          const j = r.json().job;
+          if (!['queued', 'running'].includes(j.status)) return j;
+          await new Promise((res) => setTimeout(res, 200));
+        }
+        throw new Error(`Timed out waiting for job ${jobId}`);
+      };
+
+      const cur = (await pixApp.app.inject({ method: 'GET', url: '/api/projects/ed-pix' })).json().project;
+      const makeShots = (shotSize: 'wide' | 'close') =>
+        cur.formats['9:16'].shots.map((s: Record<string, unknown>, idx: number) => ({
+          ...s,
+          cameraKeys: s.camera_keys ?? s.cameraKeys,
+          ...(idx === 1
+            ? {
+                editorial: {
+                  role: shotSize === 'wide' ? 'reveal' : 'reaction',
+                  shotSize,
+                  focus: { targetKind: 'actor_head', actorId: 'ren', propId: '', offsetXy: [0, 0], scaleHint: 1, safeMargin: 0.08 },
+                  cameraMovement: 'hold',
+                  transition: { kind: 'hard_cut', durationS: 0, reason: 'Scale test', preserveEyeline: true, matchAction: false },
+                  intensity: 'high',
+                  pacingAdvice: 'auto',
+                  reactionHoldS: 0,
+                  notes: '',
+                },
+              }
+            : {}),
+        }));
+
+      const p1 = await pixApp.app.inject({
+        method: 'PATCH',
+        url: '/api/projects/ed-pix',
+        payload: { expectedRevision: cur.meta.revision, editorialMode: 'editorial_v1', shots: makeShots('wide') },
+      });
+      expect(p1.statusCode).toBe(200);
+
+      const d1 = await pixApp.app.inject({
+        method: 'POST',
+        url: '/api/projects/ed-pix/draft',
+        payload: { ratio: '9:16', draftScale: 0.5, start: 1.0, seconds: 0.4, trustedCode: true },
+      });
+      expect(d1.statusCode).toBe(200);
+      const j1 = await waitJob(d1.json().job.id);
+      if (j1.status !== 'succeeded') {
+        const logRes = await pixApp.app.inject({ method: 'GET', url: `/api/jobs/${j1.id}` });
+        throw new Error(`d1 failed: ${j1.errorMessage} | logs: ${(logRes.json().logs as string[]).slice(-10).join('\n')}`);
+      }
+      expect(j1.status).toBe('succeeded');
+
+      const p2 = await pixApp.app.inject({
+        method: 'PATCH',
+        url: '/api/projects/ed-pix',
+        payload: { expectedRevision: p1.json().detail.meta.revision, editorialMode: 'editorial_v1', shots: makeShots('close') },
+      });
+      expect(p2.statusCode).toBe(200);
+
+      const d2 = await pixApp.app.inject({
+        method: 'POST',
+        url: '/api/projects/ed-pix/draft',
+        payload: { ratio: '9:16', draftScale: 0.5, start: 1.0, seconds: 0.4, trustedCode: true },
+      });
+      expect(d2.statusCode).toBe(200);
+      const j2 = await waitJob(d2.json().job.id);
+      if (j2.status !== 'succeeded') {
+        const logRes = await pixApp.app.inject({ method: 'GET', url: `/api/jobs/${j2.id}` });
+        throw new Error(`d2 failed: ${j2.errorMessage} | logs: ${(logRes.json().logs as string[]).slice(-12).join('\n')}`);
+      }
+      expect(j2.status).toBe('succeeded');
+
+      const { resolveRealFfmpeg } = await import('../src/config.js');
+      const { spawnSync } = await import('node:child_process');
+      const ffmpeg = resolveRealFfmpeg();
+      const png1 = path.join(pixRoot, 'wide.png');
+      const png2 = path.join(pixRoot, 'ecu.png');
+      spawnSync(ffmpeg, ['-v', 'error', '-y', '-i', path.join(projDir, j1.videoPath as string), '-vf', 'select=eq(n\\,5)', '-vframes', '1', png1], { shell: false });
+      spawnSync(ffmpeg, ['-v', 'error', '-y', '-i', path.join(projDir, j2.videoPath as string), '-vf', 'select=eq(n\\,5)', '-vframes', '1', png2], { shell: false });
+
+      const buf1 = await sharp(png1).ensureAlpha().raw().toBuffer();
+      const buf2 = await sharp(png2).ensureAlpha().raw().toBuffer();
+      let diffSum = 0;
+      for (let i = 0; i < buf1.length; i++) diffSum += Math.abs(buf1[i] - buf2[i]);
+      expect(diffSum / buf1.length).toBeGreaterThan(5.0);
+
+      // Trigger async analyze-editorial on draft-02 video
+      const reportRel = path.relative(fs.realpathSync(projDir), fs.realpathSync(j2.reportPath as string)).replace(/\\/g, '/');
+      const anRes = await pixApp.app.inject({
+        method: 'POST',
+        url: '/api/projects/ed-pix/analyze-editorial',
+        payload: { ratio: '9:16', reportRel },
+      });
+      if (anRes.statusCode !== 200) {
+        throw new Error(`analyze-editorial ${anRes.statusCode}: ${anRes.body} (reportRel=${reportRel}, j2.reportPath=${String(j2.reportPath)})`);
+      }
+      expect(anRes.statusCode).toBe(200);
+      const jAn = await waitJob(anRes.json().job.id);
+      expect(jAn.status).toBe('succeeded');
+
+      const edRep = await pixApp.app.inject({ method: 'GET', url: '/api/projects/ed-pix/editorial-report?ratio=9:16' });
+      expect(edRep.statusCode).toBe(200);
+      expect(edRep.json().available).toBe(true);
+      expect(edRep.json().report.schema).toBe('b6-editorial-report/1');
+      expect(Array.isArray(edRep.json().report.per_second)).toBe(true);
+    } finally {
+      await pixApp.app.close();
+      await fsp.rm(pixRoot, { recursive: true, force: true });
     }
   }, 60000);
 });

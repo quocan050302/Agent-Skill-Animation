@@ -1,0 +1,57 @@
+{
+  "title": "The Zombie Who Was Afraid of a Human",
+  "premise": "A mischievous zombie sneaks behind a deadpan midnight convenience-store shopper, catches one glance in the shopper's pocket vanity mirror, panics at his own reflection, trips past a traffic cone, and hides behind the 24H sidewalk sign.",
+  "hook": "Why did this zombie scream louder than his victim?",
+  "narration": "He crept up behind a midnight shopper, caught one glimpse in the mirror, screamed faster than any human, and hid behind the open sign!",
+  "beats": [
+    {
+      "id": "shot_01_hook",
+      "start": 0,
+      "end": 1,
+      "action": "Mischievous zombie peeks out from alley neon glow preparing a scare"
+    },
+    {
+      "id": "shot_02_stalk",
+      "start": 1,
+      "end": 2.2,
+      "action": "Zombie tiptoes across wet puddle behind deadpan late-night shopper"
+    },
+    {
+      "id": "shot_03_mirror_insert",
+      "start": 2.2,
+      "end": 3.2,
+      "action": "Shopper casually tilts pocket mirror reflecting zombie's own face"
+    },
+    {
+      "id": "shot_04_mirror_shock",
+      "start": 3.2,
+      "end": 4.5,
+      "action": "Zombie freezes with popped eyes in shock then bursts into scream"
+    },
+    {
+      "id": "shot_05_panic_chase",
+      "start": 4.5,
+      "end": 6.2,
+      "action": "Zombie scrambles backward in high-knee articulated dash across wet curb"
+    },
+    {
+      "id": "shot_06_cone_trip",
+      "start": 6.2,
+      "end": 7.5,
+      "action": "Scrambling legs kick orange traffic cone spinning into puddle"
+    },
+    {
+      "id": "shot_07_human_deadpan",
+      "start": 7.5,
+      "end": 8.8,
+      "action": "Unbothered shopper blinks calmly and checks pocket mirror"
+    },
+    {
+      "id": "shot_08_sign_payoff",
+      "start": 8.8,
+      "end": 10,
+      "action": "Zombie shivers hiding behind glowing A-frame sign on the corner"
+    }
+  ],
+  "status": "authored"
+}

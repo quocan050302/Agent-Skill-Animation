@@ -15,6 +15,7 @@ import {
   type CharacterActorDto,
   type DoctorReportDto,
   type EditorBindingStatusDto,
+  type EditorialReportResponseDto,
   type OutputArtifactDto,
   type ProjectDetailDto,
   type ProjectSummaryDto,
@@ -70,6 +71,7 @@ function normalizeShotsFromPlan(plan: Record<string, unknown> | undefined): Shot
     motion: s.motion as ShotItem['motion'],
     cameraPreset: s.cameraPreset as ShotItem['cameraPreset'],
     visualBeat: s.visualBeat as ShotItem['visualBeat'],
+    editorial: s.editorial as ShotItem['editorial'],
     transition: String(s.transition ?? 'cut'),
     short_cut_reason: typeof s.short_cut_reason === 'string' ? s.short_cut_reason : undefined,
     asset_inputs: Array.isArray(s.asset_inputs) ? (s.asset_inputs as string[]) : [],
@@ -110,6 +112,7 @@ export function App() {
   const [outputs, setOutputs] = useState<OutputArtifactDto[]>([]);
   const [selectedOutputId, setSelectedOutputId] = useState<string | null>(null);
   const [reviewState, setReviewState] = useState<ReviewStateDto | null>(null);
+  const [editorialReport, setEditorialReport] = useState<EditorialReportResponseDto | null>(null);
   const [editorBinding, setEditorBinding] = useState<EditorBindingStatusDto | null>(null);
   const [trustedCode, setTrustedCode] = useState(false);
   const expectedRevisionRef = useRef<number | undefined>(undefined);
@@ -149,8 +152,13 @@ export function App() {
       setLatestPreflight(null);
       setJobs([]);
     }
+    if (switchedProject && autosaveTimerRef.current) {
+      window.clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
     const { project: detail } = await api.getProject(id);
     activeProjectIdRef.current = id;
+    expectedRevisionRef.current = detail.meta.revision;
     setProject(detail);
     localStorage.setItem('b6.activeProjectId', id);
     setActiveProjectId(id);
@@ -174,21 +182,22 @@ export function App() {
     setSaveStatus('saved');
     setSaveError(null);
 
-    const [assetsRes, charsRes, outsRes, bindRes, reviewRes, jobsRes] = await Promise.all([
+    const [assetsRes, charsRes, outsRes, bindRes, reviewRes, edRepRes, jobsRes] = await Promise.all([
       api.listAssets(id),
       api.getCharacters(id),
       api.getOutputs(id),
       api.getEditorBinding(id, activeRatio),
       api.getReviewState(id, activeRatio),
+      api.getEditorialReport(id, activeRatio).catch(() => null),
       api.listJobs(id),
     ]);
-    expectedRevisionRef.current = detail.meta.revision;
     setAssets(assetsRes.assets);
     setInboxFiles(assetsRes.inboxFiles);
     setCharacters(charsRes.actors);
     setLatestPreflight(charsRes.latestPreflight);
     setOutputs(outsRes.outputs);
     setReviewState(reviewRes.review);
+    setEditorialReport(edRepRes);
     setEditorBinding(bindRes.binding);
     setJobs(jobsRes.jobs);
     if (switchedProject) {
@@ -325,14 +334,16 @@ export function App() {
         setProject(res.detail);
         setValidationErrors(res.validation.errors);
         setSaveStatus('saved');
-        const [bindRes, reviewRes, outsRes] = await Promise.all([
+        const [bindRes, reviewRes, outsRes, edRepRes] = await Promise.all([
           api.getEditorBinding(activeProjectId, res.detail.meta.activeRatio),
           api.getReviewState(activeProjectId, res.detail.meta.activeRatio),
           api.getOutputs(activeProjectId),
+          api.getEditorialReport(activeProjectId, res.detail.meta.activeRatio).catch(() => null),
         ]);
         setEditorBinding(bindRes.binding);
         setReviewState(reviewRes.review);
         setOutputs(outsRes.outputs);
+        setEditorialReport(edRepRes);
         void loadProjectsList();
       } catch (err) {
         setSaveStatus('error');
@@ -615,6 +626,13 @@ export function App() {
               }}
               outputs={outputs}
               reviewState={reviewState}
+              editorialReport={editorialReport}
+              onAnalyzeEditorial={
+                activeProjectId
+                  ? () => launchJob(() => api.runAnalyzeEditorial(activeProjectId, { ratio: activeRatio }))
+                  : undefined
+              }
+              activeJob={activeJob}
               onOpenFolder={async () => {
                 if (activeProjectId) await api.openOutputFolder(activeProjectId, 'outputs');
               }}

@@ -1,0 +1,20 @@
+{
+  "schema": "b6-character-registry/1",
+  "actors": [
+    {
+      "id": "zombie",
+      "package": "characters/zombie",
+      "views": [
+        "three_quarter"
+      ]
+    },
+    {
+      "id": "human",
+      "package": "characters/human",
+      "views": [
+        "three_quarter"
+      ]
+    }
+  ],
+  "rigid_cast": []
+}

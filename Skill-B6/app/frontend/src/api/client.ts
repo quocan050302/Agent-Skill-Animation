@@ -147,6 +147,8 @@ export interface ReviewStateDto {
   userApprovalStatus: QaApprovalVerdict;
   motionQcStatus?: QaTechnicalVerdict;
   motionQcSummary?: Record<string, unknown>;
+  editorialQcStatus?: QaTechnicalVerdict;
+  editorialQcSummary?: Record<string, unknown>;
   reasonCodes: string[];
   staleReasons: string[];
   blockingReasons: string[];
@@ -206,7 +208,36 @@ export interface EditorBindingStatusDto {
   motionEngineMode?: 'legacy_stance' | 'articulated_v1' | 'articulated_verified';
   motionQcVerified?: boolean;
   gaitHonestyNote: string;
+  editorialMode?: 'none' | 'editorial_v1' | 'editorial_verified';
+  editorialQcVerified?: boolean;
+  shotVarietyWarnings?: string[];
   mappings: FieldRuntimeBindingRowDto[];
+}
+
+export interface EditorialReportResponseDto {
+  projectId: string;
+  ratio: Ratio;
+  available: boolean;
+  stale: boolean;
+  reportPath: string | null;
+  qcPath: string | null;
+  qcStatus: QaTechnicalVerdict;
+  qc: Record<string, unknown> | null;
+  report: {
+    schema?: string;
+    duration_s?: number;
+    fps?: number;
+    cuts_detected?: Array<Record<string, unknown>>;
+    per_second?: Array<Record<string, unknown>>;
+    per_shot?: Array<Record<string, unknown>>;
+    shot_variety?: Record<string, unknown>;
+    semantic_lulls?: Record<string, unknown>;
+    gaming_audit?: Record<string, unknown>;
+    summary?: Record<string, unknown>;
+    [key: string]: unknown;
+  } | null;
+  evidenceLinks: Array<{ label: string; path: string; status: string }>;
+  statusNote?: string;
 }
 
 export interface CharacterActorDto {
@@ -362,6 +393,16 @@ export const api = {
     }),
   getReviewState: (id: string, ratio: Ratio) =>
     req<{ review: ReviewStateDto }>(`/api/projects/${encodeURIComponent(id)}/review?ratio=${encodeURIComponent(ratio)}`),
+  getEditorialReport: (id: string, ratio: Ratio) =>
+    req<EditorialReportResponseDto>(
+      `/api/projects/${encodeURIComponent(id)}/editorial-report?ratio=${encodeURIComponent(ratio)}`,
+    ),
+  runAnalyzeEditorial: (id: string, payload?: { ratio?: Ratio; reportRel?: string; videoRel?: string }) =>
+    req<{ job: JobRecord }>(`/api/projects/${encodeURIComponent(id)}/analyze-editorial`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload ?? {}),
+    }),
   getEditorBinding: (id: string, ratio: Ratio) =>
     req<{ binding: EditorBindingStatusDto; qa: ReviewStateDto }>(
       `/api/projects/${encodeURIComponent(id)}/editor-binding?ratio=${encodeURIComponent(ratio)}`,

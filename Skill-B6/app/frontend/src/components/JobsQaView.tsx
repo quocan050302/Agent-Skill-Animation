@@ -1,7 +1,7 @@
-import React from 'react';
-import { ExternalLink, FolderOpen, StopCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { BarChart3, ExternalLink, FolderOpen, StopCircle } from 'lucide-react';
 import type { JobRecord } from '@b6-studio/shared';
-import type { OutputArtifactDto, ReviewStateDto } from '../api/client';
+import type { EditorialReportResponseDto, OutputArtifactDto, ReviewStateDto } from '../api/client';
 
 interface JobsQaViewProps {
   projectId: string | null;
@@ -12,6 +12,9 @@ interface JobsQaViewProps {
   onCancelJob: (id: string) => Promise<void>;
   outputs: OutputArtifactDto[];
   reviewState: ReviewStateDto | null;
+  editorialReport?: EditorialReportResponseDto | null;
+  onAnalyzeEditorial?: () => Promise<void>;
+  activeJob?: JobRecord | null;
   onOpenFolder: () => Promise<void>;
 }
 
@@ -24,8 +27,14 @@ export const JobsQaView: React.FC<JobsQaViewProps> = ({
   onCancelJob,
   outputs,
   reviewState,
+  editorialReport,
+  onAnalyzeEditorial,
+  activeJob,
   onOpenFolder,
 }) => {
+  const [madMode, setMadMode] = useState<'cut_excluded' | 'raw'>('cut_excluded');
+  const [analyzeBusy, setAnalyzeBusy] = useState(false);
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const statusBadge = (s: JobRecord['status']) => {
     if (s === 'succeeded') return 'badge-success';
     if (s === 'running' || s === 'queued') return 'badge-warning';
@@ -116,6 +125,207 @@ export const JobsQaView: React.FC<JobsQaViewProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* Editorial Diagnostics Panel */}
+      {projectId && (
+        <details open className="card" data-testid="editorial-diagnostics-panel" style={{ minWidth: 0 }}>
+          <summary
+            style={{
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 8,
+              listStyle: 'none',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <BarChart3 size={16} />
+              <strong>Editorial Diagnostics & Pacing Telemetry</strong>
+              <span
+                className={`badge ${
+                  editorialReport?.stale
+                    ? 'badge-warning'
+                    : (editorialReport?.qcStatus ?? reviewState?.editorialQcStatus) === 'pass'
+                    ? 'badge-success'
+                    : (editorialReport?.qcStatus ?? reviewState?.editorialQcStatus) === 'fail'
+                    ? 'badge-danger'
+                    : 'badge-neutral'
+                }`}
+                data-testid="editorial-qc-status-badge"
+              >
+                {editorialReport?.stale
+                  ? 'STALE (Cần phân tích lại)'
+                  : (editorialReport?.qcStatus ?? reviewState?.editorialQcStatus ?? 'pending').toUpperCase()}
+              </span>
+              <span className="badge badge-neutral">Ước lượng retention: Chưa khả dụng</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-sm"
+                data-testid="editorial-mad-toggle-btn"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMadMode((m) => (m === 'cut_excluded' ? 'raw' : 'cut_excluded'));
+                }}
+              >
+                {madMode === 'cut_excluded' ? 'Cut-excluded MAD' : 'Raw MAD'}
+              </button>
+              {onAnalyzeEditorial && (
+                <button
+                  type="button"
+                  className="btn btn-sm btn-primary"
+                  data-testid="analyze-editorial-btn"
+                  disabled={
+                    analyzeBusy ||
+                    Boolean(activeJob && (activeJob.status === 'running' || activeJob.status === 'queued'))
+                  }
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    setAnalyzeError(null);
+                    setAnalyzeBusy(true);
+                    try {
+                      await onAnalyzeEditorial();
+                    } catch (err) {
+                      setAnalyzeError(err instanceof Error ? err.message : String(err));
+                    } finally {
+                      setAnalyzeBusy(false);
+                    }
+                  }}
+                >
+                  {analyzeBusy || (activeJob?.kind === 'analyze-editorial' && (activeJob.status === 'running' || activeJob.status === 'queued'))
+                    ? 'Đang phân tích…'
+                    : 'Phân tích Editorial'}
+                </button>
+              )}
+            </div>
+          </summary>
+
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {analyzeError && (
+              <div style={{ fontSize: 12, color: 'var(--danger)', background: 'var(--danger-soft)', padding: '6px 10px', borderRadius: 6 }}>
+                Lỗi Phân tích Editorial: {analyzeError}
+              </div>
+            )}
+
+            {!editorialReport?.available || !editorialReport.report ? (
+              <div className="field-hint">
+                {editorialReport?.statusNote ??
+                  'Chưa có editorial-report.json cho preview hiện tại. Hãy chạy Preview hoặc bấm "Phân tích Editorial".'}
+              </div>
+            ) : (() => {
+              const rep = editorialReport.report;
+              const sum = (rep.summary ?? {}) as Record<string, unknown>;
+              const perSec = Array.isArray(rep.per_second) ? (rep.per_second as Array<Record<string, unknown>>) : [];
+              const qcDoc = (editorialReport.qc ?? {}) as Record<string, unknown>;
+              const qcErrors = Array.isArray(qcDoc.errors) ? (qcDoc.errors as string[]) : [];
+              const qcWarnings = Array.isArray(qcDoc.warnings) ? (qcDoc.warnings as string[]) : [];
+              const repWarnings = Array.isArray(rep.warnings) ? (rep.warnings as string[]) : [];
+              const gamingAudit = (rep.gaming_audit ?? {}) as Record<string, unknown>;
+              const gamingReasons = Array.isArray(gamingAudit.reasons) ? (gamingAudit.reasons as string[]) : [];
+              const allWarnings = Array.from(new Set([...qcErrors, ...qcWarnings, ...repWarnings, ...gamingReasons]));
+
+              return (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(135px, 100%), 1fr))', gap: 8 }}>
+                    <div style={{ padding: 8, background: 'var(--surface-subtle)', borderRadius: 6 }}>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>
+                        {madMode === 'cut_excluded' ? 'Cut-excluded Y-MAD' : 'Raw Y-MAD'}
+                      </div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>
+                        {Number((madMode === 'cut_excluded' ? sum.cut_excluded_y_mad_mean : sum.raw_y_mad_mean) ?? 0).toFixed(2)}
+                      </div>
+                    </div>
+                    <div style={{ padding: 8, background: 'var(--surface-subtle)', borderRadius: 6 }}>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>Foreground Motion</div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>
+                        {Number(sum.foreground_relative_motion_mean ?? 0).toFixed(2)} px/f
+                      </div>
+                    </div>
+                    <div style={{ padding: 8, background: 'var(--surface-subtle)', borderRadius: 6 }}>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>Unique Shots / Cuts</div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>
+                        {Number(sum.unique_compositions ?? 0)}/{Number(sum.shots_analyzed ?? 0)} · {Number(sum.cuts_detected ?? 0)} cuts
+                      </div>
+                    </div>
+                    <div style={{ padding: 8, background: 'var(--surface-subtle)', borderRadius: 6 }}>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>Near-Static / Gaming</div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>
+                        {Number(sum.pct_near_static ?? 0).toFixed(1)}% · {sum.gaming_detected ? 'GAMING!' : 'Clean'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {allWarnings.length > 0 && (
+                    <div style={{ fontSize: 12, padding: 8, borderRadius: 6, background: 'var(--warning-soft)', color: 'var(--warning)' }}>
+                      <strong>Cảnh báo Editorial / Pacing:</strong>
+                      <ul style={{ margin: '4px 0 0 16px', padding: 0 }}>
+                        {allWarnings.map((w, idx) => (
+                          <li key={idx}>{w}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {perSec.length > 0 && (
+                    <div style={{ overflowX: 'auto', width: '100%' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                        <thead>
+                          <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--muted)' }}>
+                            <th style={{ padding: '4px 6px' }}>Giây</th>
+                            <th style={{ padding: '4px 6px' }}>Shot / Role</th>
+                            <th style={{ padding: '4px 6px' }}>Y-MAD</th>
+                            <th style={{ padding: '4px 6px' }}>FG (px/f)</th>
+                            <th style={{ padding: '4px 6px' }}>Static %</th>
+                            <th style={{ padding: '4px 6px' }}>Cuts</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {perSec.map((secRow, i) => {
+                            const bucket = ((madMode === 'cut_excluded' ? secRow.cut_excluded : secRow.raw) ??
+                              secRow.cut_excluded ??
+                              {}) as Record<string, unknown>;
+                            return (
+                              <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
+                                <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)' }}>
+                                  {Number(secRow.start_s ?? i).toFixed(0)}–{Number(secRow.end_s ?? i + 1).toFixed(0)}s
+                                </td>
+                                <td style={{ padding: '4px 6px' }}>
+                                  {String(secRow.active_shot_id ?? '—')}
+                                  {secRow.active_role ? ` (${String(secRow.active_role)})` : ''}
+                                </td>
+                                <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)' }}>
+                                  {Number(bucket.y_mad_mean ?? 0).toFixed(2)}
+                                </td>
+                                <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)' }}>
+                                  {Number(bucket.foreground_relative_motion_mean ?? 0).toFixed(2)}
+                                </td>
+                                <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)' }}>
+                                  {Number(bucket.pct_near_static ?? 0).toFixed(0)}%
+                                </td>
+                                <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)' }}>
+                                  {Number(secRow.cuts_in_second ?? 0)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <div className="field-hint" style={{ fontSize: 11 }}>
+                    Báo cáo: <code>{editorialReport.reportPath}</code>
+                    {editorialReport.qcPath ? ` · QC: ${editorialReport.qcPath}` : ''} · Lưu ý: MAD/optical-flow là telemetry biến thiên khung hình, KHÔNG thay thế đánh giá giữ chân người xem thật.
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </details>
       )}
 
       {/* Jobs History & Live Logs */}
