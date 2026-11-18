@@ -887,6 +887,72 @@ export class QaEvidenceResolver {
       fpInfo.fingerprint,
     );
 
+    // Articulated motion QC verification (for articulated_v1 projects only; zero impact on legacy projects)
+    let usesArticulated = false;
+    try {
+      const projRaw = await readJsonFile<{ motion_mode?: string }>(path.join(absDir, 'project.json'));
+      usesArticulated = projRaw?.motion_mode === 'articulated_v1';
+    } catch {
+      usesArticulated = false;
+    }
+    if (!usesArticulated && fs.existsSync(path.join(absDir, 'scene-control.json'))) {
+      try {
+        const ctrlRaw = await readJsonFile<{ motionMode?: string; shots?: Array<{ motion?: { mode?: string } }> }>(
+          path.join(absDir, 'scene-control.json'),
+        );
+        usesArticulated =
+          ctrlRaw?.motionMode === 'articulated_v1' ||
+          Boolean(ctrlRaw?.shots?.some((s) => s.motion?.mode === 'articulated_v1'));
+      } catch {
+        // ignore
+      }
+    }
+
+    let motionQcStatus: QaTechnicalVerdict | undefined;
+    let motionQcSummary: Record<string, unknown> | undefined;
+    const qcCandidates: string[] = [];
+    if (bestPreview?.reportRel) {
+      qcCandidates.push(path.join(absDir, path.dirname(bestPreview.reportRel), 'motion_qc.json'));
+    }
+    qcCandidates.push(path.join(absDir, 'outputs', 'preview-01', 'motion_qc.json'), path.join(absDir, 'motion_qc.json'));
+    const qcPath = qcCandidates.find((p) => fs.existsSync(p));
+    if (usesArticulated) {
+      if (!qcPath) {
+        motionQcStatus = 'pending';
+      } else {
+        try {
+          const qcDoc = await readJsonFile<{
+            status?: string;
+            pass?: boolean;
+            source_fingerprint?: string | null;
+            frames_checked?: number;
+            errors?: string[];
+            metrics?: Record<string, unknown>;
+          }>(qcPath);
+          const fpMismatch = Boolean(
+            qcDoc.source_fingerprint && fpInfo.fingerprint && qcDoc.source_fingerprint !== fpInfo.fingerprint,
+          );
+          const qcPassed = qcDoc.pass === true || qcDoc.status === 'pass';
+          if (fpMismatch) {
+            motionQcStatus = 'stale';
+          } else if (qcPassed) {
+            motionQcStatus = 'pass';
+          } else {
+            motionQcStatus = 'fail';
+          }
+          motionQcSummary = {
+            path: path.relative(absDir, qcPath).replace(/\\/g, '/'),
+            pass: qcPassed,
+            framesChecked: qcDoc.frames_checked ?? 0,
+            errors: Array.isArray(qcDoc.errors) ? qcDoc.errors : [],
+            metrics: qcDoc.metrics ?? {},
+          };
+        } catch {
+          motionQcStatus = 'fail';
+        }
+      }
+    }
+
     const technicalStatus: QaTechnicalVerdict = bestPreview
       ? bestPreview.status
       : fpInfo.voiceStale
@@ -906,6 +972,8 @@ export class QaEvidenceResolver {
         ...(bestPreview?.reasonCodes ?? []),
         ...(latestMotionReview?.reasonCodes ?? []),
         ...approval.reasonCodes,
+        ...(motionQcStatus === 'fail' ? ['MOTION_QC_FAILED'] : []),
+        ...(motionQcStatus === 'stale' ? ['MOTION_QC_STALE'] : []),
       ]),
     );
 
@@ -916,6 +984,8 @@ export class QaEvidenceResolver {
     const blockingReasons = [
       ...fpInfo.errors,
       ...(bestPreview && bestPreview.status !== 'pass' ? [`Preview chưa PASS hiện hành (${bestPreview.status}): ${bestPreview.reasonCodes.join(', ')}`] : []),
+      ...(motionQcStatus === 'fail' ? ['Motion QC articulated_v1 chưa PASS'] : []),
+      ...(motionQcStatus === 'stale' ? ['Motion QC articulated_v1 đã cũ so với nguồn hiện tại'] : []),
       ...(latestMotionReview && latestMotionReview.status !== 'pass'
         ? [`Visual review 35 mục chưa hoàn tất (${latestMotionReview.status})`]
         : []),
@@ -955,6 +1025,8 @@ export class QaEvidenceResolver {
       technicalStatus,
       visualReviewStatus,
       userApprovalStatus,
+      ...(motionQcStatus ? { motionQcStatus } : {}),
+      ...(motionQcSummary ? { motionQcSummary } : {}),
       reasonCodes,
       staleReasons,
       blockingReasons,
@@ -965,7 +1037,11 @@ export class QaEvidenceResolver {
       verifiedAt: new Date().toISOString(),
       voiceStale: fpInfo.voiceStale,
       editorSyncState,
-      renderUnlocked: technicalStatus === 'pass' && visualReviewStatus === 'pass' && userApprovalStatus === 'approved',
+      renderUnlocked:
+        technicalStatus === 'pass' &&
+        visualReviewStatus === 'pass' &&
+        userApprovalStatus === 'approved' &&
+        (!usesArticulated || motionQcStatus === 'pass'),
       evidenceLinks,
     };
 

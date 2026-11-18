@@ -1,0 +1,430 @@
+{
+  "ok": true,
+  "tier": "release",
+  "parityOk": true,
+  "decodedPixelsParity": true,
+  "containerByteParity": true,
+  "parityClassification": "exact_decoded_and_container_match",
+  "speedupRatio": 1.17,
+  "passes": [
+    {
+      "passLabel": "workers=1",
+      "workerLimit": 1,
+      "ok": true,
+      "wallMs": 112714,
+      "tasks": [
+        {
+          "id": "upstream_doctor_checkpack",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 940,
+          "stdoutTail": [
+            "    \"b6_complete_pack\": true",
+            "  },",
+            "  \"gemini_key_present\": false,",
+            "  \"network_checked\": false,",
+            "  \"note\": \"Key presence is not quota/billing verification\"",
+            "}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "workspace_build",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 7663,
+          "stdoutTail": [
+            "rendering chunks...",
+            "computing gzip size...",
+            "\u001b[2mdist/\u001b[22m\u001b[32mindex.html                 \u001b[39m\u001b[1m\u001b[2m  0.43 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  0.29 kB\u001b[22m",
+            "\u001b[2mdist/\u001b[22m\u001b[35massets/index-BxmodpBg.css  \u001b[39m\u001b[1m\u001b[2m  9.89 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  2.69 kB\u001b[22m",
+            "\u001b[2mdist/\u001b[22m\u001b[36massets/index-BJ2Fibti.js   \u001b[39m\u001b[1m\u001b[2m340.03 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 97.57 kB\u001b[22m",
+            "\u001b[32m✓ built in 1.39s\u001b[39m"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "hydrate_verify_existing",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 700,
+          "stdoutTail": [
+            "        \"already_hydrated\"",
+            "      ],",
+            "      \"errors\": []",
+            "    }",
+            "  ]",
+            "}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "python_motion_unit_tests",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 1438,
+          "stdoutTail": [
+            ""
+          ],
+          "stderrTail": [
+            "test_two_bone_ik_preserves_lengths_and_forward_knee_polarity (motion_runtime.tests.test_motion_core.MotionCoreTests.test_two_bone_ik_preserves_lengths_and_forward_knee_polarity) ... ok",
+            "test_upper_body_counter_swing_yields_to_locked_prop_arm (motion_runtime.tests.test_motion_core.MotionCoreTests.test_upper_body_counter_swing_yields_to_locked_prop_arm) ... ok",
+            "test_validate_motion_contract_rejects_negative_mutations (motion_runtime.tests.test_motion_core.MotionCoreTests.test_validate_motion_contract_rejects_negative_mutations) ... ok",
+            "",
+            "----------------------------------------------------------------------",
+            "Ran 8 tests in 0.792s",
+            "",
+            "OK"
+          ]
+        },
+        {
+          "id": "frontend_typecheck",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 2151,
+          "stdoutTail": [
+            "> @b6-studio/frontend@1.0.0 typecheck",
+            "> tsc -b --noEmit"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "samurai_preflight_validate",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 932,
+          "stdoutTail": [
+            "RESULT {\"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"valid\": true, \"renderer\": \"b6-production-v1\", \"fingerprint\": \"9a44a85f629c5026d8af68291f678dd512e8ce0ea6e4747aaf45c61705e698d5\", \"ratio\": \"9:16\", \"duration\": 10}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "server_vitest",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 26207,
+          "stdoutTail": [
+            "   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m B6-03 Articulated Motion, Multi-File Rollback & Motion-QC Truth\u001b[2m > \u001b[22mproves UI motion.preset & gait edits on Samurai flow into real draft pixel output \u001b[33m 7753\u001b[2mms\u001b[22m\u001b[39m",
+            "",
+            "\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m",
+            "\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m16 passed\u001b[39m\u001b[22m\u001b[90m (16)\u001b[39m",
+            "\u001b[2m   Start at \u001b[22m 16:08:57",
+            "\u001b[2m   Duration \u001b[22m 25.32s\u001b[2m (transform 205ms, setup 0ms, collect 511ms, tests 24.43s, environment 0ms, prepare 133ms)\u001b[22m"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "cowboy_preflight_validate",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 880,
+          "stdoutTail": [
+            "RESULT {\"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"valid\": true, \"renderer\": \"b6-production-v1\", \"fingerprint\": \"262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c\", \"ratio\": \"9:16\", \"duration\": 10.0}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "samurai_motion_qc_determinism",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 10509,
+          "stdoutTail": [
+            "{\"randomSeekPass\": true, \"geometrySha256\": \"b9895fe0fcba56c3a7105f9acf66957ca4e54d4859d58da5e038fd6c1f2436bb\"}"
+          ],
+          "stderrTail": [
+            ""
+          ],
+          "parityMeta": {
+            "decodedPixelsSha256": "e969af658a07838b3a20889611bd3e869ddb50a40ebf049c6908e9cd00319610",
+            "containerMp4Sha256": "96aab290809cbac94b0d8d3bf1e6c07fd43f6bacfd604099573cac7fd30d3a39",
+            "geometrySha256": "b9895fe0fcba56c3a7105f9acf66957ca4e54d4859d58da5e038fd6c1f2436bb",
+            "randomSeekPass": true
+          }
+        },
+        {
+          "id": "cowboy_regression_slice",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 12941,
+          "stdoutTail": [
+            "{\"checked_frame\": 153, \"total\": 30}",
+            "",
+            "RESULT {\"status\": \"draft_only_not_formal_quality_evidence\", \"kind\": \"draft\", \"technical_fixture\": false, \"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"ratio\": \"9:16\", \"fingerprint\": \"262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c\", \"checked_frames\": 30, \"arm_poses_checked\": 60, \"straight_legs_checked\": 60, \"max_prop_contact_error_px\": 6.355287432313019e-14, \"external_media_reads\": [], \"voice_speed\": 1, \"new_story_acceptance\": \"not implied by reusing a tested performance\", \"time_range\": {\"start\": 5.1, \"end\": 6.1}, \"technical_status\": \"pass\", \"creative_status\": \"not_assessed_draft\", \"user_acceptance\": \"not_inferred\", \"review_required\": \"Native preview plus unchanged 35-item motion/AV review required; draft cannot be approved\", \"inputs\": {\"assets/production/cowboy_hat.png\": \"85c48c0170f755129db251ff06b35df60f5173aeeb3a8ee28a462dbe954361e0\", \"assets/production/western_fg_frame.png\": \"b6b9dc202f9bd5d82aca3ad7fff2b6343a64498add1d18c43e3eda521d2d0808\", \"assets/production/western_wide_bg.png\": \"dc4a5860cd3bf492905f8d4571f32af92233fdf10a653cd426ec6d308e0dae6a\", \"audio/narration_mix.wav\": \"8d8769396aa7084dd96146bdad2ae520b905de9323dd525b6f8ea650620af203\", \"b6_actions.py\": \"4efcf86cb4f677f1369ca62bb5c87021262c8d92493428f4c91171280760db27\", \"b6_asset_roles.py\": \"ade90e92cad1751bd0b010d508501bba73a41a1ffe6c6018dadd4a368ace9c14\", \"b6_character_preflight.py\": \"561c976f7e8be8ab446e37cbbfcf2fa8d99e9c2d24219291a4f036000fe67e2d\", \"b6_iteration.py\": \"37aac116a54c860aaa5dca66ae7dbc0e68ab9bf2d9296e7c1c49c5e11dc8f1b0\", \"b6_puppet.py\": \"adc4bd4ddcbe2bb184381d080e99ebe1f4bd1beb3b0b6b1a841930ae15d5bed8\", \"b6_space.py\": \"d006c622d63017d7d6ec1a75a56678204fc70486dae944d2b27170d8ae8d5e50\", \"caption_renderer.py\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"captions.json\": \"ca6ae6f44d2409de7994aec221d87cc941a6de1c5433beba613a00b1b2992c3d\", \"characters.json\": \"6f959952ad8fe4592b2f9dfc66b2b9d8044e91ee0701d268ef4001adf71058dd\", \"characters/jesse/package.json\": \"a4ea8672e9ed7f9984ad2a6d506a96e4265985236020062182cc6e2c8e8b3bf1\", \"characters/jesse/three_quarter/body.png\": \"27d1dd784c84d1d1e40a78c53a06ecd6711e580c48be0f75bd7c5b1c2ec5c1c3\", \"characters/jesse/three_quarter/cuff-left.png\": \"8aa1ca9bd3f8a57a8c1f5f929474e17d15c7e936224cafb9fe714d05711c01f1\", \"characters/jesse/three_quarter/cuff-right.png\": \"f102c41b9651797c3ab93746a82b1767102380912a895892f97f448ef76aa499\", \"characters/jesse/three_quarter/head-deadpan.png\": \"dd1be3b1f58e758aed58703b4d711560100c437c83aa6c72015f69cc037418fb\", \"characters/jesse/three_quarter/head-determined.png\": \"b3e079926bcb6a7e83e2260401b7bf947c5a76cdbccf649e9e4e187d793e79bd\", \"characters/jesse/three_quarter/head-shocked.png\": \"8681e61bebf709aa99d138dbfee466cee8e274e8edc2d207c15cf640bfcf2f2d\", \"characters/jesse/three_quarter/head.png\": \"22107efaaafa2fc3a50b8e15132b7db5da53527608de9653de9285bdd5cd566c\", \"fonts/ArchivoBlack.ttf\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"fonts/OFL-ArchivoBlack.txt\": \"4cafdbbd100af37a23805af09b7068e4daafb4516dc3d6d52436f4a9d7b4c0d3\", \"formats/portrait.json\": \"1b168df4b1872eb12db52cac5125fadfa46cbde8056c5b4f1618fc5b4cf7b121\", \"motion_review.py\": \"b2f813cf6d42f65d73053eb75565e6f7ee3f32af7f58600679aa6bd042d921ed\", \"project.json\": \"3fed02d05df84b2ad933c29bcf9e3a9c91aee16fb4791ba57000079502fba9aa\", \"quality-target.json\": \"e8103b7d353a14bb7584ebfd1da708f76e22b2da7dc80f30a13d89c3507e4f57\", \"reference/eiffel-portrait-v44.mp4\": \"b0047f5889a7ca1fd47097d8c8b3db054ef412e2f4a7297d3fe04fc1083e5d79\", \"run.py\": \"acc8f41ac7ac1c98b79d6a1869e03bf651107a954b88a830c2dd27d9758476c0\", \"scene-control.json\": \"4cffd7b0f793772eb348a7e4466138ce6da5fff9cf120cc4d0b21c9fe423cdfb\", \"scene.py\": \"41409082e70c7ceeb87797808c450a817d02072d189eaf389b50291ec48505a3\", \"scene_runtime.py\": \"aa447bc389fc7a791683873999f8eb4246f766cf0a66579561cb73bff997a8c8\", \"story.json\": \"9e11adf67d98af4b551d49d416d9e9f2eed6979c5a2db02be1aad09baa8ec655\", \"engine/manifest.json\": \"f5ef182cc381262a42a1a20a807798e255729719b20c741f60201ce0a26df0e2\"}, \"caption_cues\": [{\"start\": 0.25, \"end\": 0.9, \"text\": \"One desert gust\"}, {\"start\": 0.9, \"end\": 2.24, \"text\": \"stole Jesse's hat.\"}, {\"start\": 2.89, \"end\": 3.8, \"text\": \"He sprinted down\"}, {\"start\": 3.8, \"end\": 4.49, \"text\": \"Main Street,\"}, {\"start\": 5.13, \"end\": 5.83, \"text\": \"caught the brim,\"}, {\"start\": 7.47, \"end\": 8.26, \"text\": \"and spun right back\"}, {\"start\": 8.26, \"end\": 9.6, \"text\": \"in a cloud of dust.\"}], \"render_profile\": \"draft-viewport-v1\", \"dimensions\": [360, 640], \"native_dimensions\": [720, 1280], \"fps\": 30, \"reviewable\": false, \"timings\": {\"load_seconds\": 0.6969, \"setup_seconds\": 0.175, \"scene_seconds\": 3.9876, \"validation_seconds\": 0.1657, \"caption_seconds\": 0.1689, \"encoder_write_seconds\": 0.0123, \"mux_seconds\": 0.1047, \"total_seconds\": 5.693}, \"caption_sidecars\": [\"outputs\\\\slice-b\\\\captions.srt\", \"outputs\\\\slice-b\\\\captions.vtt\"], \"draft_caption_observations\": {\"profile\": {\"profile\": \"eiffel-v44-portrait-archivo-black-v1\", \"native_design\": \"9:16\", \"font_family\": \"Archivo Black\", \"font_file\": \"fonts/ArchivoBlack.ttf\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"font_size\": 47, \"stroke\": 4, \"fill\": \"#ffffff\", \"stroke_fill\": \"#171319\", \"supersampling\": 3, \"resample\": \"lanczos\", \"anchor\": \"ms\", \"side\": 44, \"switch\": \"hard_cut\", \"autoshrink\": false, \"pop\": false, \"baseline\": 914, \"band\": [864, 951]}, \"renderer_sha256\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"cues_sha256\": \"ca6ae6f44d2409de7994aec221d87cc941a6de1c5433beba613a00b1b2992c3d\", \"observed_cues\": [{\"start\": 5.13, \"end\": 5.83, \"text\": \"caught the brim,\", \"raster_bounds\": [71.5, 436.5, 288.0, 465.5]}], \"limitation\": \"Configuration, font identity and measured caption raster only; decoded pixels, semantic speech timing and AV readability still require review.\"}, \"video\": \"outputs\\\\slice-b\\\\preview.mp4\", \"video_sha256\": \"e6050f90397de8e79cdf636af34d8523b148a54cc065284244789d1a500ac262\"}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "roman_baseline_sandbox_replay",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 10813,
+          "stdoutTail": [
+            "{\"checked_frame\": 0, \"total\": 45}",
+            "",
+            "RESULT {\"status\": \"draft_only_not_formal_quality_evidence\", \"kind\": \"draft\", \"technical_fixture\": false, \"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"ratio\": \"9:16\", \"fingerprint\": \"28c4ff3cfea1f5c888f7c7fb1a1f156002926a2c89330843e79a6f724510921e\", \"checked_frames\": 45, \"arm_poses_checked\": 90, \"straight_legs_checked\": 90, \"max_prop_contact_error_px\": 6.355287432313019e-14, \"external_media_reads\": [], \"voice_speed\": 1, \"new_story_acceptance\": \"not implied by reusing a tested performance\", \"time_range\": {\"start\": 0.0, \"end\": 1.5}, \"technical_status\": \"pass\", \"creative_status\": \"not_assessed_draft\", \"user_acceptance\": \"not_inferred\", \"review_required\": \"Native preview plus unchanged 35-item motion/AV review required; draft cannot be approved\", \"inputs\": {\"assets/production/arena_foreground.png\": \"573dff61ee14a03d9e8dd22b1cd036f8db6ea8beca11438692735cf617ce419e\", \"assets/production/arena_wide_bg.png\": \"fe0ab065a9f031e52d4ee553e11db265cee2549b8e7d742a37a81a3222b3fc7e\", \"assets/production/roman_pilum.png\": \"3e85646f61056c90309c01cf5063654348fb71506f2128bb5074cae495621bec\", \"assets/production/roman_shield.png\": \"fa1abea9cd3cd48d29b7e404836477538fd76a0ee458212d7a857cef61f23086\", \"audio/narration_mix.wav\": \"e8cefea0670333c09f7bb53f5239ea62c56ce354dc22d6a4f441ca1db39330b4\", \"b6_actions.py\": \"4efcf86cb4f677f1369ca62bb5c87021262c8d92493428f4c91171280760db27\", \"b6_asset_roles.py\": \"ade90e92cad1751bd0b010d508501bba73a41a1ffe6c6018dadd4a368ace9c14\", \"b6_character_preflight.py\": \"561c976f7e8be8ab446e37cbbfcf2fa8d99e9c2d24219291a4f036000fe67e2d\", \"b6_iteration.py\": \"37aac116a54c860aaa5dca66ae7dbc0e68ab9bf2d9296e7c1c49c5e11dc8f1b0\", \"b6_puppet.py\": \"adc4bd4ddcbe2bb184381d080e99ebe1f4bd1beb3b0b6b1a841930ae15d5bed8\", \"b6_space.py\": \"d006c622d63017d7d6ec1a75a56678204fc70486dae944d2b27170d8ae8d5e50\", \"caption_renderer.py\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"captions.json\": \"0a880c4ffda2fd9a6b088fd398e9a4333570e2c44cd267d7626c8b027a60d566\", \"characters.json\": \"707e36903374d01d87668c53ed92bbb9aae02d7d54931bbdc0bcc1aaef02a082\", \"characters/marcus/package.json\": \"42f2dfc6c90cc9a2295fd921c17b8efea3ac2ea8b0abbb69411707a2a79264bf\", \"characters/marcus/three_quarter/body.png\": \"a367d2ab8ce5809cd596881da5727388af1454ecb5cd09602a679f5ee43dd7dc\", \"characters/marcus/three_quarter/cuff-left.png\": \"f64f4960e5c437236877592aa4702b4f3376fe8f31b4102bc74ca74ef30a46da\", \"characters/marcus/three_quarter/cuff-right.png\": \"6b2c2afd17a3eea40b377a97bdf1a08532a2a0449f545b60c6da55b26edc9fa2\", \"characters/marcus/three_quarter/head-alert.png\": \"1fcb14304891b253e0e966e3f526fb11e640d95dec6bf3bc065f92e6877cdfb9\", \"characters/marcus/three_quarter/head-bracing.png\": \"0eff8eaab0f0800f7c9148f2573b927916c76b51a44022e350315337c2cb7ef0\", \"characters/marcus/three_quarter/head.png\": \"b3e1035d753b58cbb60ada81750abc6e5742ecff9f82f81460c87bede9298598\", \"fonts/ArchivoBlack.ttf\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"fonts/OFL-ArchivoBlack.txt\": \"4cafdbbd100af37a23805af09b7068e4daafb4516dc3d6d52436f4a9d7b4c0d3\", \"formats/portrait.json\": \"894b96289d04e5b5f23b0fdbe1fa7ea592123735a14c2ae144497b2371c05d26\", \"motion_review.py\": \"b2f813cf6d42f65d73053eb75565e6f7ee3f32af7f58600679aa6bd042d921ed\", \"project.json\": \"171a219141daa03e80b1765e8bd31b9198d3fa4268f1eac2c79ae7822329061c\", \"quality-target.json\": \"e8103b7d353a14bb7584ebfd1da708f76e22b2da7dc80f30a13d89c3507e4f57\", \"reference/eiffel-portrait-v44.mp4\": \"b0047f5889a7ca1fd47097d8c8b3db054ef412e2f4a7297d3fe04fc1083e5d79\", \"run.py\": \"acc8f41ac7ac1c98b79d6a1869e03bf651107a954b88a830c2dd27d9758476c0\", \"scene.py\": \"43ea199b09c5092a4538a9370bef13ea299164d7f453d6e29542701fd6bcd1d2\", \"story.json\": \"1b4bef283c5beb80d7ad93e2101bd3f65bbe6cb1d4aca9b4849726b9f4d7219a\", \"engine/manifest.json\": \"f5ef182cc381262a42a1a20a807798e255729719b20c741f60201ce0a26df0e2\"}, \"caption_cues\": [{\"start\": 0.1, \"end\": 0.72, \"text\": \"Sand burns\"}, {\"start\": 0.72, \"end\": 1.48, \"text\": \"under the roar.\"}, {\"start\": 1.6, \"end\": 2.48, \"text\": \"Marcus steps out\"}, {\"start\": 2.48, \"end\": 3.38, \"text\": \"onto the floor.\"}, {\"start\": 3.55, \"end\": 4.45, \"text\": \"Wait, a stray\"}, {\"start\": 4.45, \"end\": 5.45, \"text\": \"spear drops!\"}, {\"start\": 5.65, \"end\": 6.42, \"text\": \"Instinct snaps\"}, {\"start\": 6.42, \"end\": 7.25, \"text\": \"the shield up!\"}, {\"start\": 7.6, \"end\": 8.32, \"text\": \"One heartbeat\"}, {\"start\": 8.32, \"end\": 9.65, \"text\": \"too late?\"}], \"render_profile\": \"draft-viewport-v1\", \"dimensions\": [360, 640], \"native_dimensions\": [720, 1280], \"fps\": 30, \"reviewable\": false, \"timings\": {\"load_seconds\": 0.6299, \"setup_seconds\": 0.1791, \"scene_seconds\": 6.3752, \"validation_seconds\": 0.2436, \"caption_seconds\": 0.3318, \"encoder_write_seconds\": 0.0206, \"mux_seconds\": 0.0892, \"total_seconds\": 8.2742}, \"caption_sidecars\": [\"outputs\\\\replay-draft\\\\captions.srt\", \"outputs\\\\replay-draft\\\\captions.vtt\"], \"draft_caption_observations\": {\"profile\": {\"profile\": \"eiffel-v44-portrait-archivo-black-v1\", \"native_design\": \"9:16\", \"font_family\": \"Archivo Black\", \"font_file\": \"fonts/ArchivoBlack.ttf\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"font_size\": 47, \"stroke\": 4, \"fill\": \"#ffffff\", \"stroke_fill\": \"#171319\", \"supersampling\": 3, \"resample\": \"lanczos\", \"anchor\": \"ms\", \"side\": 44, \"switch\": \"hard_cut\", \"autoshrink\": false, \"pop\": false, \"baseline\": 914, \"band\": [864, 951]}, \"renderer_sha256\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"cues_sha256\": \"0a880c4ffda2fd9a6b088fd398e9a4333570e2c44cd267d7626c8b027a60d566\", \"observed_cues\": [{\"start\": 0.1, \"end\": 0.72, \"text\": \"Sand burns\", \"raster_bounds\": [106.0, 436.5, 254.5, 460.5]}, {\"start\": 0.72, \"end\": 1.48, \"text\": \"under the roar.\", \"raster_bounds\": [82.5, 436.5, 277.5, 460.5]}], \"limitation\": \"Configuration, font identity and measured caption raster only; decoded pixels, semantic speech timing and AV readability still require review.\"}, \"video\": \"outputs\\\\replay-draft\\\\preview.mp4\", \"video_sha256\": \"6ece24b25668410530ec2c80d7d09e13335a1032d0e703dc2b6a19892c6bf45c\"}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "clean_clone_hydrate_test",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 6678,
+          "stdoutTail": [
+            "RESULT {\"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"valid\": true, \"renderer\": \"b6-production-v1\", \"fingerprint\": \"9a44a85f629c5026d8af68291f678dd512e8ce0ea6e4747aaf45c61705e698d5\", \"ratio\": \"9:16\", \"duration\": 10}",
+            "",
+            "cleanCloneMode=git_clone_plus_working_tree"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "playwright_e2e",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 28586,
+          "stdoutTail": [
+            "",
+            "  ok 1 e2e\\studio.spec.ts:11:3 › B6 Local Studio E2E Verification › responsive layout has zero horizontal overflow across 320/375/768/1024/1440 (3.8s)",
+            "  ok 2 e2e\\studio.spec.ts:57:3 › B6 Local Studio E2E Verification › create project, edit & persist across reload, create Anti asset brief, run real B6 validate job, and cleanup (11.1s)",
+            "  ok 3 e2e\\studio.spec.ts:164:3 › B6 Local Studio E2E Verification › opens Samurai articulated studio, inspects motion controls & overlay, saves duplicate edit & cleans up (11.2s)",
+            "",
+            "  3 passed (27.8s)"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        }
+      ]
+    },
+    {
+      "passLabel": "workers=2",
+      "workerLimit": 2,
+      "ok": true,
+      "wallMs": 96101,
+      "tasks": [
+        {
+          "id": "upstream_doctor_checkpack",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 967,
+          "stdoutTail": [
+            "    \"b6_complete_pack\": true",
+            "  },",
+            "  \"gemini_key_present\": false,",
+            "  \"network_checked\": false,",
+            "  \"note\": \"Key presence is not quota/billing verification\"",
+            "}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "workspace_build",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 7886,
+          "stdoutTail": [
+            "rendering chunks...",
+            "computing gzip size...",
+            "\u001b[2mdist/\u001b[22m\u001b[32mindex.html                 \u001b[39m\u001b[1m\u001b[2m  0.43 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  0.29 kB\u001b[22m",
+            "\u001b[2mdist/\u001b[22m\u001b[35massets/index-BxmodpBg.css  \u001b[39m\u001b[1m\u001b[2m  9.89 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  2.69 kB\u001b[22m",
+            "\u001b[2mdist/\u001b[22m\u001b[36massets/index-BJ2Fibti.js   \u001b[39m\u001b[1m\u001b[2m340.03 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 97.57 kB\u001b[22m",
+            "\u001b[32m✓ built in 1.43s\u001b[39m"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "hydrate_verify_existing",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 750,
+          "stdoutTail": [
+            "        \"already_hydrated\"",
+            "      ],",
+            "      \"errors\": []",
+            "    }",
+            "  ]",
+            "}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "python_motion_unit_tests",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 1581,
+          "stdoutTail": [
+            ""
+          ],
+          "stderrTail": [
+            "test_two_bone_ik_preserves_lengths_and_forward_knee_polarity (motion_runtime.tests.test_motion_core.MotionCoreTests.test_two_bone_ik_preserves_lengths_and_forward_knee_polarity) ... ok",
+            "test_upper_body_counter_swing_yields_to_locked_prop_arm (motion_runtime.tests.test_motion_core.MotionCoreTests.test_upper_body_counter_swing_yields_to_locked_prop_arm) ... ok",
+            "test_validate_motion_contract_rejects_negative_mutations (motion_runtime.tests.test_motion_core.MotionCoreTests.test_validate_motion_contract_rejects_negative_mutations) ... ok",
+            "",
+            "----------------------------------------------------------------------",
+            "Ran 8 tests in 0.876s",
+            "",
+            "OK"
+          ]
+        },
+        {
+          "id": "frontend_typecheck",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 2170,
+          "stdoutTail": [
+            "> @b6-studio/frontend@1.0.0 typecheck",
+            "> tsc -b --noEmit"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "samurai_preflight_validate",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 920,
+          "stdoutTail": [
+            "RESULT {\"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"valid\": true, \"renderer\": \"b6-production-v1\", \"fingerprint\": \"9a44a85f629c5026d8af68291f678dd512e8ce0ea6e4747aaf45c61705e698d5\", \"ratio\": \"9:16\", \"duration\": 10}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "server_vitest",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 24213,
+          "stdoutTail": [
+            "   \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m B6-03 Articulated Motion, Multi-File Rollback & Motion-QC Truth\u001b[2m > \u001b[22mproves UI motion.preset & gait edits on Samurai flow into real draft pixel output \u001b[33m 7406\u001b[2mms\u001b[22m\u001b[39m",
+            "",
+            "\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m1 passed\u001b[39m\u001b[22m\u001b[90m (1)\u001b[39m",
+            "\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m16 passed\u001b[39m\u001b[22m\u001b[90m (16)\u001b[39m",
+            "\u001b[2m   Start at \u001b[22m 16:10:53",
+            "\u001b[2m   Duration \u001b[22m 23.34s\u001b[2m (transform 177ms, setup 0ms, collect 461ms, tests 22.58s, environment 0ms, prepare 90ms)\u001b[22m"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "cowboy_preflight_validate",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 961,
+          "stdoutTail": [
+            "RESULT {\"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"valid\": true, \"renderer\": \"b6-production-v1\", \"fingerprint\": \"262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c\", \"ratio\": \"9:16\", \"duration\": 10.0}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "samurai_motion_qc_determinism",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 10530,
+          "stdoutTail": [
+            "{\"randomSeekPass\": true, \"geometrySha256\": \"b9895fe0fcba56c3a7105f9acf66957ca4e54d4859d58da5e038fd6c1f2436bb\"}"
+          ],
+          "stderrTail": [
+            ""
+          ],
+          "parityMeta": {
+            "decodedPixelsSha256": "e969af658a07838b3a20889611bd3e869ddb50a40ebf049c6908e9cd00319610",
+            "containerMp4Sha256": "96aab290809cbac94b0d8d3bf1e6c07fd43f6bacfd604099573cac7fd30d3a39",
+            "geometrySha256": "b9895fe0fcba56c3a7105f9acf66957ca4e54d4859d58da5e038fd6c1f2436bb",
+            "randomSeekPass": true
+          }
+        },
+        {
+          "id": "cowboy_regression_slice",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 12330,
+          "stdoutTail": [
+            "{\"checked_frame\": 153, \"total\": 30}",
+            "",
+            "RESULT {\"status\": \"draft_only_not_formal_quality_evidence\", \"kind\": \"draft\", \"technical_fixture\": false, \"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"ratio\": \"9:16\", \"fingerprint\": \"262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c\", \"checked_frames\": 30, \"arm_poses_checked\": 60, \"straight_legs_checked\": 60, \"max_prop_contact_error_px\": 6.355287432313019e-14, \"external_media_reads\": [], \"voice_speed\": 1, \"new_story_acceptance\": \"not implied by reusing a tested performance\", \"time_range\": {\"start\": 5.1, \"end\": 6.1}, \"technical_status\": \"pass\", \"creative_status\": \"not_assessed_draft\", \"user_acceptance\": \"not_inferred\", \"review_required\": \"Native preview plus unchanged 35-item motion/AV review required; draft cannot be approved\", \"inputs\": {\"assets/production/cowboy_hat.png\": \"85c48c0170f755129db251ff06b35df60f5173aeeb3a8ee28a462dbe954361e0\", \"assets/production/western_fg_frame.png\": \"b6b9dc202f9bd5d82aca3ad7fff2b6343a64498add1d18c43e3eda521d2d0808\", \"assets/production/western_wide_bg.png\": \"dc4a5860cd3bf492905f8d4571f32af92233fdf10a653cd426ec6d308e0dae6a\", \"audio/narration_mix.wav\": \"8d8769396aa7084dd96146bdad2ae520b905de9323dd525b6f8ea650620af203\", \"b6_actions.py\": \"4efcf86cb4f677f1369ca62bb5c87021262c8d92493428f4c91171280760db27\", \"b6_asset_roles.py\": \"ade90e92cad1751bd0b010d508501bba73a41a1ffe6c6018dadd4a368ace9c14\", \"b6_character_preflight.py\": \"561c976f7e8be8ab446e37cbbfcf2fa8d99e9c2d24219291a4f036000fe67e2d\", \"b6_iteration.py\": \"37aac116a54c860aaa5dca66ae7dbc0e68ab9bf2d9296e7c1c49c5e11dc8f1b0\", \"b6_puppet.py\": \"adc4bd4ddcbe2bb184381d080e99ebe1f4bd1beb3b0b6b1a841930ae15d5bed8\", \"b6_space.py\": \"d006c622d63017d7d6ec1a75a56678204fc70486dae944d2b27170d8ae8d5e50\", \"caption_renderer.py\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"captions.json\": \"ca6ae6f44d2409de7994aec221d87cc941a6de1c5433beba613a00b1b2992c3d\", \"characters.json\": \"6f959952ad8fe4592b2f9dfc66b2b9d8044e91ee0701d268ef4001adf71058dd\", \"characters/jesse/package.json\": \"a4ea8672e9ed7f9984ad2a6d506a96e4265985236020062182cc6e2c8e8b3bf1\", \"characters/jesse/three_quarter/body.png\": \"27d1dd784c84d1d1e40a78c53a06ecd6711e580c48be0f75bd7c5b1c2ec5c1c3\", \"characters/jesse/three_quarter/cuff-left.png\": \"8aa1ca9bd3f8a57a8c1f5f929474e17d15c7e936224cafb9fe714d05711c01f1\", \"characters/jesse/three_quarter/cuff-right.png\": \"f102c41b9651797c3ab93746a82b1767102380912a895892f97f448ef76aa499\", \"characters/jesse/three_quarter/head-deadpan.png\": \"dd1be3b1f58e758aed58703b4d711560100c437c83aa6c72015f69cc037418fb\", \"characters/jesse/three_quarter/head-determined.png\": \"b3e079926bcb6a7e83e2260401b7bf947c5a76cdbccf649e9e4e187d793e79bd\", \"characters/jesse/three_quarter/head-shocked.png\": \"8681e61bebf709aa99d138dbfee466cee8e274e8edc2d207c15cf640bfcf2f2d\", \"characters/jesse/three_quarter/head.png\": \"22107efaaafa2fc3a50b8e15132b7db5da53527608de9653de9285bdd5cd566c\", \"fonts/ArchivoBlack.ttf\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"fonts/OFL-ArchivoBlack.txt\": \"4cafdbbd100af37a23805af09b7068e4daafb4516dc3d6d52436f4a9d7b4c0d3\", \"formats/portrait.json\": \"1b168df4b1872eb12db52cac5125fadfa46cbde8056c5b4f1618fc5b4cf7b121\", \"motion_review.py\": \"b2f813cf6d42f65d73053eb75565e6f7ee3f32af7f58600679aa6bd042d921ed\", \"project.json\": \"3fed02d05df84b2ad933c29bcf9e3a9c91aee16fb4791ba57000079502fba9aa\", \"quality-target.json\": \"e8103b7d353a14bb7584ebfd1da708f76e22b2da7dc80f30a13d89c3507e4f57\", \"reference/eiffel-portrait-v44.mp4\": \"b0047f5889a7ca1fd47097d8c8b3db054ef412e2f4a7297d3fe04fc1083e5d79\", \"run.py\": \"acc8f41ac7ac1c98b79d6a1869e03bf651107a954b88a830c2dd27d9758476c0\", \"scene-control.json\": \"4cffd7b0f793772eb348a7e4466138ce6da5fff9cf120cc4d0b21c9fe423cdfb\", \"scene.py\": \"41409082e70c7ceeb87797808c450a817d02072d189eaf389b50291ec48505a3\", \"scene_runtime.py\": \"aa447bc389fc7a791683873999f8eb4246f766cf0a66579561cb73bff997a8c8\", \"story.json\": \"9e11adf67d98af4b551d49d416d9e9f2eed6979c5a2db02be1aad09baa8ec655\", \"engine/manifest.json\": \"f5ef182cc381262a42a1a20a807798e255729719b20c741f60201ce0a26df0e2\"}, \"caption_cues\": [{\"start\": 0.25, \"end\": 0.9, \"text\": \"One desert gust\"}, {\"start\": 0.9, \"end\": 2.24, \"text\": \"stole Jesse's hat.\"}, {\"start\": 2.89, \"end\": 3.8, \"text\": \"He sprinted down\"}, {\"start\": 3.8, \"end\": 4.49, \"text\": \"Main Street,\"}, {\"start\": 5.13, \"end\": 5.83, \"text\": \"caught the brim,\"}, {\"start\": 7.47, \"end\": 8.26, \"text\": \"and spun right back\"}, {\"start\": 8.26, \"end\": 9.6, \"text\": \"in a cloud of dust.\"}], \"render_profile\": \"draft-viewport-v1\", \"dimensions\": [360, 640], \"native_dimensions\": [720, 1280], \"fps\": 30, \"reviewable\": false, \"timings\": {\"load_seconds\": 0.6425, \"setup_seconds\": 0.1846, \"scene_seconds\": 3.9413, \"validation_seconds\": 0.1649, \"caption_seconds\": 0.1734, \"encoder_write_seconds\": 0.0131, \"mux_seconds\": 0.1239, \"total_seconds\": 5.672}, \"caption_sidecars\": [\"outputs\\\\slice-b\\\\captions.srt\", \"outputs\\\\slice-b\\\\captions.vtt\"], \"draft_caption_observations\": {\"profile\": {\"profile\": \"eiffel-v44-portrait-archivo-black-v1\", \"native_design\": \"9:16\", \"font_family\": \"Archivo Black\", \"font_file\": \"fonts/ArchivoBlack.ttf\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"font_size\": 47, \"stroke\": 4, \"fill\": \"#ffffff\", \"stroke_fill\": \"#171319\", \"supersampling\": 3, \"resample\": \"lanczos\", \"anchor\": \"ms\", \"side\": 44, \"switch\": \"hard_cut\", \"autoshrink\": false, \"pop\": false, \"baseline\": 914, \"band\": [864, 951]}, \"renderer_sha256\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"cues_sha256\": \"ca6ae6f44d2409de7994aec221d87cc941a6de1c5433beba613a00b1b2992c3d\", \"observed_cues\": [{\"start\": 5.13, \"end\": 5.83, \"text\": \"caught the brim,\", \"raster_bounds\": [71.5, 436.5, 288.0, 465.5]}], \"limitation\": \"Configuration, font identity and measured caption raster only; decoded pixels, semantic speech timing and AV readability still require review.\"}, \"video\": \"outputs\\\\slice-b\\\\preview.mp4\", \"video_sha256\": \"e6050f90397de8e79cdf636af34d8523b148a54cc065284244789d1a500ac262\"}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "roman_baseline_sandbox_replay",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 11429,
+          "stdoutTail": [
+            "{\"checked_frame\": 0, \"total\": 45}",
+            "",
+            "RESULT {\"status\": \"draft_only_not_formal_quality_evidence\", \"kind\": \"draft\", \"technical_fixture\": false, \"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"ratio\": \"9:16\", \"fingerprint\": \"28c4ff3cfea1f5c888f7c7fb1a1f156002926a2c89330843e79a6f724510921e\", \"checked_frames\": 45, \"arm_poses_checked\": 90, \"straight_legs_checked\": 90, \"max_prop_contact_error_px\": 6.355287432313019e-14, \"external_media_reads\": [], \"voice_speed\": 1, \"new_story_acceptance\": \"not implied by reusing a tested performance\", \"time_range\": {\"start\": 0.0, \"end\": 1.5}, \"technical_status\": \"pass\", \"creative_status\": \"not_assessed_draft\", \"user_acceptance\": \"not_inferred\", \"review_required\": \"Native preview plus unchanged 35-item motion/AV review required; draft cannot be approved\", \"inputs\": {\"assets/production/arena_foreground.png\": \"573dff61ee14a03d9e8dd22b1cd036f8db6ea8beca11438692735cf617ce419e\", \"assets/production/arena_wide_bg.png\": \"fe0ab065a9f031e52d4ee553e11db265cee2549b8e7d742a37a81a3222b3fc7e\", \"assets/production/roman_pilum.png\": \"3e85646f61056c90309c01cf5063654348fb71506f2128bb5074cae495621bec\", \"assets/production/roman_shield.png\": \"fa1abea9cd3cd48d29b7e404836477538fd76a0ee458212d7a857cef61f23086\", \"audio/narration_mix.wav\": \"e8cefea0670333c09f7bb53f5239ea62c56ce354dc22d6a4f441ca1db39330b4\", \"b6_actions.py\": \"4efcf86cb4f677f1369ca62bb5c87021262c8d92493428f4c91171280760db27\", \"b6_asset_roles.py\": \"ade90e92cad1751bd0b010d508501bba73a41a1ffe6c6018dadd4a368ace9c14\", \"b6_character_preflight.py\": \"561c976f7e8be8ab446e37cbbfcf2fa8d99e9c2d24219291a4f036000fe67e2d\", \"b6_iteration.py\": \"37aac116a54c860aaa5dca66ae7dbc0e68ab9bf2d9296e7c1c49c5e11dc8f1b0\", \"b6_puppet.py\": \"adc4bd4ddcbe2bb184381d080e99ebe1f4bd1beb3b0b6b1a841930ae15d5bed8\", \"b6_space.py\": \"d006c622d63017d7d6ec1a75a56678204fc70486dae944d2b27170d8ae8d5e50\", \"caption_renderer.py\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"captions.json\": \"0a880c4ffda2fd9a6b088fd398e9a4333570e2c44cd267d7626c8b027a60d566\", \"characters.json\": \"707e36903374d01d87668c53ed92bbb9aae02d7d54931bbdc0bcc1aaef02a082\", \"characters/marcus/package.json\": \"42f2dfc6c90cc9a2295fd921c17b8efea3ac2ea8b0abbb69411707a2a79264bf\", \"characters/marcus/three_quarter/body.png\": \"a367d2ab8ce5809cd596881da5727388af1454ecb5cd09602a679f5ee43dd7dc\", \"characters/marcus/three_quarter/cuff-left.png\": \"f64f4960e5c437236877592aa4702b4f3376fe8f31b4102bc74ca74ef30a46da\", \"characters/marcus/three_quarter/cuff-right.png\": \"6b2c2afd17a3eea40b377a97bdf1a08532a2a0449f545b60c6da55b26edc9fa2\", \"characters/marcus/three_quarter/head-alert.png\": \"1fcb14304891b253e0e966e3f526fb11e640d95dec6bf3bc065f92e6877cdfb9\", \"characters/marcus/three_quarter/head-bracing.png\": \"0eff8eaab0f0800f7c9148f2573b927916c76b51a44022e350315337c2cb7ef0\", \"characters/marcus/three_quarter/head.png\": \"b3e1035d753b58cbb60ada81750abc6e5742ecff9f82f81460c87bede9298598\", \"fonts/ArchivoBlack.ttf\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"fonts/OFL-ArchivoBlack.txt\": \"4cafdbbd100af37a23805af09b7068e4daafb4516dc3d6d52436f4a9d7b4c0d3\", \"formats/portrait.json\": \"894b96289d04e5b5f23b0fdbe1fa7ea592123735a14c2ae144497b2371c05d26\", \"motion_review.py\": \"b2f813cf6d42f65d73053eb75565e6f7ee3f32af7f58600679aa6bd042d921ed\", \"project.json\": \"171a219141daa03e80b1765e8bd31b9198d3fa4268f1eac2c79ae7822329061c\", \"quality-target.json\": \"e8103b7d353a14bb7584ebfd1da708f76e22b2da7dc80f30a13d89c3507e4f57\", \"reference/eiffel-portrait-v44.mp4\": \"b0047f5889a7ca1fd47097d8c8b3db054ef412e2f4a7297d3fe04fc1083e5d79\", \"run.py\": \"acc8f41ac7ac1c98b79d6a1869e03bf651107a954b88a830c2dd27d9758476c0\", \"scene.py\": \"43ea199b09c5092a4538a9370bef13ea299164d7f453d6e29542701fd6bcd1d2\", \"story.json\": \"1b4bef283c5beb80d7ad93e2101bd3f65bbe6cb1d4aca9b4849726b9f4d7219a\", \"engine/manifest.json\": \"f5ef182cc381262a42a1a20a807798e255729719b20c741f60201ce0a26df0e2\"}, \"caption_cues\": [{\"start\": 0.1, \"end\": 0.72, \"text\": \"Sand burns\"}, {\"start\": 0.72, \"end\": 1.48, \"text\": \"under the roar.\"}, {\"start\": 1.6, \"end\": 2.48, \"text\": \"Marcus steps out\"}, {\"start\": 2.48, \"end\": 3.38, \"text\": \"onto the floor.\"}, {\"start\": 3.55, \"end\": 4.45, \"text\": \"Wait, a stray\"}, {\"start\": 4.45, \"end\": 5.45, \"text\": \"spear drops!\"}, {\"start\": 5.65, \"end\": 6.42, \"text\": \"Instinct snaps\"}, {\"start\": 6.42, \"end\": 7.25, \"text\": \"the shield up!\"}, {\"start\": 7.6, \"end\": 8.32, \"text\": \"One heartbeat\"}, {\"start\": 8.32, \"end\": 9.65, \"text\": \"too late?\"}], \"render_profile\": \"draft-viewport-v1\", \"dimensions\": [360, 640], \"native_dimensions\": [720, 1280], \"fps\": 30, \"reviewable\": false, \"timings\": {\"load_seconds\": 0.6238, \"setup_seconds\": 0.1833, \"scene_seconds\": 7.0362, \"validation_seconds\": 0.256, \"caption_seconds\": 0.3506, \"encoder_write_seconds\": 0.0205, \"mux_seconds\": 0.0873, \"total_seconds\": 8.993}, \"caption_sidecars\": [\"outputs\\\\replay-draft\\\\captions.srt\", \"outputs\\\\replay-draft\\\\captions.vtt\"], \"draft_caption_observations\": {\"profile\": {\"profile\": \"eiffel-v44-portrait-archivo-black-v1\", \"native_design\": \"9:16\", \"font_family\": \"Archivo Black\", \"font_file\": \"fonts/ArchivoBlack.ttf\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"font_size\": 47, \"stroke\": 4, \"fill\": \"#ffffff\", \"stroke_fill\": \"#171319\", \"supersampling\": 3, \"resample\": \"lanczos\", \"anchor\": \"ms\", \"side\": 44, \"switch\": \"hard_cut\", \"autoshrink\": false, \"pop\": false, \"baseline\": 914, \"band\": [864, 951]}, \"renderer_sha256\": \"5fc03a3f38dce9f55609f2059077125ecc30b7f5fa1d31580f9e007fcf23200b\", \"font_sha256\": \"dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180\", \"cues_sha256\": \"0a880c4ffda2fd9a6b088fd398e9a4333570e2c44cd267d7626c8b027a60d566\", \"observed_cues\": [{\"start\": 0.1, \"end\": 0.72, \"text\": \"Sand burns\", \"raster_bounds\": [106.0, 436.5, 254.5, 460.5]}, {\"start\": 0.72, \"end\": 1.48, \"text\": \"under the roar.\", \"raster_bounds\": [82.5, 436.5, 277.5, 460.5]}], \"limitation\": \"Configuration, font identity and measured caption raster only; decoded pixels, semantic speech timing and AV readability still require review.\"}, \"video\": \"outputs\\\\replay-draft\\\\preview.mp4\", \"video_sha256\": \"6ece24b25668410530ec2c80d7d09e13335a1032d0e703dc2b6a19892c6bf45c\"}"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "clean_clone_hydrate_test",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 6396,
+          "stdoutTail": [
+            "RESULT {\"purpose\": \"production\", \"delivery_ready\": false, \"protected_inputs\": [], \"valid\": true, \"renderer\": \"b6-production-v1\", \"fingerprint\": \"9a44a85f629c5026d8af68291f678dd512e8ce0ea6e4747aaf45c61705e698d5\", \"ratio\": \"9:16\", \"duration\": 10}",
+            "",
+            "cleanCloneMode=git_clone_plus_working_tree"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        },
+        {
+          "id": "playwright_e2e",
+          "status": "succeeded",
+          "code": 0,
+          "durationMs": 30187,
+          "stdoutTail": [
+            "",
+            "  ok 1 e2e\\studio.spec.ts:11:3 › B6 Local Studio E2E Verification › responsive layout has zero horizontal overflow across 320/375/768/1024/1440 (3.3s)",
+            "  ok 2 e2e\\studio.spec.ts:57:3 › B6 Local Studio E2E Verification › create project, edit & persist across reload, create Anti asset brief, run real B6 validate job, and cleanup (13.9s)",
+            "  ok 3 e2e\\studio.spec.ts:164:3 › B6 Local Studio E2E Verification › opens Samurai articulated studio, inspects motion controls & overlay, saves duplicate edit & cleans up (10.6s)",
+            "",
+            "  3 passed (29.4s)"
+          ],
+          "stderrTail": [
+            ""
+          ]
+        }
+      ]
+    }
+  ],
+  "generatedAt": "2026-11-18T09:12:10.929Z"
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cap_1",
+    "start": 0.06,
+    "end": 1,
+    "text": "A samurai challenged"
+  },
+  {
+    "id": "cap_2",
+    "start": 1,
+    "end": 1.85,
+    "text": "a falling leaf."
+  },
+  {
+    "id": "cap_3",
+    "start": 2.38,
+    "end": 3.05,
+    "text": "He dashed"
+  },
+  {
+    "id": "cap_4",
+    "start": 3.05,
+    "end": 4.35,
+    "text": "and swung his blade,"
+  },
+  {
+    "id": "cap_5",
+    "start": 5.2,
+    "end": 5.85,
+    "text": "and missed"
+  },
+  {
+    "id": "cap_6",
+    "start": 5.85,
+    "end": 6.65,
+    "text": "completely."
+  },
+  {
+    "id": "cap_7",
+    "start": 7.3,
+    "end": 8,
+    "text": "The leaf won"
+  },
+  {
+    "id": "cap_8",
+    "start": 8,
+    "end": 9.45,
+    "text": "without a fight."
+  }
+]

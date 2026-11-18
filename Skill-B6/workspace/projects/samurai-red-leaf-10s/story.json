@@ -1,0 +1,55 @@
+{
+  "title": "The Samurai Who Challenged a Leaf",
+  "narration": "A samurai challenged a falling leaf. He dashed and swung his blade, and missed completely. The leaf won without a fight.",
+  "beats": [
+    {
+      "id": "beat_hook",
+      "start": 0,
+      "end": 0.8,
+      "action": "Red maple leaf whips across Ren's face, snapping him into instant comic shock",
+      "cause": "Autumn gust launches leaf straight across his gaze",
+      "payoff": "Sets up absurd duel in under a second"
+    },
+    {
+      "id": "beat_anticipate",
+      "start": 0.8,
+      "end": 2.15,
+      "action": "Ren bends knees low into coil crouch and draws his gleaming katana",
+      "cause": "Hurt samurai pride locks onto the drifting leaf",
+      "payoff": "Clear combat anticipation and blade silhouette insert"
+    },
+    {
+      "id": "beat_dash",
+      "start": 2.15,
+      "end": 4.45,
+      "action": "Ren charges across the shrine courtyard with real bent-knee strides and world-locked footsteps",
+      "cause": "Leaf floats lazily ahead on the autumn wind",
+      "payoff": "Escalating kinetic pursuit across wide painted world"
+    },
+    {
+      "id": "beat_slash_miss",
+      "start": 4.45,
+      "end": 6.55,
+      "action": "Ren brakes hard into wide lunge and slices air while blade breeze lifts the leaf safely overhead",
+      "cause": "Aerodynamic air push from his own swing saves the leaf",
+      "payoff": "Clean comedic reversal as steel cuts empty air"
+    },
+    {
+      "id": "beat_leaf_nose",
+      "start": 6.55,
+      "end": 8.15,
+      "action": "The red maple leaf drifts softly down onto the bridge of Ren's nose",
+      "cause": "Silence after whiff leaves leaf circling straight down",
+      "payoff": "Close reaction closeup with delicate spring tap on nose"
+    },
+    {
+      "id": "beat_deadpan",
+      "start": 8.15,
+      "end": 10,
+      "action": "Deadpan samurai lowers his blade as the victorious leaf rides away on a final gust",
+      "cause": "Utter defeat without an opponent",
+      "payoff": "Memorable comedic hold and autumn closure"
+    }
+  ],
+  "status": "authored"
+}

@@ -10,9 +10,11 @@
 - **Upstream Vendor Checkout (Read-Only)**: `D:\Project_github\Agent-Skill\Skill-B6\vendor\stickman-video-director`
 - **B6 Skill Entrypoint**: `D:\Project_github\Agent-Skill\Skill-B6\vendor\stickman-video-director\skills\directing-stickman-videos`
 - **Workspace Projects**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\projects`
-- **Project mẫu La Mã 10s (Baseline R1)**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\projects\roman-gladiator-10s`
-- **Project Cao bồi 10s (Mới R2 — Live `scene-control.json` binding)**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\projects\cowboy-hat-10s`
-- **Video preview tự chứa của run R2**: `docs/agent-runs/B6-LOCAL-STUDIO-02/cowboy-preview-10s.mp4` (`3.343 MiB`, `720x1280`, `30fps`, `10.0s`)
+- **Project mẫu La Mã 10s (Baseline R1 — `legacy_stance`)**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\projects\roman-gladiator-10s`
+- **Project Cao bồi 10s (R2 — `legacy_stance` + Live `scene-control.json`)**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\projects\cowboy-hat-10s`
+- **Project Samurai 10s (Mới R3 — `articulated_v1` Bent-Knee Motion + Camera Director)**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\projects\samurai-red-leaf-10s`
+- **Video preview tự chứa của run R3**: `docs/agent-runs/B6-LOCAL-STUDIO-03/samurai-preview-10s.mp4` (`4.08 MiB`, `720x1280`, `30fps`, `10.0s`)
+- **Shared Articulated Motion Runtime**: `D:\Project_github\Agent-Skill\Skill-B6\motion_runtime` (`b6_motion_core.py`, `b6_motion_render.py`, `b6_motion_qc.py`)
 - **Jobs & Logs**: `D:\Project_github\Agent-Skill\Skill-B6\workspace\jobs`
 - **Python Isolated Virtualenv**: `D:\Project_github\Agent-Skill\Skill-B6\.venv\Scripts\python.exe`
 
@@ -89,7 +91,7 @@ npm run verify:all
 
 ## 5. Giới hạn hiện tại của engine B6
 
-- **Walk / Run Gait**: `b6_puppet.py` v1 chỉ hỗ trợ chân đứng tĩnh với `ankle_targets` giới hạn (±25% chiều dài chân cho nhún/chuyển trọng tâm). Không có bộ sinh bước đi/chạy tự động; nhân vật muốn đi/chạy phải author gait + điểm tiếp đất riêng và kiểm tra chống trượt.
+- **Walk / Run Gait (`legacy_stance` vs `articulated_v1`)**: `b6_puppet.py` gốc (`legacy_stance`, giữ nguyên cho La Mã R1 & Cao bồi R2) chỉ hỗ trợ chân đứng tĩnh với `ankle_targets` giới hạn (±25% chiều dài chân). Tầng mở rộng `Skill-B6/motion_runtime/` (`articulated_v1`, áp dụng cho Samurai R3 và project mới chọn opt-in) cung cấp 2-bone bent-knee IK + khóa bàn chân theo world + `b6_motion_qc.py`, trong khi `render` vẫn tuân thủ kiểm định 35 mục visual review và user approval riêng.
 - **Native 9:16 vs 16:9**: B6 đạt chất lượng cao nhất ở **9:16 dọc** (lấy Eiffel V44 làm chuẩn mực chính). Chuyển sang 16:9 phải author riêng bố cục, camera và `native_layout_reason`, không crop/kéo giãn.
 - **Tạo ảnh & Giọng đọc (Image / TTS)**: Chưa có callable API trực tiếp từ web app localhost sang tool tạo ảnh của Anti. Tạo ảnh qua cơ chế `asset-request.json` + `assets/inbox/`, âm thanh qua nhập WAV/M4A hoặc tổng hợp local (ví dụ Windows SAPI TTS).
 - **Upstream Windows Notes**: File `b6_motion_review.py` của upstream dùng `-vsync vfr` (đã bỏ ở FFmpeg 9) và `write_text()` CRLF khi lưu lịch sử lỗi `.b6-review-history/`. Xem chi tiết tại [docs/B6-SOURCE-AUDIT.md](docs/B6-SOURCE-AUDIT.md).

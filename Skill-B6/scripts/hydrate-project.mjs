@@ -136,6 +136,22 @@ if (!verifyOnly && freeBytes < minFreeRequired) {
   );
 }
 
+const MOTION_RUNTIME_DIR = path.join(APP_ROOT, 'motion_runtime');
+const MOTION_MANIFEST_PATH = path.join(MOTION_RUNTIME_DIR, 'manifest.json');
+const motionManifest = fs.existsSync(MOTION_MANIFEST_PATH)
+  ? JSON.parse(fs.readFileSync(MOTION_MANIFEST_PATH, 'utf8'))
+  : null;
+if (motionManifest?.files) {
+  for (const [fname, meta] of Object.entries(motionManifest.files)) {
+    const abs = path.join(MOTION_RUNTIME_DIR, fname);
+    if (!fs.existsSync(abs) || sha256File(abs) !== meta.sha256) {
+      throw new Error(`Shared motion_runtime integrity mismatch for ${fname} against motion_runtime/manifest.json`);
+    }
+  }
+}
+
+const ARTICULATED_RUNTIME_FILES = ['b6_motion_core.py', 'b6_motion_render.py', 'b6_motion_qc.py'];
+
 const HELPER_SCRIPTS = [
   ['b6_production.py', 'run.py'],
   ['b6_motion_review.py', 'motion_review.py'],
@@ -242,6 +258,31 @@ for (const projDir of projectTargets) {
       } else {
         fs.copyFileSync(path.join(SKILL_DIR, 'scripts', srcName), destAbs);
         actions.push(`restored_missing:${destName}`);
+      }
+    }
+  }
+
+  // 4b. Hydrate articulated motion_runtime helpers ONLY for projects opting into articulated_v1
+  const projectJson = JSON.parse(fs.readFileSync(path.join(projDir, 'project.json'), 'utf8'));
+  const controlPath = path.join(projDir, 'scene-control.json');
+  const controlJson = fs.existsSync(controlPath) ? JSON.parse(fs.readFileSync(controlPath, 'utf8')) : null;
+  const usesArticulated =
+    projectJson?.motion_mode === 'articulated_v1' || controlJson?.motionMode === 'articulated_v1';
+  if (usesArticulated && motionManifest?.files) {
+    for (const fname of ARTICULATED_RUNTIME_FILES) {
+      const destAbs = path.join(projDir, fname);
+      const srcAbs = path.join(MOTION_RUNTIME_DIR, fname);
+      const expectedSha = motionManifest.files[fname]?.sha256;
+      const missingOrStale = !fs.existsSync(destAbs) || (expectedSha && sha256File(destAbs) !== expectedSha);
+      if (missingOrStale) {
+        if (verifyOnly) {
+          errors.push(`motion_runtime helper missing/mismatch: ${fname}`);
+        } else if (dryRun) {
+          actions.push(`would_hydrate_motion:${fname}`);
+        } else {
+          fs.copyFileSync(srcAbs, destAbs);
+          actions.push(`hydrated_motion:${fname}`);
+        }
       }
     }
   }

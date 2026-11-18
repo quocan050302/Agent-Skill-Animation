@@ -1,0 +1,387 @@
+{
+  "schema": "b6-puppet/1",
+  "binding_version": 2,
+  "character_id": "ren",
+  "display_name": "Ren \u00b7 Autumn Samurai",
+  "coordinate_system": {
+    "feet_origin": [
+      0,
+      0
+    ],
+    "x": "right",
+    "y": "down",
+    "units": "local painted stage pixels"
+  },
+  "views": {
+    "three_quarter": {
+      "facing": "right",
+      "sprites": {
+        "body": {
+          "path": "three_quarter/body.png",
+          "sha256": "8801d7a2d9214597fafbb4b92a23682d49f585edc116c1a608f903abf44e25a4",
+          "image_to_local": [
+            [
+              0.38,
+              0.0,
+              -73.74560869565218
+            ],
+            [
+              0.0,
+              0.38,
+              -285.34000000000003
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "head": {
+          "path": "three_quarter/head.png",
+          "sha256": "f3f3eeb37fa96388cac9fb71e16843a3f9c457f0bce3cd8a0bfceb39a2766206",
+          "image_to_local": [
+            [
+              0.42,
+              0.0,
+              -67.2
+            ],
+            [
+              0.0,
+              0.42,
+              -381.68
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "heads": {
+          "neutral": {
+            "path": "three_quarter/head.png",
+            "sha256": "f3f3eeb37fa96388cac9fb71e16843a3f9c457f0bce3cd8a0bfceb39a2766206",
+            "image_to_local": [
+              [
+                0.42,
+                0.0,
+                -67.2
+              ],
+              [
+                0.0,
+                0.42,
+                -381.68
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "surprised": {
+            "path": "three_quarter/head-surprised.png",
+            "sha256": "2df85db3c861a58e60dfe4fda86ad44bfd76afd1f2db9d89283310e6e5d928e9",
+            "image_to_local": [
+              [
+                0.42,
+                0.0,
+                -67.2
+              ],
+              [
+                0.0,
+                0.42,
+                -381.68
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "focused": {
+            "path": "three_quarter/head-focused.png",
+            "sha256": "8b3f54d84adb549a4d3f21b2b496876c3a50532812e4c202627623db2201dd64",
+            "image_to_local": [
+              [
+                0.42,
+                0.0,
+                -67.2
+              ],
+              [
+                0.0,
+                0.42,
+                -381.68
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "deadpan": {
+            "path": "three_quarter/head-deadpan.png",
+            "sha256": "bd6c3e7d2fc1b8470abba436d837158921327119bf9ca78a9957fa90ab305fe5",
+            "image_to_local": [
+              [
+                0.42,
+                0.0,
+                -67.2
+              ],
+              [
+                0.0,
+                0.42,
+                -381.68
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          }
+        }
+      },
+      "head_anchor": [
+        0.0,
+        -261.56
+      ],
+      "neck_attachment": {
+        "mount_polygon": [
+          [
+            -6.72,
+            -264.92
+          ],
+          [
+            6.72,
+            -264.92
+          ],
+          [
+            6.72,
+            -258.2
+          ],
+          [
+            -6.72,
+            -258.2
+          ]
+        ],
+        "min_overlap_fraction": 0.6,
+        "min_overlap_thickness": 2.5
+      },
+      "arms": {
+        "left": {
+          "socket": [
+            50.134,
+            -200.22
+          ],
+          "exit_normal": [
+            0.5,
+            0.866
+          ],
+          "exit_center": [
+            50.134,
+            -192.24
+          ],
+          "outlet_segment": [
+            [
+              41.774,
+              -193.38
+            ],
+            [
+              58.494,
+              -191.1
+            ]
+          ],
+          "lengths": [
+            56.0,
+            54.0
+          ],
+          "pole": -1,
+          "upper_angle_range_deg": [
+            -10,
+            130
+          ],
+          "elbow_bend_range_deg": [
+            8,
+            130
+          ],
+          "max_ik_offset": 94.0,
+          "ink_width": 5.4,
+          "hand_radius": 9.5,
+          "layer": "back",
+          "cuff": {
+            "path": "three_quarter/cuff-left.png",
+            "sha256": "6daa8ff53d325372818cb8abdc59efe75b9124d96e06752dc8010b24d6d7a6ed",
+            "image_to_local": [
+              [
+                0.38,
+                0.0,
+                -73.74560869565218
+              ],
+              [
+                0.0,
+                0.38,
+                -285.34000000000003
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "ink_path": {
+            "mode": "continuous",
+            "sag": 5.0
+          },
+          "poses": {
+            "rest": [
+              56,
+              26
+            ],
+            "reach": [
+              22,
+              58
+            ],
+            "offer": [
+              14,
+              70
+            ],
+            "receive": [
+              20,
+              74
+            ],
+            "retract": [
+              48,
+              48
+            ]
+          }
+        },
+        "right": {
+          "socket": [
+            -49.426,
+            -200.22
+          ],
+          "exit_normal": [
+            0.26,
+            0.965
+          ],
+          "exit_center": [
+            -49.426,
+            -194.14
+          ],
+          "outlet_segment": [
+            [
+              -63.866,
+              -194.9
+            ],
+            [
+              -34.986,
+              -192.62
+            ]
+          ],
+          "lengths": [
+            60.0,
+            56.0
+          ],
+          "pole": 1,
+          "upper_angle_range_deg": [
+            -10,
+            145
+          ],
+          "elbow_bend_range_deg": [
+            8,
+            135
+          ],
+          "max_ik_offset": 98.0,
+          "ink_width": 5.4,
+          "hand_radius": 10.0,
+          "layer": "front",
+          "cuff": {
+            "path": "three_quarter/cuff-right.png",
+            "sha256": "52292a03d3f054e38f7a1b14976df84a63c6fb8b31298b3043147e05b587b5a5",
+            "image_to_local": [
+              [
+                0.38,
+                0.0,
+                -73.74560869565218
+              ],
+              [
+                0.0,
+                0.38,
+                -285.34000000000003
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "ink_path": {
+            "mode": "continuous",
+            "sag": 6.0
+          },
+          "poses": {
+            "rest": [
+              98,
+              18
+            ],
+            "reach": [
+              58,
+              52
+            ],
+            "offer": [
+              24,
+              86
+            ],
+            "receive": [
+              42,
+              74
+            ],
+            "retract": [
+              112,
+              26
+            ]
+          }
+        }
+      },
+      "legs": {
+        "left": {
+          "hip": [
+            -21.306,
+            -107.5
+          ],
+          "ankle": [
+            -17.306,
+            -4.0
+          ],
+          "ink_width": 5.8,
+          "foot_size": [
+            22.0,
+            8.0
+          ]
+        },
+        "right": {
+          "hip": [
+            19.734,
+            -107.5
+          ],
+          "ankle": [
+            23.734,
+            -4.0
+          ],
+          "ink_width": 5.8,
+          "foot_size": [
+            22.0,
+            8.0
+          ]
+        }
+      },
+      "ink_color": "#16161c"
+    }
+  }
+}

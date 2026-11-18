@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SCREENSHOT_DIR = path.resolve(__dirname, '../../../docs/agent-runs/B6-LOCAL-STUDIO-02/screenshots');
+const SCREENSHOT_DIR = path.resolve(__dirname, '../../../docs/agent-runs/B6-LOCAL-STUDIO-03/screenshots');
 fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 
 test.describe('B6 Local Studio E2E Verification', () => {
@@ -158,6 +158,76 @@ test.describe('B6 Local Studio E2E Verification', () => {
     await page.getByRole('button', { name: /Jobs.*QA/i }).click();
     await page.waitForTimeout(250);
     await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440-qa-cowboy.png'), fullPage: false });
+    expect(runtimeErrors).toEqual([]);
+  });
+
+  test('opens Samurai articulated studio, inspects motion controls & overlay, saves duplicate edit & cleans up', async ({ page }) => {
+    const runtimeErrors: string[] = [];
+    page.on('pageerror', (err) => runtimeErrors.push(`pageerror: ${err.message}`));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') runtimeErrors.push(`console.error: ${msg.text()}`);
+    });
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await expect(page.getByText(/Source OK/i)).toBeVisible({ timeout: 15_000 });
+
+    const samuraiCard = page.locator('.card', { hasText: 'The Samurai Who Challenged a Leaf' }).first();
+    await expect(samuraiCard).toBeVisible({ timeout: 10_000 });
+    await samuraiCard.getByRole('button', { name: /Mở Studio/i }).click();
+
+    await expect(page.getByTestId('editor-sync-badge')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('video').first()).toBeVisible({ timeout: 10_000 });
+
+    // Toggle motion diagnostic overlay & take screenshot
+    await page.getByTestId('toggle-motion-overlay').click();
+    await expect(page.getByTestId('motion-diagnostic-overlay')).toBeVisible();
+    await page.waitForTimeout(250);
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440-studio-samurai.png'), fullPage: false });
+
+    // Open Shot tab & inspect articulated Motion & Gait Engine controls
+    await page.getByRole('tab', { name: 'Shot' }).click();
+    await expect(page.getByTestId('motion-engine-badge')).toContainText(/Articulated/i);
+    await expect(page.getByTestId('motion-preset-select')).toBeVisible();
+    await expect(page.getByTestId('visual-beat-select')).toBeVisible();
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440-samurai-shot-motion.png'), fullPage: false });
+
+    // Open Camera tab & inspect Camera Director preset + Verify changes button
+    await page.getByRole('tab', { name: 'Camera' }).click();
+    await expect(page.getByTestId('camera-preset-select')).toBeVisible();
+
+    // Open Export tab: verify motion QC status visible & Export Full strictly locked (pending review/approval)
+    await page.getByRole('tab', { name: 'Export' }).click();
+    await expect(page.getByRole('button', { name: /Xuất Video Full MP4/i })).toBeDisabled();
+
+    // Duplicate Samurai to test live motion edit persistence cleanly without dirtying tracked Samurai project
+    await page.getByRole('button', { name: 'Projects' }).click();
+    await samuraiCard.getByRole('button', { name: /Nhân bản/i }).click();
+    const copyCard = page.locator('.card', { hasText: 'The Samurai Who Challenged a Leaf (Copy)' }).first();
+    await expect(copyCard).toBeVisible({ timeout: 10_000 });
+    await copyCard.getByRole('button', { name: /Mở Studio/i }).click();
+
+    await page.getByRole('tab', { name: 'Shot' }).click();
+    await page.getByTestId('motion-preset-select').selectOption('dash');
+    await page.getByTestId('motion-cadence').fill('3.2');
+    const patchPromise = page.waitForResponse(
+      (res) => res.url().includes('/api/projects/') && res.request().method() === 'PATCH',
+    );
+    await page.getByRole('button', { name: /Lưu \(Ctrl\+S\)/i }).click();
+    expect((await patchPromise).status()).toBe(200);
+    await expect(page.getByText('Đã lưu')).toBeVisible({ timeout: 5_000 });
+    await page.reload();
+    await page.getByRole('button', { name: 'Studio' }).click();
+    await page.getByRole('tab', { name: 'Shot' }).click();
+    await expect(page.getByTestId('motion-preset-select')).toHaveValue('dash');
+    await expect(page.getByTestId('motion-cadence')).toHaveValue('3.2');
+
+    // Cleanup temporary Samurai duplicate
+    await page.getByRole('button', { name: 'Projects' }).click();
+    await copyCard.getByRole('button', { name: /Xóa .*Copy/i }).click();
+    await copyCard.getByRole('button', { name: /Xác nhận xóa/i }).click();
+    await expect(copyCard).toHaveCount(0);
+
     expect(runtimeErrors).toEqual([]);
   });
 });

@@ -1,0 +1,17 @@
+{
+  "schema": "b6-studio-meta/1",
+  "id": "samurai-red-leaf-10s",
+  "title": "The Samurai Who Challenged a Leaf",
+  "brief": "10s 9:16 Samurai comedy with 2-bone bent-knee gait, katana contact, leaf reaction & deadpan payoff.",
+  "language": "en",
+  "targetDuration": 10,
+  "activeRatio": "9:16",
+  "premise": "A proud autumn samurai challenges a drifting maple leaf to a duel and loses effortlessly.",
+  "hook": "A red maple leaf slaps right across Ren's gaze, triggering an over-dramatic samurai showdown.",
+  "createdAt": "2026-11-18T15:10:00.000Z",
+  "updatedAt": "2026-11-18T08:11:53.624Z",
+  "revision": 2,
+  "lastRenderedRevision": 2,
+  "voiceTextSha256": "254db081ae8a8e7b62ef78815ac3fec3e9a688442e0d48a8178d92a6568d924d",
+  "sceneSyncRequests": []
+}

@@ -1,0 +1,23 @@
+{
+  "schema": "b6-motion-runtime-manifest/1",
+  "version": "1.0.0",
+  "motion_schema": "b6-studio-articulated/1",
+  "files": {
+    "__init__.py": {
+      "sha256": "fecb4adb86d3c08467823246a8b6f875a137a83eb069c753f3cfd9ce9df72e32",
+      "bytes": 1120
+    },
+    "b6_motion_core.py": {
+      "sha256": "771c76b4dfdd396c34a95529212eaace24263af5b0d073f9667ed38d1ac81ae4",
+      "bytes": 30144
+    },
+    "b6_motion_render.py": {
+      "sha256": "7c38a2d3e7352c659b68df730b235fcafa3fd12c50e18db7c05490f646b8a4d5",
+      "bytes": 36038
+    },
+    "b6_motion_qc.py": {
+      "sha256": "1948a05c90c66d721b82fee654651a225a655c5c7cf8f99f6a99462f084aa1e7",
+      "bytes": 14065
+    }
+  }
+}

@@ -12,6 +12,8 @@ export interface ReviewSummary {
   technicalStatus: QaEvidenceSummary['technicalStatus'];
   visualReviewStatus: QaEvidenceSummary['visualReviewStatus'];
   userApprovalStatus: QaEvidenceSummary['userApprovalStatus'];
+  motionQcStatus?: QaEvidenceSummary['motionQcStatus'];
+  motionQcSummary?: QaEvidenceSummary['motionQcSummary'];
   reasonCodes: string[];
   staleReasons: string[];
   blockingReasons: string[];
@@ -99,6 +101,8 @@ export class ReviewService {
       technicalStatus: resolved.summary.technicalStatus,
       visualReviewStatus: resolved.summary.visualReviewStatus,
       userApprovalStatus: resolved.summary.userApprovalStatus,
+      ...(resolved.summary.motionQcStatus ? { motionQcStatus: resolved.summary.motionQcStatus } : {}),
+      ...(resolved.summary.motionQcSummary ? { motionQcSummary: resolved.summary.motionQcSummary } : {}),
       reasonCodes: resolved.summary.reasonCodes,
       staleReasons: resolved.summary.staleReasons,
       blockingReasons: resolved.summary.blockingReasons,

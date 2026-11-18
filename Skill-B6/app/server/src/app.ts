@@ -369,8 +369,40 @@ export async function buildApp(deps: ServerDependencies = {}): Promise<{
       voiceStale: qa.summary.voiceStale,
       technicalStatus: qa.summary.technicalStatus,
       editorSyncState: qa.summary.editorSyncState,
+      motionQcStatus: qa.summary.motionQcStatus,
     });
     return { binding, qa: qa.summary };
+  });
+
+  app.get('/api/projects/:id/motion-capability', async (req) => {
+    const { id } = req.params as { id: string };
+    const { ratio } = z.object({ ratio: RatioSchema.default('9:16') }).parse(req.query ?? {});
+    const dir = projectService.getProjectDir(id);
+    const detail = await projectService.getProject(id);
+    const qa = await qaResolver.resolveQaState(dir, ratio);
+    const binding = await editorBindingService.resolveBindingStatus(dir, detail, {
+      voiceStale: qa.summary.voiceStale,
+      technicalStatus: qa.summary.technicalStatus,
+      editorSyncState: qa.summary.editorSyncState,
+      motionQcStatus: qa.summary.motionQcStatus,
+    });
+    const manifestPath = path.join(APP_ROOT, 'motion_runtime', 'manifest.json');
+    const manifest = fs.existsSync(manifestPath)
+      ? JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+      : null;
+    return {
+      projectId: id,
+      ratio,
+      engineVersion: manifest?.version ?? '1.0.0',
+      motionSchema: manifest?.motion_schema ?? 'b6-studio-articulated/1',
+      motionEngineMode: binding.motionEngineMode,
+      motionQcVerified: binding.motionQcVerified,
+      motionQcStatus: qa.summary.motionQcStatus ?? 'pending',
+      motionQcSummary: qa.summary.motionQcSummary ?? null,
+      supportedPresets: ['none', 'idle', 'anticipate', 'walk', 'run', 'dash', 'stop', 'turn', 'react', 'recover'],
+      supportedCameraPresets: ['establish', 'follow', 'reaction_closeup', 'object_insert', 'impact', 'settle'],
+      supportedVisualBeats: ['hook', 'surprise', 'action', 'escalation', 'payoff'],
+    };
   });
 
   app.post('/api/projects/:id/voice/synthesize-local', async (req) => {

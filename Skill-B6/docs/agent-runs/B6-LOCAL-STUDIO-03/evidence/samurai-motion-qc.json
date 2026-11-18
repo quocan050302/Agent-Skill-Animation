@@ -1,0 +1,33 @@
+{
+  "schema": "b6-motion-qc/1",
+  "status": "pass",
+  "errors": [],
+  "warnings": [],
+  "thresholds": {
+    "max_stance_drift_world": 0.75,
+    "max_ground_penetration_world": 0.5,
+    "max_bone_length_rel_err": 0.035,
+    "min_locomotion_knee_bend_deg": 7.5,
+    "min_locomotion_knee_deviation_px": 2.5,
+    "max_unannotated_root_jump_world": 48.0,
+    "max_prop_contact_err_px": 0.75,
+    "max_knee_bend_deg": 136.0
+  },
+  "summary": {
+    "total_frames": 300,
+    "locomotion_frames": 59,
+    "supports_observed": [
+      "left",
+      "right"
+    ],
+    "max_stance_drift_world": 0.0,
+    "max_ground_penetration_world": 0.0,
+    "max_bone_length_rel_err": 0.0,
+    "max_knee_bend_deg": 131.66,
+    "max_locomotion_knee_deviation_px": 64.26,
+    "max_prop_contact_error_px": 0.0
+  },
+  "source_fingerprint": "9a44a85f629c5026d8af68291f678dd512e8ce0ea6e4747aaf45c61705e698d5",
+  "preview_video_sha256": "436a13bdaf1b68de381db376a4e6721ebfa5755fc542479dfdb7bfc463687289",
+  "pass": true
+}

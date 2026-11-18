@@ -1,0 +1,564 @@
+{
+  "ratio": "9:16",
+  "native_design": "9:16",
+  "width": 720,
+  "height": 1280,
+  "motionMode": "articulated_v1",
+  "directorBeats": [
+    {
+      "id": "db_1_hook",
+      "start": 0,
+      "end": 0.8,
+      "beatKind": "hook",
+      "cameraPreset": "reaction_closeup",
+      "purpose": "Snap viewer attention immediately as maple leaf whips past Ren",
+      "payoff": "Instant comedic glare"
+    },
+    {
+      "id": "db_2_anticipate",
+      "start": 0.8,
+      "end": 2.15,
+      "beatKind": "action",
+      "cameraPreset": "object_insert",
+      "purpose": "Coil knees + katana glint draw establishes stakes and weight",
+      "payoff": "Blade steel locked in grip"
+    },
+    {
+      "id": "db_3_dash",
+      "start": 2.15,
+      "end": 4.45,
+      "beatKind": "escalation",
+      "cameraPreset": "follow",
+      "purpose": "Track sustained bent-knee sprint across sunlit autumn courtyard",
+      "payoff": "Dynamic world-locked footsteps and stone lantern parallax"
+    },
+    {
+      "id": "db_4_slash",
+      "start": 4.45,
+      "end": 6.55,
+      "beatKind": "surprise",
+      "cameraPreset": "impact",
+      "purpose": "Hard lunge slash cuts empty air while slipstream saves leaf",
+      "payoff": "Ridiculous total whiff"
+    },
+    {
+      "id": "db_5_nose_tap",
+      "start": 6.55,
+      "end": 8.15,
+      "beatKind": "payoff",
+      "cameraPreset": "reaction_closeup",
+      "purpose": "Hold close on Ren as leaf settles delicately onto his nose",
+      "payoff": "Beat-timed tiny boop reaction"
+    },
+    {
+      "id": "db_6_settle",
+      "start": 8.15,
+      "end": 10,
+      "beatKind": "payoff",
+      "cameraPreset": "settle",
+      "purpose": "Widen slightly for deadpan defeat hold as leaf drifts toward lens",
+      "payoff": "Clean comedic punchline ending"
+    }
+  ],
+  "shots": [
+    {
+      "id": "shot_01_hook",
+      "start": 0,
+      "end": 0.8,
+      "actor": "ren",
+      "environment": "Autumn wooden shrine courtyard beneath amber maple trees",
+      "sceneGoal": "Hook: leaf whips across Ren's face snapping him into sudden duel challenge",
+      "composition": "Tight 9:16 medium framing keeping Ren upper torso centered beneath temple eaves; foreground maple stone lantern grazing lower-left margin",
+      "action": "Leaf zips left-to-right past Ren's face at 0.20s, startling Ren into wide-eyed shock reaction with sharp head snap",
+      "expression": "surprised",
+      "props": [
+        "red_maple_leaf",
+        "katana_saya"
+      ],
+      "staging": {
+        "ren": {
+          "x": 250,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Reaction punch-in as maple leaf darts past Ren nose",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 255,
+          "y": -230,
+          "z": 210,
+          "fov": 52
+        },
+        {
+          "t": 0.35,
+          "x": 265,
+          "y": -235,
+          "z": 240,
+          "fov": 50
+        },
+        {
+          "t": 0.8,
+          "x": 258,
+          "y": -225,
+          "z": 220,
+          "fov": 51
+        }
+      ],
+      "easing": "ease_out",
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "react",
+        "startX": 250,
+        "endX": 250,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 1.6,
+          "strideLen": 110,
+          "footLift": 20,
+          "targetSpeed": 0,
+          "pelvisDrop": 5,
+          "armSwingAmp": 0.25,
+          "anticipateS": 0.12,
+          "settleS": 0.16,
+          "facing": 1
+        },
+        "cameraPreset": "reaction_closeup",
+        "visualBeat": "hook"
+      },
+      "cameraPreset": "reaction_closeup",
+      "visualBeat": "hook",
+      "transition": "hard cut into low coil crouch",
+      "short_cut_reason": "Snappy 0.8s opening hook whip so leaf slap shock grabs viewer under 1 second",
+      "asset_inputs": [
+        "assets/production/samurai_courtyard_bg.png",
+        "assets/production/red_maple_leaf.png",
+        "assets/production/katana_saya.png",
+        "assets/production/samurai_fg_lantern.png"
+      ],
+      "sfx": "wind_gust_hyoshigi_clack"
+    },
+    {
+      "id": "shot_02_anticipate",
+      "start": 0.8,
+      "end": 2.15,
+      "actor": "ren",
+      "environment": "Autumn shrine courtyard gravel path",
+      "sceneGoal": "Anticipate: Ren bends knees low and draws katana blade cleanly from scabbard",
+      "composition": "9:16 object-insert medium-low framing spotlighting Ren crouched hakama silhouette and gleaming katana blade",
+      "action": "Ren shifts weight back into deep bent-knee crouch, grips saya with left hand and draws gleaming katana right toward floating maple leaf",
+      "expression": "focused",
+      "props": [
+        "katana_sword",
+        "katana_saya",
+        "red_maple_leaf"
+      ],
+      "staging": {
+        "ren": {
+          "x": 248,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Object-insert push toward katana guard glint before sprint launch",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 262,
+          "y": -215,
+          "z": 185,
+          "fov": 54
+        },
+        {
+          "t": 1.35,
+          "x": 275,
+          "y": -210,
+          "z": 210,
+          "fov": 52
+        }
+      ],
+      "easing": "smooth",
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "anticipate",
+        "startX": 250,
+        "endX": 242,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 1.8,
+          "strideLen": 115,
+          "footLift": 24,
+          "targetSpeed": 20,
+          "pelvisDrop": 14,
+          "armSwingAmp": 0.2,
+          "anticipateS": 0.22,
+          "settleS": 0.16,
+          "facing": 1
+        },
+        "cameraPreset": "object_insert",
+        "visualBeat": "action"
+      },
+      "cameraPreset": "object_insert",
+      "visualBeat": "action",
+      "transition": "explosive dash launch",
+      "asset_inputs": [
+        "assets/production/samurai_courtyard_bg.png",
+        "assets/production/katana_sword.png",
+        "assets/production/katana_saya.png",
+        "assets/production/red_maple_leaf.png",
+        "assets/production/samurai_fg_lantern.png"
+      ],
+      "sfx": "katana_draw_shing"
+    },
+    {
+      "id": "shot_03_dash",
+      "start": 2.15,
+      "end": 4.45,
+      "actor": "ren",
+      "environment": "Wide sunlit shrine courtyard with receding wooden hall and foreground lantern parallax",
+      "sceneGoal": "Dash: Ren sprints laterally across courtyard with world-locked tabi footsteps pursuing floating red leaf",
+      "composition": "Dynamic tracking 9:16 follow frame showing full articulated bent knees beneath hakama, sand dust puffs, and lantern foreground sweep",
+      "action": "Ren executes continuous articulated 2-bone dash strides from X=242 to X=640 holding katana ready while chasing bobbing red leaf",
+      "expression": "focused",
+      "props": [
+        "katana_sword",
+        "katana_saya",
+        "red_maple_leaf"
+      ],
+      "staging": {
+        "ren": {
+          "x": 440,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Smooth lateral tracking pan chasing Ren and floating leaf right across shrine steps",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 265,
+          "y": -210,
+          "z": 145,
+          "fov": 56
+        },
+        {
+          "t": 1.15,
+          "x": 460,
+          "y": -208,
+          "z": 135,
+          "fov": 56
+        },
+        {
+          "t": 2.3,
+          "x": 655,
+          "y": -212,
+          "z": 150,
+          "fov": 55
+        }
+      ],
+      "easing": "smooth",
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "dash",
+        "startX": 242,
+        "endX": 640,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.6,
+          "strideLen": 148,
+          "footLift": 46,
+          "targetSpeed": 220,
+          "pelvisDrop": 9,
+          "armSwingAmp": 0.4,
+          "anticipateS": 0.16,
+          "settleS": 0.18,
+          "stepCountOverride": 6,
+          "facing": 1
+        },
+        "cameraPreset": "follow",
+        "visualBeat": "escalation"
+      },
+      "cameraPreset": "follow",
+      "visualBeat": "escalation",
+      "transition": "skidding lunge brake into slash",
+      "asset_inputs": [
+        "assets/production/samurai_courtyard_bg.png",
+        "assets/production/katana_sword.png",
+        "assets/production/katana_saya.png",
+        "assets/production/red_maple_leaf.png",
+        "assets/production/samurai_fg_lantern.png"
+      ],
+      "sfx": "footstep_gravel_cycle"
+    },
+    {
+      "id": "shot_04_slash_miss",
+      "start": 4.45,
+      "end": 6.55,
+      "actor": "ren",
+      "environment": "Far right stone courtyard clearance",
+      "sceneGoal": "Climax & Reversal: Ren plants hard forward lunge, delivers full sword arc slash, and slices nothing as slipstream pushes leaf over his blade",
+      "composition": "Dynamic impact punch-in centering gleaming curved slash trail and soaring red maple leaf arcing untouched over Ren",
+      "action": "Ren brakes at X=675 into wide planted lunge, unleashes diagonal katana slash arc at 4.92s and over-rotates forward into baffled stare at empty air",
+      "expression": "surprised",
+      "props": [
+        "katana_sword",
+        "katana_saya",
+        "red_maple_leaf"
+      ],
+      "staging": {
+        "ren": {
+          "x": 675,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Impact push with micro impulse settle on full sword swing",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 660,
+          "y": -212,
+          "z": 160,
+          "fov": 55
+        },
+        {
+          "t": 0.65,
+          "x": 695,
+          "y": -215,
+          "z": 215,
+          "fov": 51
+        },
+        {
+          "t": 2.1,
+          "x": 685,
+          "y": -215,
+          "z": 195,
+          "fov": 52
+        }
+      ],
+      "easing": "ease_out",
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "stop",
+        "startX": 640,
+        "endX": 675,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.2,
+          "strideLen": 120,
+          "footLift": 28,
+          "targetSpeed": 50,
+          "pelvisDrop": 11,
+          "armSwingAmp": 0.3,
+          "anticipateS": 0.14,
+          "settleS": 0.25,
+          "facing": 1
+        },
+        "cameraPreset": "impact",
+        "visualBeat": "surprise"
+      },
+      "cameraPreset": "impact",
+      "visualBeat": "surprise",
+      "transition": "quiet comedic beat to closeup",
+      "asset_inputs": [
+        "assets/production/samurai_courtyard_bg.png",
+        "assets/production/katana_sword.png",
+        "assets/production/katana_saya.png",
+        "assets/production/red_maple_leaf.png"
+      ],
+      "sfx": "sword_slash_whoosh"
+    },
+    {
+      "id": "shot_05_leaf_nose",
+      "start": 6.55,
+      "end": 8.15,
+      "actor": "ren",
+      "environment": "Quiet courtyard corner after wind dies down",
+      "sceneGoal": "Reaction Twist: Leaf drifts delicately from overhead and lands squarely on Ren's nose bridge",
+      "composition": "Close-medium 9:16 reaction portrait framing Ren eyes and red leaf resting lightly center-face while katana lowers",
+      "action": "Ren freezes mid-blink watching the maple leaf spiral lazily downward until it gently boops onto his nose at 6.95s",
+      "expression": "surprised",
+      "props": [
+        "katana_sword",
+        "katana_saya",
+        "red_maple_leaf"
+      ],
+      "staging": {
+        "ren": {
+          "x": 675,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Hold tight closeup for leaf tap punchline",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 680,
+          "y": -235,
+          "z": 245,
+          "fov": 50
+        },
+        {
+          "t": 1.6,
+          "x": 680,
+          "y": -238,
+          "z": 255,
+          "fov": 50
+        }
+      ],
+      "easing": "smooth",
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "turn",
+        "startX": 675,
+        "endX": 675,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 1.4,
+          "strideLen": 100,
+          "footLift": 18,
+          "targetSpeed": 0,
+          "pelvisDrop": 4,
+          "armSwingAmp": 0.12,
+          "anticipateS": 0.14,
+          "settleS": 0.2,
+          "facing": 1
+        },
+        "cameraPreset": "reaction_closeup",
+        "visualBeat": "payoff"
+      },
+      "cameraPreset": "reaction_closeup",
+      "visualBeat": "payoff",
+      "transition": "beat cut into defeated deadpan",
+      "asset_inputs": [
+        "assets/production/samurai_courtyard_bg.png",
+        "assets/production/katana_sword.png",
+        "assets/production/katana_saya.png",
+        "assets/production/red_maple_leaf.png"
+      ],
+      "sfx": "leaf_nose_boop"
+    },
+    {
+      "id": "shot_06_deadpan",
+      "start": 8.15,
+      "end": 10,
+      "actor": "ren",
+      "environment": "Calm golden autumn shrine courtyard",
+      "sceneGoal": "Payoff: Ren accepts silent defeat in deadpan stillness while victorious red leaf glides past foreground",
+      "composition": "Clean 9:16 settle framing with Ren standing defeated lower-center, katana drooped, and maple leaf floating toward lens",
+      "action": "Ren switches to tired deadpan expression as a soft breeze lifts the victorious leaf off his nose and carries it toward camera right",
+      "expression": "deadpan",
+      "props": [
+        "katana_sword",
+        "katana_saya",
+        "red_maple_leaf"
+      ],
+      "staging": {
+        "ren": {
+          "x": 675,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Gentle pull-back settle holding comedic punchline cleanly to end",
+      "camera_keys": [
+        {
+          "t": 0,
+          "x": 680,
+          "y": -225,
+          "z": 210,
+          "fov": 53
+        },
+        {
+          "t": 1.85,
+          "x": 672,
+          "y": -215,
+          "z": 175,
+          "fov": 55
+        }
+      ],
+      "easing": "smooth",
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "recover",
+        "startX": 675,
+        "endX": 675,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 1.5,
+          "strideLen": 100,
+          "footLift": 16,
+          "targetSpeed": 0,
+          "pelvisDrop": 2,
+          "armSwingAmp": 0.1,
+          "anticipateS": 0.14,
+          "settleS": 0.25,
+          "facing": 1
+        },
+        "cameraPreset": "settle",
+        "visualBeat": "payoff"
+      },
+      "cameraPreset": "settle",
+      "visualBeat": "payoff",
+      "transition": "hold to black/end",
+      "asset_inputs": [
+        "assets/production/samurai_courtyard_bg.png",
+        "assets/production/katana_sword.png",
+        "assets/production/katana_saya.png",
+        "assets/production/red_maple_leaf.png"
+      ],
+      "sfx": "closing_autumn_breeze"
+    }
+  ],
+  "cast_inventory": [
+    {
+      "id": "ren",
+      "role": "Autumn Samurai Protagonist (B6 Articulated Puppet)",
+      "shot_ids": [
+        "shot_01_hook",
+        "shot_02_anticipate",
+        "shot_03_dash",
+        "shot_04_slash_miss",
+        "shot_05_leaf_nose",
+        "shot_06_deadpan"
+      ]
+    }
+  ],
+  "caption": {
+    "profile": "eiffel-v44-portrait-archivo-black-v1",
+    "native_design": "9:16",
+    "font_family": "Archivo Black",
+    "font_file": "fonts/ArchivoBlack.ttf",
+    "font_sha256": "dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180",
+    "font_size": 47,
+    "stroke": 4,
+    "fill": "#ffffff",
+    "stroke_fill": "#171319",
+    "supersampling": 3,
+    "resample": "lanczos",
+    "anchor": "ms",
+    "side": 44,
+    "switch": "hard_cut",
+    "autoshrink": false,
+    "pop": false,
+    "baseline": 914,
+    "band": [
+      864,
+      951
+    ]
+  }
+}

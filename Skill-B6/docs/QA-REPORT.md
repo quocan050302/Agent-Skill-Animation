@@ -155,3 +155,15 @@ Chạy sau lần chỉnh sửa code cuối cùng (cô lập Playwright tại `B6
   - **Technical Check**: **PASS** (`outputs/preview-01/report.json`, khớp fingerprint nguồn `262bfddf906609c2b52924ef3fc061a892db83558f2941ab1d50e3782311c02c`).
   - **Visual Motion Review (35 mục)**: **PENDING** (`Pass: 0/35 · Pending: 35 · Needs repair: 0` trong `outputs/review-01/motion-review.json`).
   - **User Approval & Render Gate**: **PENDING · EXPORT ĐANG KHÓA** (`NO_APPROVAL_RECORD`, nút `Xuất Video Full MP4` disabled và route `POST /render` trả `400`).
+
+---
+
+## 6. Cập nhật `B6-LOCAL-STUDIO-03` — Motion & Retention Engine, Atomic Rollback & Phim Samurai 10s (`samurai-red-leaf-10s`)
+
+Xem báo cáo đầy đủ của đợt chạy R3 tại [`docs/agent-runs/B6-LOCAL-STUDIO-03/README.md`](agent-runs/B6-LOCAL-STUDIO-03/README.md) và [`QA-REPORT.md`](agent-runs/B6-LOCAL-STUDIO-03/QA-REPORT.md):
+- **DAG Benchmark (`node scripts/verify-all.mjs --benchmark-workers --max-workers 2`)**: `ok: true`, **13/13 tasks PASS** (`workers=1`: `112,714 ms`, `workers=2`: `96,101 ms`, **`speedupRatio: 1.17x`**, `decodedPixelsParity: true`, `containerByteParity: true`).
+- **Python `motion_runtime` (`test_motion_core.py`)**: **8/8 OK** (`-W error::DeprecationWarning`).
+- **Server Vitest (`test/api.test.ts`)**: **16/16 PASS** (multi-file rollback fault-injection, `motion_qc.json` trap, live Samurai gait edit MAD `> 2.5`).
+- **Playwright Chromium E2E (`studio.spec.ts`)**: **3/3 PASS** (`29.4s`), bao gồm Studio Samurai + Motion Overlay + persistent duplicate edit + clean teardown.
+- **Upstream Read-Only Python Check** (`.venv\Scripts` + `ffmpeg-compat` on `PATH`): **109/109 tests OK** (`21.848s`), `vendor/` giữ sạch tại `833e277cab230f22e6d9c24b31a1baccaae0e22d`.
+- **Samurai 10s Preview (`samurai-red-leaf-10s`)**: `4,280,778 bytes` (`4.08 MiB`, SHA-256 `436a13bdaf1b68de381db376a4e6721ebfa5755fc542479dfdb7bfc463687289`), `motion_qc.json`: `status: "pass"` (`max_stance_drift_world: 0.0`, `max_ground_penetration_world: 0.0`, `max_knee_bend_deg: 131.66`), **Visual Review 35 mục**: **PENDING (`0/35`)**, **User Approval**: **PENDING (`EXPORT ĐANG KHÓA`)**.

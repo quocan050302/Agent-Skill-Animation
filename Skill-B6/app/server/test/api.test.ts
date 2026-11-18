@@ -6,8 +6,12 @@ import sharp from 'sharp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app.js';
 import { SKILL_DIR } from '../src/config.js';
-import { validateTimelineData } from '../src/services/script-timeline-service.js';
+import { EditorBindingService } from '../src/services/editor-binding-service.js';
+import { ProjectService } from '../src/services/project-service.js';
+import { QaEvidenceResolver } from '../src/services/qa-evidence-service.js';
+import { ScriptTimelineService, validateTimelineData } from '../src/services/script-timeline-service.js';
 import { assertSafeId, resolveInsideRoot } from '../src/utils/fs-safe.js';
+import crypto from 'node:crypto';
 
 let tmpDir: string;
 let appInstance: Awaited<ReturnType<typeof buildApp>>['app'];
@@ -814,6 +818,205 @@ describe('QA Truth Negative Traps, Concurrency Lock & Editor Binding Backtests',
     } finally {
       await diffApp.app.close();
       await fsp.rm(diffRoot, { recursive: true, force: true });
+    }
+  }, 60000);
+});
+
+describe('B6-03 Articulated Motion, Multi-File Rollback & Motion-QC Truth', () => {
+  it('reverts ALL target files atomically on mid-commit fault injection without incrementing revision', async () => {
+    const rbRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-rollback-test-'));
+    const projectsDir = path.join(rbRoot, 'projects');
+    const projDir = path.join(projectsDir, 'samurai-rb');
+    const srcSamurai = path.join(process.cwd(), '..', '..', 'workspace', 'projects', 'samurai-red-leaf-10s');
+    fs.mkdirSync(projectsDir, { recursive: true });
+    fs.cpSync(srcSamurai, projDir, {
+      recursive: true,
+      filter: (src) => !src.includes(`${path.sep}outputs`),
+    });
+
+    try {
+      const trackedFiles = [
+        'formats/portrait.json',
+        'scene-control.json',
+        'studio.meta.json',
+        'project.json',
+        'story.json',
+        'captions.json',
+      ];
+      const beforeHashes = Object.fromEntries(
+        trackedFiles.map((rel) => [
+          rel,
+          crypto.createHash('sha256').update(fs.readFileSync(path.join(projDir, rel))).digest('hex'),
+        ]),
+      );
+
+      const ps = new ProjectService(projectsDir);
+      const eb = new EditorBindingService();
+      const qa = new QaEvidenceResolver();
+      const faultyService = new ScriptTimelineService(ps, eb, qa, (relPath) => {
+        if (relPath === 'studio.meta.json') {
+          throw new Error('INJECTED_DISK_FAULT');
+        }
+      });
+
+      const cur = await ps.getProject('samurai-rb');
+      const prevRev = cur.meta.revision;
+      await expect(
+        faultyService.patchProject('samurai-rb', {
+          expectedRevision: prevRev,
+          title: 'Rolled Back Title',
+          narration: 'Should completely revert on disk.',
+          captions: [{ start: 0, end: 10, text: 'Should completely revert on disk.' }],
+        }),
+      ).rejects.toThrow(/INJECTED_DISK_FAULT/);
+
+      for (const rel of trackedFiles) {
+        const afterHash = crypto.createHash('sha256').update(fs.readFileSync(path.join(projDir, rel))).digest('hex');
+        expect(afterHash, `Rollback parity check failed on ${rel}`).toBe(beforeHashes[rel]);
+      }
+      const afterProj = await ps.getProject('samurai-rb');
+      expect(afterProj.meta.revision).toBe(prevRev);
+    } finally {
+      await fsp.rm(rbRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects stale/failing motion_qc.json honestly and locks renderUnlocked', async () => {
+    const mqRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-motion-qc-trap-'));
+    const mqProjects = path.join(mqRoot, 'projects');
+    const mqJobs = path.join(mqRoot, 'jobs');
+    const srcSamurai = path.join(process.cwd(), '..', '..', 'workspace', 'projects', 'samurai-red-leaf-10s');
+    const projDir = path.join(mqProjects, 'samurai-qc');
+    fs.mkdirSync(mqProjects, { recursive: true });
+    fs.mkdirSync(mqJobs, { recursive: true });
+    fs.cpSync(srcSamurai, projDir, {
+      recursive: true,
+      filter: (src) => !src.includes(`${path.sep}outputs`),
+    });
+
+    const mqApp = await buildApp({ projectsDir: mqProjects, jobsDir: mqJobs });
+    try {
+      const cap1 = await mqApp.app.inject({ method: 'GET', url: '/api/projects/samurai-qc/motion-capability?ratio=9:16' });
+      expect(cap1.statusCode).toBe(200);
+      expect(cap1.json().motionEngineMode).toBe('articulated_v1');
+      expect(cap1.json().motionQcVerified).toBe(false);
+      expect(cap1.json().motionQcStatus).toBe('pending');
+
+      // Inject FAIL motion_qc.json -> server MUST block export and mark fail
+      fs.mkdirSync(path.join(projDir, 'outputs', 'preview-01'), { recursive: true });
+      const bind1 = (await mqApp.app.inject({ method: 'GET', url: '/api/projects/samurai-qc/editor-binding?ratio=9:16' })).json();
+      const curFp = bind1.qa.currentSourceFingerprint;
+      fs.writeFileSync(
+        path.join(projDir, 'outputs', 'preview-01', 'motion_qc.json'),
+        JSON.stringify({ schema: 'b6-motion-qc/1', status: 'fail', pass: false, source_fingerprint: curFp, errors: ['Synthetic slip error'] }),
+      );
+      const qaFail = (await mqApp.app.inject({ method: 'GET', url: '/api/projects/samurai-qc/qa?ratio=9:16' })).json().qa;
+      expect(qaFail.motionQcStatus).toBe('fail');
+      expect(qaFail.reasonCodes).toContain('MOTION_QC_FAILED');
+      expect(qaFail.renderUnlocked).toBe(false);
+
+      // Inject STALE motion_qc.json with mismatched fingerprint -> MUST mark stale
+      fs.writeFileSync(
+        path.join(projDir, 'outputs', 'preview-01', 'motion_qc.json'),
+        JSON.stringify({ schema: 'b6-motion-qc/1', status: 'pass', pass: true, source_fingerprint: 'deadbeef_stale' }),
+      );
+      const qaStale = (await mqApp.app.inject({ method: 'GET', url: '/api/projects/samurai-qc/qa?ratio=9:16' })).json().qa;
+      expect(qaStale.motionQcStatus).toBe('stale');
+      expect(qaStale.reasonCodes).toContain('MOTION_QC_STALE');
+    } finally {
+      await mqApp.app.close();
+      await fsp.rm(mqRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('proves UI motion.preset & gait edits on Samurai flow into real draft pixel output', async () => {
+    const mdRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-motion-diff-'));
+    const mdProjects = path.join(mdRoot, 'projects');
+    const mdJobs = path.join(mdRoot, 'jobs');
+    const srcSamurai = path.join(process.cwd(), '..', '..', 'workspace', 'projects', 'samurai-red-leaf-10s');
+    const projDir = path.join(mdProjects, 'samurai-diff');
+    fs.mkdirSync(mdProjects, { recursive: true });
+    fs.mkdirSync(mdJobs, { recursive: true });
+    fs.cpSync(srcSamurai, projDir, {
+      recursive: true,
+      filter: (src) => !src.includes(`${path.sep}outputs`),
+    });
+
+    const mdApp = await buildApp({ projectsDir: mdProjects, jobsDir: mdJobs });
+    try {
+      const waitJob = async (jobId: string) => {
+        const deadline = Date.now() + 60000;
+        while (Date.now() < deadline) {
+          const r = await mdApp.app.inject({ method: 'GET', url: `/api/jobs/${jobId}` });
+          const j = r.json().job;
+          if (!['queued', 'running'].includes(j.status)) return j;
+          await new Promise((res) => setTimeout(res, 200));
+        }
+        throw new Error(`Timed out waiting for job ${jobId}`);
+      };
+
+      const d1 = await mdApp.app.inject({
+        method: 'POST',
+        url: '/api/projects/samurai-diff/draft',
+        payload: { ratio: '9:16', draftScale: 0.5, start: 2.8, seconds: 0.4, trustedCode: true },
+      });
+      expect(d1.statusCode).toBe(200);
+      const j1 = await waitJob(d1.json().job.id);
+      expect(j1.status).toBe('succeeded');
+
+      const { resolveRealFfmpeg } = await import('../src/config.js');
+      const { spawnSync } = await import('node:child_process');
+      const ffmpeg = resolveRealFfmpeg();
+      const png1 = path.join(mdRoot, 'before.png');
+      const png2 = path.join(mdRoot, 'after.png');
+      spawnSync(ffmpeg, ['-v', 'error', '-y', '-i', path.join(projDir, j1.videoPath as string), '-vf', 'select=eq(n\\,5)', '-vframes', '1', png1], { shell: false });
+
+      // Mutate Shot 3 articulated motion parameters (endX + footLift + cadence + cameraPreset)
+      const cur = (await mdApp.app.inject({ method: 'GET', url: '/api/projects/samurai-diff' })).json().project;
+      const nextShots = cur.formats['9:16'].shots.map((s: Record<string, unknown>, idx: number) => {
+        const keys = (s.camera_keys ?? s.cameraKeys) as Array<Record<string, number>>;
+        return {
+          ...s,
+          cameraKeys: keys,
+          ...(idx === 2
+            ? {
+                cameraPreset: 'impact',
+                motion: {
+                  ...(s.motion as Record<string, unknown>),
+                  endX: 500,
+                  cameraPreset: 'impact',
+                  gait: { ...((s.motion as Record<string, unknown>).gait as Record<string, unknown>), cadenceHz: 3.4, footLift: 64 },
+                },
+              }
+            : {}),
+        };
+      });
+
+      const patchRes = await mdApp.app.inject({
+        method: 'PATCH',
+        url: '/api/projects/samurai-diff',
+        payload: { expectedRevision: cur.meta.revision, shots: nextShots },
+      });
+      expect(patchRes.statusCode).toBe(200);
+
+      const d2 = await mdApp.app.inject({
+        method: 'POST',
+        url: '/api/projects/samurai-diff/draft',
+        payload: { ratio: '9:16', draftScale: 0.5, start: 2.8, seconds: 0.4, trustedCode: true },
+      });
+      expect(d2.statusCode).toBe(200);
+      const j2 = await waitJob(d2.json().job.id);
+      expect(j2.status).toBe('succeeded');
+      spawnSync(ffmpeg, ['-v', 'error', '-y', '-i', path.join(projDir, j2.videoPath as string), '-vf', 'select=eq(n\\,5)', '-vframes', '1', png2], { shell: false });
+
+      const buf1 = await sharp(png1).ensureAlpha().raw().toBuffer();
+      const buf2 = await sharp(png2).ensureAlpha().raw().toBuffer();
+      let diffSum = 0;
+      for (let i = 0; i < buf1.length; i++) diffSum += Math.abs(buf1[i] - buf2[i]);
+      expect(diffSum / buf1.length).toBeGreaterThan(2.5);
+    } finally {
+      await mdApp.app.close();
+      await fsp.rm(mdRoot, { recursive: true, force: true });
     }
   }, 60000);
 });

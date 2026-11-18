@@ -49,9 +49,15 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [fitScreen, setFitScreen] = useState(true);
+  const [showMotionOverlay, setShowMotionOverlay] = useState(false);
 
   const activeOutput = outputs.find((o) => o.id === selectedOutputId) ?? outputs.find((o) => o.videoUrl) ?? outputs[0] ?? null;
   const activeVideoUrl = activeOutput?.videoUrl ?? null;
+  const currentShot =
+    shots.find((s) => currentTime >= s.start && currentTime < s.end) ??
+    shots[selectedShotIndex] ??
+    shots[0] ??
+    null;
 
   useEffect(() => {
     setPlaying(false);
@@ -176,9 +182,49 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
               ))}
             </select>
           )}
+          <button
+            type="button"
+            className={`btn btn-sm ${showMotionOverlay ? 'btn-primary' : ''}`}
+            data-testid="toggle-motion-overlay"
+            onClick={() => setShowMotionOverlay((v) => !v)}
+          >
+            <span>{showMotionOverlay ? 'Ẩn Motion Overlay' : 'Motion Overlay'}</span>
+          </button>
         </div>
 
-        <div className="player-viewport">
+        <div className="player-viewport" style={{ position: 'relative' }}>
+          {showMotionOverlay && currentShot && (
+            <div
+              data-testid="motion-diagnostic-overlay"
+              style={{
+                position: 'absolute',
+                top: 8,
+                left: 8,
+                zIndex: 4,
+                background: 'rgba(15, 23, 42, 0.86)',
+                color: '#F8FAFC',
+                padding: '6px 10px',
+                borderRadius: 6,
+                fontSize: 11,
+                fontFamily: 'var(--font-mono)',
+                pointerEvents: 'none',
+                border: '1px solid rgba(148, 163, 184, 0.35)',
+              }}
+            >
+              <div>
+                <strong>{currentShot.id}</strong> · {currentShot.motion?.preset ?? 'legacy'} · cam:{' '}
+                {currentShot.cameraPreset ?? currentShot.motion?.cameraPreset ?? 'establish'} · beat:{' '}
+                {currentShot.visualBeat ?? currentShot.motion?.visualBeat ?? 'action'}
+              </div>
+              {currentShot.motion?.gait && (
+                <div>
+                  cadence {currentShot.motion.gait.cadenceHz}Hz · stride {currentShot.motion.gait.strideLen}px ·
+                  facing {currentShot.motion.gait.facing > 0 ? '+1' : '-1'} ·{' '}
+                  {editorBinding?.motionEngineMode ?? 'legacy_stance'}
+                </div>
+              )}
+            </div>
+          )}
           {activeVideoUrl ? (
             <video
               ref={videoRef}

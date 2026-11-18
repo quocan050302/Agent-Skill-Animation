@@ -1,0 +1,13 @@
+{
+  "schema": "b6-character-registry/1",
+  "actors": [
+    {
+      "id": "ren",
+      "package": "characters/ren",
+      "views": [
+        "three_quarter"
+      ]
+    }
+  ],
+  "rigid_cast": []
+}

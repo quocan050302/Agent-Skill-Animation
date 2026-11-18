@@ -4,7 +4,9 @@ import path from 'node:path';
 import type {
   CanonicalScenePlan,
   CaptionCue,
+  DirectorBeat,
   EditorSyncState,
+  MotionMode,
   Ratio,
   ShotEasing,
   ShotItem,
@@ -29,6 +31,8 @@ export interface EditorBindingStatus {
   lastRenderedRevision: number | null;
   voiceStale: boolean;
   canSynthesizeLocalVoice: boolean;
+  motionEngineMode: 'legacy_stance' | 'articulated_v1' | 'articulated_verified';
+  motionQcVerified: boolean;
   gaitHonestyNote: string;
   mappings: FieldRuntimeBindingRow[];
 }
@@ -75,6 +79,20 @@ export const FIELD_RUNTIME_MAPPINGS: Omit<FieldRuntimeBindingRow, 'liveBound'>[]
     pythonFunction: 'b6_production.load() (ffprobe + voice SHA check) + Local SAPI TTS',
     affectedRegion: 'Audio stream MP4 & narration alignment',
     verificationMethod: 'Đổi narration làm voiceStale=true (chặn technical PASS) cho tới khi tạo lại hoặc import WAV khớp',
+  },
+  {
+    uiField: 'Articulated Motion & Gait (preset, cadenceHz, strideLen, footLift, world X)',
+    jsonPath: 'scene-control.json -> shots[].motion.{preset, startX, endX, gait}',
+    pythonFunction: 'scene_runtime.motion_state_at(context, t) + b6_motion_core.sample_gait()',
+    affectedRegion: 'Chuyển động 2-bone bent-knee IK, foot world-lock, pelvis drop & counter-swing',
+    verificationMethod: 'Sửa motion.preset/strideLen/footLift -> draft/preview -> kiểm tra motion_evidence.json & decoded limb masks',
+  },
+  {
+    uiField: 'Camera & Visual Beats Director (cameraPreset, visualBeat, directorBeats)',
+    jsonPath: 'scene-control.json -> {shots[].cameraPreset, directorBeats[]}',
+    pythonFunction: 'scene_runtime.camera_director_at(context, t) + director_beat_at(context, t)',
+    affectedRegion: 'Khung hình có chủ đích theo nhịp kể chuyện (hook/action/escalation/payoff)',
+    verificationMethod: 'Đổi cameraPreset / visualBeat -> kiểm tra shot trace & contact sheet framing',
   },
 ];
 
@@ -356,16 +374,141 @@ def prop_state_at(context, prop_id: str, t: float) -> dict[str, Any] | None:
     }
 
 
+def motion_state_at(context, t: float, default_x: float = 0.0, default_y: float = 0.0) -> dict[str, Any]:
+    plan = load_scene_plan(context)
+    shot, u = shot_at(context, t)
+    default_mode = str(plan.get("motionMode") or "legacy_stance")
+    if not shot:
+        return {
+            "shot_id": "",
+            "mode": default_mode,
+            "preset": "idle",
+            "start_s": 0.0,
+            "end_s": 0.0,
+            "start_x": float(default_x),
+            "end_x": float(default_x),
+            "start_y": float(default_y),
+            "end_y": float(default_y),
+            "easing": "smooth",
+            "cadence_hz": 2.0,
+            "stride_len": 110.0,
+            "foot_lift": 28.0,
+            "target_speed": 0.0,
+            "pelvis_drop": 4.0,
+            "arm_swing_amp": 0.32,
+            "anticipate_s": 0.16,
+            "settle_s": 0.18,
+            "step_count_override": None,
+            "facing": 1,
+            "contacts": [],
+            "head_variant": None,
+            "visual_beat": None,
+            "camera_preset": "establish",
+            "u": 0.0,
+        }
+    m = shot.get("motion") or {}
+    g = m.get("gait") or {}
+    st = shot.get("actorStart") or {}
+    en = shot.get("actorEnd") or st
+    actor_name = str(shot.get("actor") or "")
+    staging_entry = (shot.get("staging") or {}).get(actor_name) or {}
+    sx = float(m.get("startX", st.get("x", staging_entry.get("x", default_x))))
+    ex = float(m.get("endX", en.get("x", sx)))
+    sy = float(m.get("startY", st.get("y", staging_entry.get("y", default_y))))
+    ey = float(m.get("endY", en.get("y", sy)))
+    facing = int(-1 if int(g.get("facing", 1 if ex >= sx else -1)) < 0 else 1)
+    head_var = m.get("headVariant") or shot.get("expression") or None
+    if head_var in ("", "neutral", "default"):
+        head_var = None
+    return {
+        "shot_id": str(shot.get("id") or ""),
+        "mode": str(m.get("mode") or shot.get("motionMode") or default_mode),
+        "preset": str(m.get("preset") or ("walk" if abs(ex - sx) > 8.0 and (en.get("strideCycles", 0) or st.get("strideCycles", 0)) else "idle")),
+        "start_s": float(shot.get("start", 0.0)),
+        "end_s": float(shot.get("end", 0.0)),
+        "start_x": sx,
+        "end_x": ex,
+        "start_y": sy,
+        "end_y": ey,
+        "easing": str(shot.get("easing") or "smooth"),
+        "cadence_hz": float(g.get("cadenceHz", 2.0)),
+        "stride_len": float(g.get("strideLen", 110.0)),
+        "foot_lift": float(g.get("footLift", 28.0)),
+        "target_speed": float(g.get("targetSpeed", 0.0)),
+        "pelvis_drop": float(g.get("pelvisDrop", 4.0)),
+        "arm_swing_amp": float(g.get("armSwingAmp", 0.32)),
+        "anticipate_s": float(g.get("anticipateS", 0.16)),
+        "settle_s": float(g.get("settleS", 0.18)),
+        "step_count_override": g.get("stepCountOverride"),
+        "facing": facing,
+        "contacts": list(m.get("contacts") or []),
+        "head_variant": head_var,
+        "visual_beat": m.get("visualBeat") or shot.get("visualBeat"),
+        "camera_preset": m.get("cameraPreset") or shot.get("cameraPreset") or "establish",
+        "u": u,
+    }
+
+
+def director_beat_at(context, t: float) -> dict[str, Any] | None:
+    plan = load_scene_plan(context)
+    beats = plan.get("directorBeats") or []
+    tc = max(0.0, float(t))
+    for b in beats:
+        b0 = float(b.get("start", 0.0))
+        b1 = float(b.get("end", 0.0))
+        if b0 <= tc < b1:
+            return dict(b)
+    return dict(beats[-1]) if beats else None
+
+
+def camera_director_at(context, t: float, base_cam=None, focus_world_xy: tuple[float, float] | None = None):
+    cam = camera_at(context, t, base_cam=base_cam)
+    ms = motion_state_at(context, t)
+    preset = str(ms.get("camera_preset") or "establish")
+    if focus_world_xy is None or preset == "establish":
+        return cam
+    Cam = context.space.Camera
+    fx, fy = float(focus_world_xy[0]), float(focus_world_xy[1])
+    focal = float(cam.focal)
+    cx, cy, cz = float(cam.x), float(cam.y), float(cam.z)
+    if preset == "follow":
+        cx = _lerp(cx, fx, 0.55)
+    elif preset == "reaction_closeup":
+        cx = _lerp(cx, fx, 0.72)
+        cy = _lerp(cy, fy - 245.0, 0.55)
+        focal = focal * 1.12
+    elif preset == "object_insert":
+        cx = _lerp(cx, fx, 0.78)
+        focal = focal * 1.18
+    elif preset == "impact":
+        cx = _lerp(cx, fx, 0.65)
+        focal = focal * 1.08
+    return Cam(
+        width=cam.width,
+        height=cam.height,
+        focal=float(focal),
+        x=float(cx),
+        y=float(cy),
+        z=float(cz),
+        principal_y=cam.principal_y,
+        near=getattr(cam, "near", 1.0),
+    )
+
+
 def qa_trace_at(context, t: float) -> dict[str, Any]:
     shot, u = shot_at(context, t)
     cam = camera_at(context, t)
     actor = actor_state_at(context, t)
+    ms = motion_state_at(context, t)
+    beat = director_beat_at(context, t)
     return {
         "t": round(float(t), 4),
         "shot_id": shot.get("id") if shot else None,
         "u": round(u, 4),
         "camera": {"x": round(cam.x, 2), "y": round(cam.y, 2), "z": round(cam.z, 2), "focal": round(cam.focal, 2)},
         "actor": {"x": round(actor["x"], 2), "y": round(actor["y"], 2), "head_angle_deg": round(actor["head_angle_deg"], 2), "expression": actor["expression"]},
+        "motion": {"mode": ms["mode"], "preset": ms["preset"], "camera_preset": ms["camera_preset"], "visual_beat": ms["visual_beat"]},
+        "director_beat": beat.get("beatKind") if beat else None,
     }
 `;
 
@@ -379,6 +522,8 @@ export class EditorBindingService {
     narration: string;
     voiceSha256: string | null;
     voiceTextSha256: string | null;
+    motionMode?: MotionMode;
+    directorBeats?: DirectorBeat[];
     shots: ShotItem[];
     captions: CaptionCue[];
   }): CanonicalScenePlan {
@@ -401,6 +546,8 @@ export class EditorBindingService {
       voice_sha256: params.voiceSha256,
       narration_sha256: narrationSha,
       voice_stale: voiceStale,
+      ...(params.motionMode ? { motionMode: params.motionMode } : {}),
+      ...(params.directorBeats?.length ? { directorBeats: params.directorBeats } : {}),
       shots: params.shots,
       captions: params.captions,
       updatedAt: new Date().toISOString(),
@@ -456,8 +603,22 @@ export class EditorBindingService {
       if (validExpr && sh.expression && !validExpr.has(sh.expression)) {
         errors.push(`Canonical plan: biểu cảm "${sh.expression}" chưa có trong sprites.heads của "${sh.actor}".`);
       }
-      if ((sh.actorStart?.strideCycles ?? 0) > 0 || (sh.actorEnd?.strideCycles ?? 0) > 0) {
+      const shotUsesArticulated = (sh.motion?.mode ?? sh.motionMode ?? plan.motionMode) === 'articulated_v1';
+      if (!shotUsesArticulated && ((sh.actorStart?.strideCycles ?? 0) > 0 || (sh.actorEnd?.strideCycles ?? 0) > 0)) {
         warnings.push(`Shot "${sh.id}": stride dùng stance-envelope ±25% (không thay thế full walk/run gait PASS).`);
+      }
+      if (sh.motion?.contacts) {
+        const seenContactIds = new Set<string>();
+        const span = sh.end - sh.start + 0.001;
+        for (const c of sh.motion.contacts) {
+          if (seenContactIds.has(c.id)) {
+            errors.push(`Canonical plan: trùng contact id "${c.id}" trong shot "${sh.id}".`);
+          }
+          seenContactIds.add(c.id);
+          if (c.t1 > span) {
+            errors.push(`Canonical plan: contact "${c.id}" (${c.t1}s) vượt quá thời lượng shot "${sh.id}".`);
+          }
+        }
       }
       for (const pk of sh.propKeyframes ?? []) {
         if (pk.t > sh.end - sh.start + 0.001) {
@@ -488,6 +649,7 @@ export class EditorBindingService {
       voiceStale: boolean;
       technicalStatus: string;
       editorSyncState: EditorSyncState;
+      motionQcStatus?: string;
     },
   ): Promise<EditorBindingStatus> {
     const hasRuntimeFile = fs.existsSync(path.join(projectDir, 'scene_runtime.py'));
@@ -495,9 +657,42 @@ export class EditorBindingService {
     const sceneImportsRuntime = detail.scenePy.includes('scene_runtime');
     const isBound = hasRuntimeFile && hasControlFile && sceneImportsRuntime;
 
+    let optsArticulated = detail.projectJson?.motion_mode === 'articulated_v1';
+    if (!optsArticulated && hasControlFile) {
+      try {
+        const ctrl = await readJsonFile<{ motionMode?: string; shots?: Array<{ motion?: { mode?: string }; motionMode?: string }> }>(
+          path.join(projectDir, 'scene-control.json'),
+        );
+        optsArticulated =
+          ctrl?.motionMode === 'articulated_v1' ||
+          Boolean(ctrl?.shots?.some((s) => (s.motion?.mode ?? s.motionMode) === 'articulated_v1'));
+      } catch {
+        optsArticulated = false;
+      }
+    }
+    const hasArticulatedFiles =
+      fs.existsSync(path.join(projectDir, 'b6_motion_core.py')) &&
+      fs.existsSync(path.join(projectDir, 'b6_motion_render.py')) &&
+      fs.existsSync(path.join(projectDir, 'b6_motion_qc.py'));
+    const qcPassed = qaState.motionQcStatus === 'pass' && qaState.technicalStatus === 'pass';
+    const motionEngineMode: EditorBindingStatus['motionEngineMode'] = !optsArticulated
+      ? 'legacy_stance'
+      : qcPassed && hasArticulatedFiles
+      ? 'articulated_verified'
+      : 'articulated_v1';
+
     const revision = Number(detail.meta.revision ?? 1);
     const lastRenderedRevision =
       typeof detail.meta.lastRenderedRevision === 'number' ? detail.meta.lastRenderedRevision : null;
+
+    const gaitHonestyNote =
+      motionEngineMode === 'legacy_stance'
+        ? 'Dự án legacy dùng stance-envelope ±25% (b6_puppet.py gốc) — chưa bật Articulated 2D Motion Engine.'
+        : motionEngineMode === 'articulated_verified'
+        ? 'Articulated 2D Motion Engine (2-bone bent-knee IK + world foot-lock + counter-swing) ĐÃ KIỂM CHỨNG theo preview & motion_qc.json hiện hành.'
+        : hasArticulatedFiles
+        ? 'Đã bật Articulated 2D Motion Engine (b6-studio-articulated/1); cần render preview + motion_qc.json khớp revision để xác nhận QA.'
+        : 'Dự án cấu hình articulated_v1 nhưng thiếu file b6_motion_*.py — hãy chạy scripts/hydrate-project.mjs.';
 
     return {
       mode: isBound ? 'bound_canonical' : 'authored_custom_scene',
@@ -506,8 +701,9 @@ export class EditorBindingService {
       lastRenderedRevision,
       voiceStale: qaState.voiceStale,
       canSynthesizeLocalVoice: process.platform === 'win32',
-      gaitHonestyNote:
-        'Chưa hỗ trợ full bent-knee walk/run gait tự động — b6_puppet.py ràng buộc ankle_targets trong ±25% leg length (stance stride).',
+      motionEngineMode,
+      motionQcVerified: motionEngineMode === 'articulated_verified',
+      gaitHonestyNote,
       mappings: FIELD_RUNTIME_MAPPINGS.map((m) => ({
         ...m,
         liveBound: isBound || m.uiField.includes('Phụ đề') || m.uiField.includes('Lời thoại'),

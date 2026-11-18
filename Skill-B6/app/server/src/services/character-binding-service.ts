@@ -128,6 +128,23 @@ export class CharacterBindingService {
         };
       }
 
+      let gaitStatus: CharacterSummary['gaitStatus'] = 'unsupported_needs_authoring';
+      let gaitNote =
+        'Chưa hỗ trợ — b6_puppet.py chỉ cấp chân đứng tĩnh + ankle_targets giới hạn; walk/run cần author gait riêng & kiểm tra drift.';
+      if (project.projectJson.motion_mode === 'articulated_v1') {
+        const qaState = this.qaResolver
+          ? await this.qaResolver.resolveQaState(dir, project.meta.activeRatio)
+          : null;
+        if (qaState?.summary.motionQcStatus === 'pass' && qaState.summary.technicalStatus === 'pass') {
+          gaitStatus = 'authored_verified';
+          gaitNote =
+            'Đã author & xác minh chuyển động articulated 2D (2-bone bent-knee IK + world foot-lock) qua motion_qc.json hiện hành.';
+        } else {
+          gaitNote =
+            'Đã cấu hình articulated_v1 (motion_runtime) — đang chờ preview + motion_qc.json khớp revision để xác nhận PASS.';
+        }
+      }
+
       actors.push({
         id: entry.id,
         characterId: String(rawPkg.character_id ?? entry.id),
@@ -135,8 +152,8 @@ export class CharacterBindingService {
         packageDir: pkgDirRel,
         bindingVersion: Number(rawPkg.binding_version ?? 1),
         registeredViews: entry.views,
-        gaitStatus: 'unsupported_needs_authoring',
-        gaitNote: 'Chưa hỗ trợ — b6_puppet.py chỉ cấp chân đứng tĩnh + ankle_targets giới hạn; walk/run cần author gait riêng & kiểm tra drift.',
+        gaitStatus,
+        gaitNote,
         views,
         rawPackage: rawPkg,
       });

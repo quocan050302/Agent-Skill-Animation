@@ -23,9 +23,10 @@ const getOpt = (f, fb) => {
 
 const scriptDir = path.dirname(path.resolve(process.argv[1]));
 const APP_ROOT = path.resolve(scriptDir, '..');
-const LOG_DIR = path.join(APP_ROOT, 'docs', 'agent-runs', 'B6-LOCAL-STUDIO-02');
+const LOG_DIR = path.join(APP_ROOT, 'docs', 'agent-runs', 'B6-LOCAL-STUDIO-03');
 fs.mkdirSync(LOG_DIR, { recursive: true });
 
+const TIER = String(getOpt('--tier', 'release')).toLowerCase();
 const MAX_WORKERS = Math.max(1, Math.min(4, Number(getOpt('--max-workers', '2')) || 2));
 const HEAVY_LIMIT = 1;
 const IS_WIN = process.platform === 'win32';
@@ -126,6 +127,13 @@ function buildTasks() {
       run: () => spawnAsync(process.execPath, [path.join(APP_ROOT, 'scripts', 'hydrate-project.mjs'), '--all', '--verify']),
     },
     {
+      id: 'python_motion_unit_tests',
+      deps: [],
+      heavy: false,
+      projectLock: null,
+      run: () => spawnAsync(VENV_PY, ['-B', '-W', 'error::DeprecationWarning', '-m', 'unittest', 'motion_runtime/tests/test_motion_core.py', '-v']),
+    },
+    {
       id: 'frontend_typecheck',
       deps: ['workspace_build'],
       heavy: false,
@@ -133,10 +141,25 @@ function buildTasks() {
       run: () => spawnAsync(NPM_CMD, ['--workspace=app/frontend', 'run', 'typecheck']),
     },
     {
+      id: 'samurai_preflight_validate',
+      deps: ['hydrate_verify_existing', 'python_motion_unit_tests'],
+      heavy: false,
+      projectLock: 'samurai-red-leaf-10s',
+      skip: TIER === 'fast',
+      run: async () => {
+        const proj = path.join(APP_ROOT, 'workspace', 'projects', 'samurai-red-leaf-10s');
+        const runPy = path.join(proj, 'run.py');
+        const p1 = await spawnAsync(VENV_PY, [runPy, 'preflight', proj, '--ratio', '9:16'], { cwd: proj });
+        if (p1.code !== 0) return p1;
+        return spawnAsync(VENV_PY, [runPy, 'validate', proj, '--ratio', '9:16'], { cwd: proj });
+      },
+    },
+    {
       id: 'server_vitest',
-      deps: ['workspace_build', 'upstream_doctor_checkpack'],
-      heavy: true, // Vitest includes real Cowboy UI-edit -> short render diff test
+      deps: ['workspace_build', 'upstream_doctor_checkpack', 'samurai_preflight_validate'],
+      heavy: true, // Vitest includes Cowboy + Samurai UI-edit -> short render diff tests
       projectLock: 'vitest-sandbox',
+      skip: TIER === 'fast',
       run: () => spawnAsync(NPM_CMD, ['--workspace=app/server', 'run', 'test']),
     },
     {
@@ -144,6 +167,7 @@ function buildTasks() {
       deps: ['hydrate_verify_existing'],
       heavy: false,
       projectLock: 'cowboy-hat-10s',
+      skip: TIER === 'fast',
       run: async () => {
         const proj = path.join(APP_ROOT, 'workspace', 'projects', 'cowboy-hat-10s');
         const runPy = path.join(proj, 'run.py');
@@ -153,10 +177,140 @@ function buildTasks() {
       },
     },
     {
+      id: 'samurai_motion_qc_determinism',
+      deps: ['samurai_preflight_validate'],
+      heavy: true,
+      projectLock: 'samurai-red-leaf-10s',
+      skip: TIER !== 'release',
+      run: async () => {
+        const t0 = Date.now();
+        const sandboxRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'b6-samurai-det-'));
+        try {
+          const srcSamurai = path.join(APP_ROOT, 'workspace', 'projects', 'samurai-red-leaf-10s');
+          const dstSamurai = path.join(sandboxRoot, 'samurai-red-leaf-10s');
+          fs.cpSync(srcSamurai, dstSamurai, {
+            recursive: true,
+            filter: (src) => !src.includes(`${path.sep}outputs`),
+          });
+          const runPy = path.join(dstSamurai, 'run.py');
+          const d1 = await spawnAsync(
+            VENV_PY,
+            [
+              runPy,
+              'draft',
+              dstSamurai,
+              '--ratio',
+              '9:16',
+              '--start',
+              '2.4',
+              '--seconds',
+              '1.0',
+              '--draft-scale',
+              '0.5',
+              '--trusted-code',
+              '--output',
+              'outputs/det-slice',
+              '--report',
+              'outputs/det-slice/report.json',
+            ],
+            { cwd: dstSamurai },
+          );
+          if (d1.code !== 0) return { ...d1, durationMs: Date.now() - t0 };
+          // Decode raw RGB pixels via FFmpeg + verify random-seek invariance [180, 0, 299, 90, 180]
+          const detPreview = path.join(dstSamurai, 'outputs', 'det-slice', 'preview.mp4');
+          const detDraft = path.join(dstSamurai, 'outputs', 'det-slice', 'draft.mp4');
+          const mp4Path = fs.existsSync(detPreview) ? detPreview : detDraft;
+          const rawRes = spawnSync(BASE_ENV.B6_REAL_FFMPEG, ['-v', 'error', '-i', mp4Path, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], {
+            encoding: null,
+            maxBuffer: 256 * 1024 * 1024,
+            shell: false,
+          });
+          if (rawRes.status !== 0) {
+            return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: `FFmpeg decode parity failed: ${rawRes.stderr?.toString()}` };
+          }
+          const decodedPixelsSha256 = crypto.createHash('sha256').update(rawRes.stdout).digest('hex');
+          const containerMp4Sha256 = crypto.createHash('sha256').update(fs.readFileSync(mp4Path)).digest('hex');
+
+          const pySeek = `
+import hashlib, json, sys
+from pathlib import Path
+from types import SimpleNamespace
+sys.path.insert(0, ${JSON.stringify(dstSamurai)})
+import b6_actions, b6_motion_qc as mqc, b6_puppet, b6_space, scene
+ch = b6_puppet.load_character(${JSON.stringify(path.join(dstSamurai, 'characters', 'ren'))})
+c = SimpleNamespace(base=Path(${JSON.stringify(dstSamurai)}), fingerprint='det', viewport=SimpleNamespace(size=(360,640), native_size=(720,1280)), space=b6_space, actions=b6_actions, puppet_runtime=b6_puppet, character_packages={'ren': ch})
+seq_180, ev_180 = scene._evaluate_frame(180/30.0, (720,1280), c)
+seq_0, ev_0 = scene._evaluate_frame(0.0, (720,1280), c)
+# Out-of-order random seek sweep
+res_map = {}
+for idx in [180, 0, 299, 90, 180]:
+  r, ev = scene._evaluate_frame(idx/30.0, (720,1280), c)
+  res_map.setdefault(idx, []).append((r.qa['beauty_sha256'], ev))
+assert len(res_map[180]) == 2 and res_map[180][0][0] == res_map[180][1][0] == seq_180.qa['beauty_sha256'], 'Frame 180 random-seek pixel mismatch'
+assert res_map[0][0][0] == seq_0.qa['beauty_sha256'], 'Frame 0 random-seek pixel mismatch'
+geom_sha = hashlib.sha256(json.dumps([res_map[k][0][1] for k in [0, 90, 180, 299]], sort_keys=True).encode()).hexdigest()
+print(json.dumps({'randomSeekPass': True, 'geometrySha256': geom_sha}))
+`;
+          const s1 = await spawnAsync(VENV_PY, ['-c', pySeek], { cwd: dstSamurai });
+          if (s1.code !== 0) return { ...s1, durationMs: Date.now() - t0 };
+          const parsed = JSON.parse(s1.stdout.trim().split(/\r?\n/).pop());
+          return {
+            code: 0,
+            durationMs: Date.now() - t0,
+            stdout: s1.stdout,
+            stderr: s1.stderr,
+            parityMeta: {
+              decodedPixelsSha256,
+              containerMp4Sha256,
+              geometrySha256: parsed.geometrySha256,
+              randomSeekPass: parsed.randomSeekPass,
+            },
+          };
+        } finally {
+          fs.rmSync(sandboxRoot, { recursive: true, force: true });
+        }
+      },
+    },
+    {
+      id: 'cowboy_regression_slice',
+      deps: ['cowboy_preflight_validate'],
+      heavy: true,
+      projectLock: 'cowboy-hat-10s',
+      skip: TIER !== 'release',
+      run: async () => {
+        const t0 = Date.now();
+        const sandboxRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'b6-cowboy-replay-'));
+        try {
+          const srcCowboy = path.join(APP_ROOT, 'workspace', 'projects', 'cowboy-hat-10s');
+          const dstCowboy = path.join(sandboxRoot, 'cowboy-hat-10s');
+          fs.cpSync(srcCowboy, dstCowboy, {
+            recursive: true,
+            filter: (src) => !src.includes(`${path.sep}outputs`),
+          });
+          const runPy = path.join(dstCowboy, 'run.py');
+          const s1 = await spawnAsync(
+            VENV_PY,
+            [runPy, 'draft', dstCowboy, '--ratio', '9:16', '--start', '2.65', '--seconds', '1.0', '--draft-scale', '0.5', '--trusted-code', '--output', 'outputs/slice-a', '--report', 'outputs/slice-a/report.json'],
+            { cwd: dstCowboy },
+          );
+          if (s1.code !== 0) return { ...s1, durationMs: Date.now() - t0 };
+          const s2 = await spawnAsync(
+            VENV_PY,
+            [runPy, 'draft', dstCowboy, '--ratio', '9:16', '--start', '5.1', '--seconds', '1.0', '--draft-scale', '0.5', '--trusted-code', '--output', 'outputs/slice-b', '--report', 'outputs/slice-b/report.json'],
+            { cwd: dstCowboy },
+          );
+          return { ...s2, durationMs: Date.now() - t0 };
+        } finally {
+          fs.rmSync(sandboxRoot, { recursive: true, force: true });
+        }
+      },
+    },
+    {
       id: 'roman_baseline_sandbox_replay',
       deps: ['hydrate_verify_existing'],
       heavy: true,
       projectLock: 'roman-gladiator-10s',
+      skip: TIER !== 'release',
       run: async () => {
         const t0 = Date.now();
         const sandboxRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'b6-roman-replay-'));
@@ -206,29 +360,55 @@ function buildTasks() {
       deps: ['upstream_doctor_checkpack'],
       heavy: false,
       projectLock: null,
+      skip: TIER === 'fast',
       run: async () => {
         const t0 = Date.now();
         const tmpCloneBase = fs.mkdtempSync(path.join(os.tmpdir(), 'b6-clean-clone-'));
         const repoTop = path.resolve(APP_ROOT, '..');
         const cloneDir = path.join(tmpCloneBase, 'repo');
         try {
-          // Create genuine clean clone using local committed objects + current working Skill-B6 snapshot test?
-          // Use local git clone of outer repo (or file:// URL) + verify Skill-B6/scripts/hydrate-project.mjs on clean workspace!
+          // Real git clone --local --no-hardlinks of committed outer repo
+          const gitattrsCommitted =
+            spawnSync('git', ['cat-file', '-e', 'HEAD:Skill-B6/.gitattributes'], { cwd: repoTop, shell: false }).status === 0;
+          const cloneArgs = gitattrsCommitted
+            ? ['clone', '--local', '--no-hardlinks', repoTop, cloneDir]
+            : ['clone', '--local', '--no-hardlinks', '-c', 'core.autocrlf=false', '-c', 'core.eol=lf', repoTop, cloneDir];
+          const gitRes = await spawnAsync('git', cloneArgs);
+          if (gitRes.code !== 0) {
+            return { ...gitRes, durationMs: Date.now() - t0 };
+          }
           const clonedB6 = path.join(cloneDir, 'Skill-B6');
-          fs.mkdirSync(clonedB6, { recursive: true });
-          // Copy committed-equivalent files ONLY (exclude vendor/, node_modules/, .venv/, dist/, outputs/, engine/, fonts/, reference/)
-          const skipDirs = new Set(['vendor', 'node_modules', '.venv', 'dist', 'outputs', 'renders', 'engine', 'fonts', 'reference', 'jobs', 'cache', 'temp']);
-          fs.cpSync(APP_ROOT, clonedB6, {
-            recursive: true,
-            filter: (src) => {
-              const parts = src.slice(APP_ROOT.length).split(path.sep).filter(Boolean);
-              return !parts.some((seg) => skipDirs.has(seg));
-            },
+          // Overlay only new/modified tracked source files if running pre-commit; zero overlay post-commit!
+          const stCheck = spawnSync('git', ['status', '--porcelain', 'Skill-B6/workspace/projects/samurai-red-leaf-10s', 'Skill-B6/motion_runtime', 'Skill-B6/scripts/hydrate-project.mjs'], {
+            cwd: repoTop,
+            encoding: 'utf8',
+            shell: false,
           });
-          // Confirm .gitignored engine/fonts/reference are indeed absent before hydration
+          const hasUncommitted = Boolean((stCheck.stdout || '').trim());
+          if (hasUncommitted) {
+            const syncDirs = ['motion_runtime', 'scripts', 'workspace/projects/samurai-red-leaf-10s'];
+            const skipSegs = new Set(['outputs', 'renders', 'engine', 'fonts', 'reference', 'cache', 'temp']);
+            for (const rel of syncDirs) {
+              const srcAbs = path.join(APP_ROOT, rel);
+              const dstAbs = path.join(clonedB6, rel);
+              if (fs.existsSync(srcAbs)) {
+                fs.cpSync(srcAbs, dstAbs, {
+                  recursive: true,
+                  filter: (src) => !src.slice(srcAbs.length).split(path.sep).filter(Boolean).some((seg) => skipSegs.has(seg)),
+                });
+              }
+            }
+          }
+          // Confirm .gitignored engine/fonts/reference are indeed absent before hydration!
           const cowboyClone = path.join(clonedB6, 'workspace', 'projects', 'cowboy-hat-10s');
-          if (fs.existsSync(path.join(cowboyClone, 'engine')) || fs.existsSync(path.join(cowboyClone, 'fonts'))) {
-            return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: 'Clean clone pre-check failed: engine or fonts unexpectedly present before hydration.' };
+          const samuraiClone = path.join(clonedB6, 'workspace', 'projects', 'samurai-red-leaf-10s');
+          if (
+            fs.existsSync(path.join(cowboyClone, 'engine')) ||
+            fs.existsSync(path.join(cowboyClone, 'fonts')) ||
+            fs.existsSync(path.join(samuraiClone, 'engine')) ||
+            fs.existsSync(path.join(samuraiClone, 'fonts'))
+          ) {
+            return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: 'Clean git clone pre-check failed: .gitignored engine/fonts unexpectedly present before hydration.' };
           }
           const vendorDir = path.join(APP_ROOT, 'vendor', 'stickman-video-director');
           const h1 = await spawnAsync(process.execPath, [
@@ -250,22 +430,28 @@ function buildTasks() {
             '--verify-only',
           ]);
           if (h2.code !== 0) return { ...h2, durationMs: Date.now() - t0 };
-          // Validate hydrated cowboy-hat-10s cleanly from clean clone
-          const runPy = path.join(cowboyClone, 'run.py');
-          const v1 = await spawnAsync(VENV_PY, [runPy, 'validate', cowboyClone, '--ratio', '9:16'], { cwd: cowboyClone });
-          return { ...v1, durationMs: Date.now() - t0 };
+          // Validate hydrated Cowboy AND preflight+validate hydrated Samurai cleanly from clean git clone!
+          const v1 = await spawnAsync(VENV_PY, [path.join(cowboyClone, 'run.py'), 'validate', cowboyClone, '--ratio', '9:16'], { cwd: cowboyClone });
+          if (v1.code !== 0) return { ...v1, durationMs: Date.now() - t0 };
+          const pSam = await spawnAsync(VENV_PY, [path.join(samuraiClone, 'run.py'), 'preflight', samuraiClone, '--ratio', '9:16'], { cwd: samuraiClone });
+          if (pSam.code !== 0) return { ...pSam, durationMs: Date.now() - t0 };
+          const vSam = await spawnAsync(VENV_PY, [path.join(samuraiClone, 'run.py'), 'validate', samuraiClone, '--ratio', '9:16'], { cwd: samuraiClone });
+          return {
+            ...vSam,
+            stdout: `${vSam.stdout}\ncleanCloneMode=${hasUncommitted ? 'git_clone_plus_working_tree' : 'pure_committed_git_clone'}`,
+            durationMs: Date.now() - t0,
+          };
         } finally {
-          void repoTop;
           fs.rmSync(tmpCloneBase, { recursive: true, force: true });
         }
       },
     },
     {
       id: 'playwright_e2e',
-      deps: ['workspace_build', 'cowboy_preflight_validate'],
+      deps: ['workspace_build', 'cowboy_preflight_validate', 'samurai_preflight_validate'],
       heavy: true,
       projectLock: 'playwright-studio',
-      skip: hasFlag('--skip-e2e'),
+      skip: hasFlag('--skip-e2e') || TIER !== 'release',
       run: () =>
         spawnAsync(NPM_CMD, ['--workspace=app/frontend', 'run', 'test:e2e'], {
           env: { B6_STUDIO_PORT: '4399' },
@@ -285,7 +471,12 @@ async function runDagPass(workerLimit, passLabel) {
   const wallStart = Date.now();
 
   const logEvent = (ev) => {
-    const line = { ts: new Date().toISOString(), pass: passLabel, ...ev };
+    const line = {
+      ts: new Date().toISOString(),
+      pass: passLabel,
+      rssMiB: Math.round(process.memoryUsage().rss / 1048576),
+      ...ev,
+    };
     events.push(line);
   };
 
@@ -332,6 +523,7 @@ async function runDagPass(workerLimit, passLabel) {
             durationMs: res.durationMs,
             stdoutTail: (res.stdout || '').trim().split(/\r?\n/).slice(-6),
             stderrTail: (res.stderr || '').trim().split(/\r?\n/).slice(-8),
+            ...(res.parityMeta ? { parityMeta: res.parityMeta } : {}),
           });
           logEvent({ event: 'finish', task: t.id, ok, code: res.code, durationMs: res.durationMs });
 
@@ -365,11 +557,29 @@ async function main() {
       const pt = par.tasks.find((x) => x.id === st.id);
       return pt && pt.status === st.status;
     });
+    const seqDet = seq.tasks.find((t) => t.id === 'samurai_motion_qc_determinism')?.parityMeta;
+    const parDet = par.tasks.find((t) => t.id === 'samurai_motion_qc_determinism')?.parityMeta;
+    const decodedPixelsParity = Boolean(
+      !seqDet ||
+        (parDet &&
+          seqDet.decodedPixelsSha256 === parDet.decodedPixelsSha256 &&
+          seqDet.geometrySha256 === parDet.geometrySha256),
+    );
+    const containerByteParity = Boolean(!seqDet || (parDet && seqDet.containerMp4Sha256 === parDet.containerMp4Sha256));
+    const parityClassification = !decodedPixelsParity
+      ? 'decoded_mismatch'
+      : containerByteParity
+      ? 'exact_decoded_and_container_match'
+      : 'container_nonbyte_identical_decoded_pixels_match';
     const allEvents = passes.flatMap((p) => p.events).map((e) => JSON.stringify(e)).join('\n') + '\n';
     fs.writeFileSync(jsonlPath, allEvents, 'utf8');
     const summary = {
-      ok: seq.ok && par.ok && parityOk,
-      parityOk,
+      ok: seq.ok && par.ok && parityOk && decodedPixelsParity,
+      tier: TIER,
+      parityOk: parityOk && decodedPixelsParity,
+      decodedPixelsParity,
+      containerByteParity,
+      parityClassification,
       speedupRatio: Number((seq.wallMs / Math.max(1, par.wallMs)).toFixed(2)),
       passes: passes.map(({ events: _ev, ...rest }) => rest),
       generatedAt: new Date().toISOString(),

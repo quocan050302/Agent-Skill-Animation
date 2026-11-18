@@ -1,0 +1,324 @@
+{
+  "schema": "b6-agent-run-manifest/1",
+  "runId": "B6-LOCAL-STUDIO-03",
+  "generatedAt": "2026-11-18T09:15:26.690Z",
+  "samuraiProject": {
+    "id": "samurai-red-leaf-10s",
+    "sourceFingerprint": "9a44a85f629c5026d8af68291f678dd512e8ce0ea6e4747aaf45c61705e698d5",
+    "technicalStatus": "pass",
+    "creativeStatus": "pending_actual_playback_and_source_review",
+    "userAcceptance": "not_inferred",
+    "deliveryReady": false,
+    "motionQcStatus": "pass",
+    "motionQcSummary": {
+      "total_frames": 300,
+      "locomotion_frames": 59,
+      "supports_observed": [
+        "left",
+        "right"
+      ],
+      "max_stance_drift_world": 0,
+      "max_ground_penetration_world": 0,
+      "max_bone_length_rel_err": 0,
+      "max_knee_bend_deg": 131.66,
+      "max_locomotion_knee_deviation_px": 64.26,
+      "max_prop_contact_error_px": 0
+    },
+    "previewVideoSha256": "436a13bdaf1b68de381db376a4e6721ebfa5755fc542479dfdb7bfc463687289",
+    "audioSha256": "ad0745a556b335ede71753da160b76baeb71147a381a02bfda60862a46596b42",
+    "ffprobe": {
+      "video": {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+        "profile": "High",
+        "codec_type": "video",
+        "codec_tag_string": "avc1",
+        "codec_tag": "0x31637661",
+        "mime_codec_string": "avc1.64001f",
+        "width": 720,
+        "height": 1280,
+        "coded_width": 720,
+        "coded_height": 1280,
+        "has_b_frames": 2,
+        "pix_fmt": "yuv420p",
+        "level": 31,
+        "chroma_location": "left",
+        "field_order": "progressive",
+        "is_avc": "true",
+        "nal_length_size": "4",
+        "id": "0x1",
+        "r_frame_rate": "30/1",
+        "avg_frame_rate": "30/1",
+        "time_base": "1/15360",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 153600,
+        "duration": "10.000000",
+        "bit_rate": "3246749",
+        "bits_per_raw_sample": "8",
+        "nb_frames": "300",
+        "extradata_size": 46,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "VideoHandler",
+          "encoder": "Lavc63.1.102 libx264"
+        }
+      },
+      "audio": {
+        "index": 1,
+        "codec_name": "aac",
+        "codec_long_name": "AAC (Advanced Audio Coding)",
+        "profile": "LC",
+        "codec_type": "audio",
+        "codec_tag_string": "mp4a",
+        "codec_tag": "0x6134706d",
+        "mime_codec_string": "mp4a.40.2",
+        "sample_fmt": "fltp",
+        "sample_rate": "44100",
+        "channels": 1,
+        "channel_layout": "mono",
+        "bits_per_sample": 0,
+        "initial_padding": 1024,
+        "id": "0x2",
+        "r_frame_rate": "0/0",
+        "avg_frame_rate": "0/0",
+        "time_base": "1/44100",
+        "start_pts": 0,
+        "start_time": "0.000000",
+        "duration_ts": 441000,
+        "duration": "10.000000",
+        "bit_rate": "167746",
+        "nb_frames": "432",
+        "extradata_size": 5,
+        "disposition": {
+          "default": 1,
+          "dub": 0,
+          "original": 0,
+          "comment": 0,
+          "lyrics": 0,
+          "karaoke": 0,
+          "forced": 0,
+          "hearing_impaired": 0,
+          "visual_impaired": 0,
+          "clean_effects": 0,
+          "attached_pic": 0,
+          "timed_thumbnails": 0,
+          "non_diegetic": 0,
+          "captions": 0,
+          "descriptions": 0,
+          "metadata": 0,
+          "dependent": 0,
+          "still_image": 0,
+          "multilayer": 0
+        },
+        "tags": {
+          "language": "und",
+          "handler_name": "SoundHandler"
+        }
+      },
+      "format": {
+        "filename": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\samurai-preview-10s.mp4",
+        "nb_streams": 2,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "format_long_name": "QuickTime / MOV",
+        "start_time": "0.000000",
+        "duration": "10.000000",
+        "size": "4280778",
+        "bit_rate": "3424622",
+        "probe_score": 100,
+        "tags": {
+          "major_brand": "isom",
+          "minor_version": "512",
+          "compatible_brands": "isomiso2avc1mp41",
+          "encoder": "Lavf63.1.102"
+        }
+      }
+    }
+  },
+  "artifacts": [
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\BENCHMARK.md",
+      "bytes": 3259,
+      "sha256": "a8cf6eb320d39a8a9ae8c17fc778fcbf6b96fb679211f155994022cae7e8695a"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\MOTION-RETENTION-REVIEW.md",
+      "bytes": 6611,
+      "sha256": "aea95cc282ccfdc0642b2a340b53f04983a3a51218ce362de8a549026dd4028f"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\QA-REPORT.md",
+      "bytes": 6257,
+      "sha256": "9686c290b6a4dd640a78ff00e4c81991c3f0093d7ccadc5897b544e59e0f4100"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\README.md",
+      "bytes": 5738,
+      "sha256": "5e21e6c437b24585bb023bfc3b86ecb8c9fe3a0ab61a45de1f3b439bec08280e"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\TEST-MATRIX.md",
+      "bytes": 5174,
+      "sha256": "8d0c60a702600d5fce0f1b8f27f413c881949c58cc12aaf90969b65b8360d9aa"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\evidence\\samurai-ffprobe.json",
+      "bytes": 4433,
+      "sha256": "704b0c401592453572f1f80642121ac16fd7ef81326548c3077782ca75961ef2"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\evidence\\samurai-motion-evidence.json",
+      "bytes": 777795,
+      "sha256": "82685321e9b798b96cace4ec97a8d166e40a1979f57b260f034b2073010a5077"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\evidence\\samurai-motion-qc.json",
+      "bytes": 1024,
+      "sha256": "ab4de1cbddb531c2a70e3a99984ea041972d719f28e9b11518c6e8184931df27"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\evidence\\samurai-trajectories.json",
+      "bytes": 34903,
+      "sha256": "122d96bfbef1b3045f15523acfacf9853e66b2758dd1fe8701af4a3fd686d8d8"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_00_15s.png",
+      "bytes": 982707,
+      "sha256": "a8a7c3905f7fa1fbdc3415f2f35f2ac6179cf9a167fc895abcaf590ce68822ab"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_00_50s.png",
+      "bytes": 1012563,
+      "sha256": "853c9656d38a28fb11a40aefb8451154f6f6e5ff8016f643d0c4b5825c912809"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_01_40s.png",
+      "bytes": 1014385,
+      "sha256": "4fc78758e063ad108d9406c1efd0d5da3f215c0e1aac30a3d4fd11baae924fe3"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_02_70s.png",
+      "bytes": 1007620,
+      "sha256": "6ca4e531d448836270e466842625f54498930a12fd2fe47dbefbd24831951e63"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_03_30s.png",
+      "bytes": 977514,
+      "sha256": "decd7c97905f1455ff2b7257cca2e6cba45f8d503d0719f5873abd4c5978305d"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_04_20s.png",
+      "bytes": 985821,
+      "sha256": "cc9243e6e015f53855e373d4c1391df8b9be79fbedbe515d854a4197566c3b72"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_04_95s.png",
+      "bytes": 942386,
+      "sha256": "8cb47d9f417fc482e1d1e2e9b305539030a695af25c7f110c38c0f058d402777"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_05_20s.png",
+      "bytes": 980584,
+      "sha256": "1dace02f2241736560195267f6962c11a4d83959536c12b9f77cf60fd32d00df"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_06_10s.png",
+      "bytes": 974923,
+      "sha256": "3130431588a32370875c68378e7a79d581d2eae112489e30ae38183c3aa2b75c"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_07_00s.png",
+      "bytes": 1003423,
+      "sha256": "23ff4586b8686c846bfbd0099d9f532d5aea4817b9859119e9292fa73e2499b0"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_08_40s.png",
+      "bytes": 932721,
+      "sha256": "d2c4f76d8622bf7c18640ac6cd80cb1050797369cd51f5b6e8c35f30e64f7502"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\frames\\samurai_09_70s.png",
+      "bytes": 940093,
+      "sha256": "c97750ed1fa052fbe8edf389ab4f7e6773c7af735940535a4511721d30c4db06"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\samurai-contact-sheet.jpg",
+      "bytes": 581201,
+      "sha256": "e780215cc390fda80a7f07de02787e4bce1c2b60ee71d76f7019eeddcbe31f45"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\samurai-preview-10s.mp4",
+      "bytes": 4280778,
+      "sha256": "436a13bdaf1b68de381db376a4e6721ebfa5755fc542479dfdb7bfc463687289"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\screenshots\\desktop-1440-projects.png",
+      "bytes": 124133,
+      "sha256": "8845e4c17861289befb1811bc59808434df9aa2da82005e6c3bd5b7ba685569a"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\screenshots\\desktop-1440-qa-cowboy.png",
+      "bytes": 123389,
+      "sha256": "bb1a82be73da1c66692d81b6bd3197afde740804166393753b6cbbfaab4746ad"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\screenshots\\desktop-1440-samurai-shot-motion.png",
+      "bytes": 337576,
+      "sha256": "f9866aff432ba1be0945631d453c62b1948b2a082236d0a035e3d0730d0c7635"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\screenshots\\desktop-1440-studio-cowboy.png",
+      "bytes": 346336,
+      "sha256": "0f77135c593c78ee8714ebde8e319c6e4750ea5fa3fd2cff3c67280ebb6344e9"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\screenshots\\desktop-1440-studio-samurai.png",
+      "bytes": 338018,
+      "sha256": "13bd6cf3abfb6c7e955c2b93e20801141bb5546f5ed5488dfaaaaf9fa3e6efae"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\screenshots\\mobile-375-projects.png",
+      "bytes": 76999,
+      "sha256": "ef7cfc1d9437b0f132a9679576ea09aef4205aa816a9bdde161431622d43e159"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\screenshots\\mobile-375-studio.png",
+      "bytes": 122975,
+      "sha256": "2942555ed51c4fd9ec70d240901ede831a6f508eaad1f4efc1b4c53a3a774015"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\verify-all-summary.json",
+      "bytes": 42873,
+      "sha256": "97cc7b51e31f7f2ce091c6da023087a72b9c7b90fd82cabf2a16bd7e1a633d18"
+    },
+    {
+      "path": "docs\\agent-runs\\B6-LOCAL-STUDIO-03\\verify-all.jsonl",
+      "bytes": 8112,
+      "sha256": "a3bfab5ff02b58f20626e3ef973d777fcebd97207013103a8be1101b39f5779d"
+    }
+  ]
+}

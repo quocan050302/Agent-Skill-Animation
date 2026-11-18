@@ -145,6 +145,8 @@ export interface ReviewStateDto {
   technicalStatus: QaTechnicalVerdict;
   visualReviewStatus: QaVisualVerdict;
   userApprovalStatus: QaApprovalVerdict;
+  motionQcStatus?: QaTechnicalVerdict;
+  motionQcSummary?: Record<string, unknown>;
   reasonCodes: string[];
   staleReasons: string[];
   blockingReasons: string[];
@@ -201,6 +203,8 @@ export interface EditorBindingStatusDto {
   lastRenderedRevision: number | null;
   voiceStale: boolean;
   canSynthesizeLocalVoice: boolean;
+  motionEngineMode?: 'legacy_stance' | 'articulated_v1' | 'articulated_verified';
+  motionQcVerified?: boolean;
   gaitHonestyNote: string;
   mappings: FieldRuntimeBindingRowDto[];
 }
@@ -362,6 +366,20 @@ export const api = {
     req<{ binding: EditorBindingStatusDto; qa: ReviewStateDto }>(
       `/api/projects/${encodeURIComponent(id)}/editor-binding?ratio=${encodeURIComponent(ratio)}`,
     ),
+  getMotionCapability: (id: string, ratio: Ratio) =>
+    req<{
+      projectId: string;
+      ratio: Ratio;
+      engineVersion: string;
+      motionSchema: string;
+      motionEngineMode: 'legacy_stance' | 'articulated_v1' | 'articulated_verified';
+      motionQcVerified: boolean;
+      motionQcStatus: QaTechnicalVerdict;
+      motionQcSummary: Record<string, unknown> | null;
+      supportedPresets: string[];
+      supportedCameraPresets: string[];
+      supportedVisualBeats: string[];
+    }>(`/api/projects/${encodeURIComponent(id)}/motion-capability?ratio=${encodeURIComponent(ratio)}`),
   synthesizeLocalVoice: (id: string, payload?: { voiceHint?: string; rate?: number; filename?: string }) =>
     req<{
       voice: { path: string; sha256: string; duration: number; voiceName: string; revision: number };

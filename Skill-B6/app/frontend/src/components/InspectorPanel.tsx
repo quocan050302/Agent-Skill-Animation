@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
 import { AlertTriangle, CheckCircle2, Code2, Copy, FolderOpen, Play, Plus, RefreshCw, ShieldAlert, Trash2, Undo2, Save } from 'lucide-react';
-import type { ActorPoseState, CaptionCue, JobRecord, PropKeyframe, Ratio, ShotEasing, ShotItem } from '@b6-studio/shared';
+import type {
+  ActorPoseState,
+  CameraPreset,
+  CaptionCue,
+  JobRecord,
+  MotionPreset,
+  PropKeyframe,
+  Ratio,
+  ShotEasing,
+  ShotItem,
+  ShotMotionSpec,
+  VisualBeatKind,
+} from '@b6-studio/shared';
 import type {
   CharacterActorDto,
   EditorBindingStatusDto,
@@ -609,6 +621,203 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                 </label>
 
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <span className="section-label" style={{ margin: 0 }}>Motion &amp; Gait Engine (Articulated 2D)</span>
+                    <span
+                      className={`badge ${
+                        editorBinding?.motionEngineMode === 'articulated_verified'
+                          ? 'badge-success'
+                          : editorBinding?.motionEngineMode === 'articulated_v1'
+                          ? 'badge-warning'
+                          : 'badge-neutral'
+                      }`}
+                      data-testid="motion-engine-badge"
+                    >
+                      {editorBinding?.motionEngineMode === 'articulated_verified'
+                        ? 'Articulated QA Verified'
+                        : editorBinding?.motionEngineMode === 'articulated_v1'
+                        ? 'Articulated Ready'
+                        : 'Legacy Stance'}
+                    </span>
+                  </div>
+                  {!selectedShot.motion ? (
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => {
+                        const sx = selectedShot.actorStart?.x ?? 180;
+                        const ex = selectedShot.actorEnd?.x ?? sx + 120;
+                        const nextMotion: ShotMotionSpec = {
+                          mode: 'articulated_v1',
+                          preset: 'walk',
+                          startX: sx,
+                          endX: ex,
+                          startY: 0,
+                          endY: 0,
+                          gait: {
+                            cadenceHz: 2.0,
+                            strideLen: 115,
+                            footLift: 32,
+                            targetSpeed: 120,
+                            pelvisDrop: 4,
+                            armSwingAmp: 0.34,
+                            anticipateS: 0.16,
+                            settleS: 0.18,
+                            facing: ex < sx ? -1 : 1,
+                          },
+                          cameraPreset: selectedShot.cameraPreset ?? 'follow',
+                          visualBeat: selectedShot.visualBeat ?? 'action',
+                        };
+                        onUpdateShot(selectedShotIndex, {
+                          ...selectedShot,
+                          motionMode: 'articulated_v1',
+                          motion: nextMotion,
+                        });
+                      }}
+                    >
+                      Bật Articulated Motion Controls
+                    </button>
+                  ) : (() => {
+                    const m = selectedShot.motion;
+                    const g = m.gait ?? {
+                      cadenceHz: 2.0,
+                      strideLen: 110,
+                      footLift: 28,
+                      targetSpeed: 0,
+                      pelvisDrop: 4,
+                      armSwingAmp: 0.32,
+                      anticipateS: 0.16,
+                      settleS: 0.18,
+                      facing: 1 as const,
+                    };
+                    const updateMotion = (patch: Partial<ShotMotionSpec>) =>
+                      onUpdateShot(selectedShotIndex, {
+                        ...selectedShot,
+                        motionMode: patch.mode ?? m.mode,
+                        motion: { ...m, ...patch },
+                      });
+                    const updateGait = (gPatch: Partial<NonNullable<ShotMotionSpec['gait']>>) =>
+                      updateMotion({ gait: { ...g, ...gPatch } });
+                    return (
+                      <div style={{ padding: 8, border: '1px solid var(--border)', borderRadius: 8, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, fontSize: 12 }}>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Motion Preset</span>
+                          <select
+                            className="select"
+                            data-testid="motion-preset-select"
+                            style={{ minHeight: 28, padding: '2px 4px' }}
+                            value={m.preset}
+                            onChange={(e) => updateMotion({ preset: e.target.value as MotionPreset })}
+                          >
+                            {(['idle', 'anticipate', 'walk', 'run', 'dash', 'stop', 'turn', 'react', 'recover', 'none'] as const).map((p) => (
+                              <option key={p} value={p}>{p}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Visual Beat</span>
+                          <select
+                            className="select"
+                            data-testid="visual-beat-select"
+                            style={{ minHeight: 28, padding: '2px 4px' }}
+                            value={selectedShot.visualBeat ?? m.visualBeat ?? 'action'}
+                            onChange={(e) => {
+                              const vb = e.target.value as VisualBeatKind;
+                              onUpdateShot(selectedShotIndex, {
+                                ...selectedShot,
+                                visualBeat: vb,
+                                motion: { ...m, visualBeat: vb },
+                              });
+                            }}
+                          >
+                            {(['hook', 'surprise', 'action', 'escalation', 'payoff'] as const).map((b) => (
+                              <option key={b} value={b}>{b}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>World Start X</span>
+                          <input
+                            type="number"
+                            step={15}
+                            className="input"
+                            data-testid="motion-start-x"
+                            style={{ minHeight: 28, padding: '2px 6px' }}
+                            value={m.startX}
+                            onChange={(e) => updateMotion({ startX: Number(e.target.value) })}
+                          />
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>World End X</span>
+                          <input
+                            type="number"
+                            step={15}
+                            className="input"
+                            data-testid="motion-end-x"
+                            style={{ minHeight: 28, padding: '2px 6px' }}
+                            value={m.endX}
+                            onChange={(e) => updateMotion({ endX: Number(e.target.value) })}
+                          />
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Cadence (Hz)</span>
+                          <input
+                            type="number"
+                            step={0.2}
+                            min={0.2}
+                            max={8}
+                            className="input"
+                            data-testid="motion-cadence"
+                            style={{ minHeight: 28, padding: '2px 6px' }}
+                            value={g.cadenceHz}
+                            onChange={(e) => updateGait({ cadenceHz: Number(e.target.value) })}
+                          />
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Stride (px)</span>
+                          <input
+                            type="number"
+                            step={10}
+                            min={20}
+                            max={400}
+                            className="input"
+                            data-testid="motion-stride"
+                            style={{ minHeight: 28, padding: '2px 6px' }}
+                            value={g.strideLen}
+                            onChange={(e) => updateGait({ strideLen: Number(e.target.value) })}
+                          />
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Foot Lift (px)</span>
+                          <input
+                            type="number"
+                            step={4}
+                            min={0}
+                            max={160}
+                            className="input"
+                            style={{ minHeight: 28, padding: '2px 6px' }}
+                            value={g.footLift}
+                            onChange={(e) => updateGait({ footLift: Number(e.target.value) })}
+                          />
+                        </label>
+                        <label className="field">
+                          <span className="field-label" style={{ fontSize: 11 }}>Hướng (Facing)</span>
+                          <select
+                            className="select"
+                            style={{ minHeight: 28, padding: '2px 4px' }}
+                            value={g.facing}
+                            onChange={(e) => updateGait({ facing: Number(e.target.value) < 0 ? -1 : 1 })}
+                          >
+                            <option value={1}>Phải (+1)</option>
+                            <option value={-1}>Trái (-1)</option>
+                          </select>
+                        </label>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span className="section-label" style={{ margin: 0 }}>Vị trí & Tư thế Actor (Start → End)</span>
                     {!selectedShot.actorStart && (
@@ -764,6 +973,30 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
               <div className="field-hint">Chọn một shot để chỉnh keyframes camera (x, y, z, fov).</div>
             ) : (
               <>
+                <label className="field">
+                  <span className="field-label">Camera Director Preset</span>
+                  <select
+                    className="select"
+                    data-testid="camera-preset-select"
+                    value={selectedShot.cameraPreset ?? selectedShot.motion?.cameraPreset ?? 'establish'}
+                    onChange={(e) => {
+                      const cp = e.target.value as CameraPreset;
+                      onUpdateShot(selectedShotIndex, {
+                        ...selectedShot,
+                        cameraPreset: cp,
+                        ...(selectedShot.motion ? { motion: { ...selectedShot.motion, cameraPreset: cp } } : {}),
+                      });
+                    }}
+                  >
+                    <option value="establish">establish (Toàn cảnh định vị)</option>
+                    <option value="follow">follow (Bám nhịp chuyển động)</option>
+                    <option value="reaction_closeup">reaction_closeup (Cận biểu cảm)</option>
+                    <option value="object_insert">object_insert (Cận đạo cụ / tay cầm)</option>
+                    <option value="impact">impact (Nhấn đỉnh cao / cú đánh)</option>
+                    <option value="settle">settle (Hạ nhịp kết shot)</option>
+                  </select>
+                </label>
+
                 <label className="field">
                   <span className="field-label">Ý đồ camera (Camera Intent)</span>
                   <input
@@ -1093,6 +1326,30 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                       : 'Chưa chạy'}
                   </span>
                 </div>
+                {reviewState.motionQcStatus && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    <span>Motion QC (Articulated):</span>
+                    <span
+                      className={`badge ${
+                        reviewState.motionQcStatus === 'pass'
+                          ? 'badge-success'
+                          : reviewState.motionQcStatus === 'fail'
+                          ? 'badge-danger'
+                          : reviewState.motionQcStatus === 'stale'
+                          ? 'badge-warning'
+                          : 'badge-neutral'
+                      }`}
+                    >
+                      {reviewState.motionQcStatus === 'pass'
+                        ? 'PASS Articulated QC'
+                        : reviewState.motionQcStatus === 'fail'
+                        ? 'FAIL Motion QC'
+                        : reviewState.motionQcStatus === 'stale'
+                        ? 'STALE (Cần QC lại)'
+                        : 'Chờ QC'}
+                    </span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span>Kiểm tra trực quan (35 mục):</span>
                   <span

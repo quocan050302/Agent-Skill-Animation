@@ -74,6 +74,91 @@ export const PropKeyframeSchema = z.object({
 });
 export type PropKeyframe = z.infer<typeof PropKeyframeSchema>;
 
+export const MotionModeSchema = z.enum(['legacy_stance', 'articulated_v1']);
+export type MotionMode = z.infer<typeof MotionModeSchema>;
+
+export const MotionPresetSchema = z.enum([
+  'none',
+  'idle',
+  'anticipate',
+  'walk',
+  'run',
+  'dash',
+  'stop',
+  'turn',
+  'react',
+  'recover',
+]);
+export type MotionPreset = z.infer<typeof MotionPresetSchema>;
+
+export const VisualBeatKindSchema = z.enum(['hook', 'surprise', 'action', 'escalation', 'payoff']);
+export type VisualBeatKind = z.infer<typeof VisualBeatKindSchema>;
+
+export const CameraPresetSchema = z.enum([
+  'establish',
+  'follow',
+  'reaction_closeup',
+  'object_insert',
+  'impact',
+  'settle',
+]);
+export type CameraPreset = z.infer<typeof CameraPresetSchema>;
+
+export const GaitParamsSchema = z.object({
+  cadenceHz: z.number().finite().positive().max(8).default(2.0),
+  strideLen: z.number().finite().positive().max(400).default(110),
+  footLift: z.number().finite().min(0).max(160).default(28),
+  targetSpeed: z.number().finite().min(0).max(1500).default(0),
+  pelvisDrop: z.number().finite().min(0).max(60).default(4),
+  armSwingAmp: z.number().finite().min(0).max(1.5).default(0.32),
+  anticipateS: z.number().finite().min(0).max(2).default(0.16),
+  settleS: z.number().finite().min(0).max(2).default(0.18),
+  stepCountOverride: z.number().int().min(2).max(40).optional(),
+  facing: z.union([z.literal(1), z.literal(-1)]).default(1),
+});
+export type GaitParams = z.infer<typeof GaitParamsSchema>;
+
+export const ContactEventSchema = z.object({
+  id: z.string().min(1).max(60),
+  t0: z.number().finite().min(0),
+  t1: z.number().finite().positive(),
+  side: z.enum(['left', 'right', 'both']).default('both'),
+  kind: z.enum(['foot_plant', 'prop_grab', 'prop_release', 'impact']).default('foot_plant'),
+  targetX: z.number().finite().default(0),
+  targetY: z.number().finite().default(0),
+}).refine((e) => e.t1 > e.t0, {
+  message: 'ContactEvent yêu cầu t1 > t0',
+});
+export type ContactEvent = z.infer<typeof ContactEventSchema>;
+
+export const ShotMotionSchema = z.object({
+  mode: MotionModeSchema.default('articulated_v1'),
+  preset: MotionPresetSchema.default('idle'),
+  startX: z.number().finite().default(0),
+  endX: z.number().finite().default(0),
+  startY: z.number().finite().default(0),
+  endY: z.number().finite().default(0),
+  gait: GaitParamsSchema.optional(),
+  contacts: z.array(ContactEventSchema).optional(),
+  cameraPreset: CameraPresetSchema.optional(),
+  visualBeat: VisualBeatKindSchema.optional(),
+  headVariant: z.string().optional(),
+});
+export type ShotMotionSpec = z.infer<typeof ShotMotionSchema>;
+
+export const DirectorBeatSchema = z.object({
+  id: z.string().min(1).max(60),
+  start: z.number().finite().min(0),
+  end: z.number().finite().positive(),
+  beatKind: VisualBeatKindSchema,
+  cameraPreset: CameraPresetSchema.default('establish'),
+  purpose: z.string().min(1),
+  payoff: z.string().optional(),
+}).refine((b) => b.end > b.start, {
+  message: 'DirectorBeat yêu cầu end > start',
+});
+export type DirectorBeat = z.infer<typeof DirectorBeatSchema>;
+
 export const ShotItemSchema = z.object({
   id: z.string().min(1).max(80).regex(/^[a-zA-Z0-9_-]+$/),
   start: z.number().finite().min(0),
@@ -94,6 +179,10 @@ export const ShotItemSchema = z.object({
   actorStart: ActorPoseStateSchema.optional(),
   actorEnd: ActorPoseStateSchema.optional(),
   propKeyframes: z.array(PropKeyframeSchema).optional(),
+  motionMode: MotionModeSchema.optional(),
+  motion: ShotMotionSchema.optional(),
+  cameraPreset: CameraPresetSchema.optional(),
+  visualBeat: VisualBeatKindSchema.optional(),
   transition: z.string().min(1),
   short_cut_reason: z.string().optional(),
   asset_inputs: z.array(z.string()).default([]),
@@ -148,6 +237,8 @@ export const PatchProjectInputSchema = z.object({
   stage: z.enum(['needs_authoring', 'authored']).optional(),
   activeRatio: RatioSchema.optional(),
   beats: z.array(StoryBeatSchema).optional(),
+  directorBeats: z.array(DirectorBeatSchema).optional(),
+  motionMode: MotionModeSchema.optional(),
   shots: z.array(ShotItemSchema).optional(),
   captions: z.array(CaptionCueSchema).optional(),
   castInventory: z.array(CastInventoryItemSchema).optional(),
@@ -279,6 +370,8 @@ export const CanonicalScenePlanSchema = z.object({
   voice_sha256: z.string().nullable(),
   narration_sha256: z.string(),
   voice_stale: z.boolean(),
+  motionMode: MotionModeSchema.optional(),
+  directorBeats: z.array(DirectorBeatSchema).optional(),
   shots: z.array(ShotItemSchema),
   captions: z.array(CaptionCueSchema),
   updatedAt: z.string(),
@@ -289,6 +382,8 @@ export const QaEvidenceSummarySchema = z.object({
   technicalStatus: QaTechnicalVerdictSchema,
   visualReviewStatus: QaVisualVerdictSchema,
   userApprovalStatus: QaApprovalVerdictSchema,
+  motionQcStatus: QaTechnicalVerdictSchema.optional(),
+  motionQcSummary: z.record(z.string(), z.unknown()).optional(),
   reasonCodes: z.array(z.string()),
   staleReasons: z.array(z.string()),
   blockingReasons: z.array(z.string()),

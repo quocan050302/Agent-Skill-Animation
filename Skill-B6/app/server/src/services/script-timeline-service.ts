@@ -57,6 +57,36 @@ export function validateTimelineData(
           prevT = k.t;
         }
       }
+      if (shot.motion) {
+        const m = shot.motion;
+        if (![m.startX, m.endX, m.startY, m.endY].every((v) => Number.isFinite(v))) {
+          errors.push(`Phân cảnh "${shot.id}": tọa độ motion startX/endX/startY/endY phải hữu hạn.`);
+        }
+        if (m.gait) {
+          if (!Number.isFinite(m.gait.cadenceHz) || m.gait.cadenceHz <= 0 || m.gait.cadenceHz > 8) {
+            errors.push(`Phân cảnh "${shot.id}": gait.cadenceHz phải nằm trong (0, 8].`);
+          }
+          if (!Number.isFinite(m.gait.strideLen) || m.gait.strideLen <= 0) {
+            errors.push(`Phân cảnh "${shot.id}": gait.strideLen phải > 0.`);
+          }
+          if (!Number.isFinite(m.gait.footLift) || m.gait.footLift < 0) {
+            errors.push(`Phân cảnh "${shot.id}": gait.footLift phải >= 0.`);
+          }
+        }
+        if (m.contacts) {
+          const seenContact = new Set<string>();
+          const span = shot.end - shot.start + 0.001;
+          for (const c of m.contacts) {
+            if (seenContact.has(c.id)) {
+              errors.push(`Phân cảnh "${shot.id}": trùng contact id "${c.id}".`);
+            }
+            seenContact.add(c.id);
+            if (!Number.isFinite(c.t0) || !Number.isFinite(c.t1) || c.t1 <= c.t0 || c.t1 > span) {
+              errors.push(`Phân cảnh "${shot.id}": khoảng contact "${c.id}" không hợp lệ trong thời lượng shot.`);
+            }
+          }
+        }
+      }
       cursor = shot.end;
     }
 
@@ -121,6 +151,10 @@ function normalizeShotsFromPlan(rawShots: Array<Record<string, unknown>>): ShotI
     actorStart: s.actorStart as ShotItem['actorStart'],
     actorEnd: s.actorEnd as ShotItem['actorEnd'],
     propKeyframes: Array.isArray(s.propKeyframes) ? (s.propKeyframes as ShotItem['propKeyframes']) : undefined,
+    motionMode: s.motionMode as ShotItem['motionMode'],
+    motion: s.motion as ShotItem['motion'],
+    cameraPreset: s.cameraPreset as ShotItem['cameraPreset'],
+    visualBeat: s.visualBeat as ShotItem['visualBeat'],
     transition: String(s.transition ?? 'cut'),
     short_cut_reason: typeof s.short_cut_reason === 'string' ? s.short_cut_reason : undefined,
     asset_inputs: Array.isArray(s.asset_inputs) ? s.asset_inputs.map(String) : [],
@@ -135,6 +169,7 @@ export class ScriptTimelineService {
     private readonly projectService: ProjectService,
     private readonly editorBindingService: EditorBindingService = new EditorBindingService(),
     private readonly qaResolver?: QaEvidenceResolver,
+    private readonly onBeforeCommitFile?: (relPath: string, writeIndex: number) => void | Promise<void>,
   ) {}
 
   private async withProjectLock<T>(projectId: string, fn: () => Promise<T>): Promise<T> {
@@ -253,6 +288,10 @@ export class ScriptTimelineService {
             ...(s.actorStart ? { actorStart: s.actorStart } : {}),
             ...(s.actorEnd ? { actorEnd: s.actorEnd } : {}),
             ...(s.propKeyframes?.length ? { propKeyframes: s.propKeyframes } : {}),
+            ...(s.motionMode ? { motionMode: s.motionMode } : {}),
+            ...(s.motion ? { motion: s.motion } : {}),
+            ...(s.cameraPreset ? { cameraPreset: s.cameraPreset } : {}),
+            ...(s.visualBeat ? { visualBeat: s.visualBeat } : {}),
             transition: s.transition,
             ...(s.short_cut_reason ? { short_cut_reason: s.short_cut_reason } : {}),
             ...(s.asset_inputs?.length ? { asset_inputs: s.asset_inputs } : {}),
@@ -288,7 +327,35 @@ export class ScriptTimelineService {
 
       const controlPath = path.join(dir, 'scene-control.json');
       const hasControlFile = fs.existsSync(controlPath);
-      const hasRichCanonical = updatedShots.some((s) => Boolean(s.actorStart || s.actorEnd || s.propKeyframes?.length || s.easing));
+      const existingControl = hasControlFile ? await readJsonFile<Record<string, unknown>>(controlPath) : null;
+      const effectiveMotionMode =
+        patch.motionMode ??
+        (projectJson.motion_mode as ShotItem['motionMode'] | undefined) ??
+        (existingControl?.motionMode as ShotItem['motionMode'] | undefined);
+      const effectiveDirectorBeats =
+        patch.directorBeats ??
+        (Array.isArray(existingControl?.directorBeats)
+          ? (existingControl.directorBeats as NonNullable<PatchProjectInput['directorBeats']>)
+          : undefined);
+      if (patch.motionMode !== undefined) {
+        projectJson.motion_mode = patch.motionMode;
+      }
+      if (patch.directorBeats !== undefined && planObj) {
+        planObj.directorBeats = patch.directorBeats;
+      }
+
+      const hasRichCanonical = updatedShots.some((s) =>
+        Boolean(
+          s.actorStart ||
+            s.actorEnd ||
+            s.propKeyframes?.length ||
+            s.easing ||
+            s.motion ||
+            s.motionMode === 'articulated_v1' ||
+            s.cameraPreset ||
+            s.visualBeat,
+        ),
+      );
       const voiceCfg = projectJson.voice as { sha256?: string } | undefined;
 
       const canonicalPlan = this.editorBindingService.buildCanonicalScenePlan({
@@ -300,6 +367,8 @@ export class ScriptTimelineService {
         narration: String(storyJson.narration ?? ''),
         voiceSha256: typeof voiceCfg?.sha256 === 'string' ? voiceCfg.sha256 : null,
         voiceTextSha256: typeof meta.voiceTextSha256 === 'string' ? meta.voiceTextSha256 : null,
+        ...(effectiveMotionMode ? { motionMode: effectiveMotionMode } : {}),
+        ...(effectiveDirectorBeats?.length ? { directorBeats: effectiveDirectorBeats } : {}),
         shots: updatedShots,
         captions: captionsJson,
       });
@@ -315,23 +384,82 @@ export class ScriptTimelineService {
         }
       }
 
-      // Atomic persistence AFTER all validations pass
+      // Multi-file transactional write journal: snapshot all targets before mutating disk, rollback ALL on failure
+      const stagedWrites: Array<{ relPath: string; absPath: string; content: string }> = [];
       if (planPath && planObj) {
-        await writeAtomicJson(planPath, planObj);
+        stagedWrites.push({
+          relPath: formatRel ?? 'formats/plan.json',
+          absPath: planPath,
+          content: `${JSON.stringify(planObj, null, 2)}\n`,
+        });
       }
       if (hasControlFile || hasRichCanonical) {
-        await writeAtomicJson(controlPath, canonicalPlan);
+        stagedWrites.push({
+          relPath: 'scene-control.json',
+          absPath: controlPath,
+          content: `${JSON.stringify(canonicalPlan, null, 2)}\n`,
+        });
         const curInputs = Array.isArray(projectJson.inputs) ? [...(projectJson.inputs as string[])] : [];
         if (!curInputs.includes('scene-control.json')) {
           curInputs.push('scene-control.json');
           projectJson.inputs = curInputs;
         }
       }
+      const storyAbs = resolveInsideRoot(dir, String(projectJson.story ?? 'story.json'));
+      const captionsAbs = resolveInsideRoot(dir, String(projectJson.captions ?? 'captions.json'));
+      stagedWrites.push(
+        {
+          relPath: 'studio.meta.json',
+          absPath: path.join(dir, 'studio.meta.json'),
+          content: `${JSON.stringify(meta, null, 2)}\n`,
+        },
+        {
+          relPath: 'project.json',
+          absPath: path.join(dir, 'project.json'),
+          content: `${JSON.stringify(projectJson, null, 2)}\n`,
+        },
+        {
+          relPath: String(projectJson.story ?? 'story.json'),
+          absPath: storyAbs,
+          content: `${JSON.stringify(storyJson, null, 2)}\n`,
+        },
+        {
+          relPath: String(projectJson.captions ?? 'captions.json'),
+          absPath: captionsAbs,
+          content: `${JSON.stringify(captionsJson, null, 2)}\n`,
+        },
+      );
 
-      await writeAtomicJson(path.join(dir, 'studio.meta.json'), meta);
-      await writeAtomicJson(path.join(dir, 'project.json'), projectJson);
-      await writeAtomicJson(resolveInsideRoot(dir, String(projectJson.story ?? 'story.json')), storyJson);
-      await writeAtomicJson(resolveInsideRoot(dir, String(projectJson.captions ?? 'captions.json')), captionsJson);
+      const snapshots = stagedWrites.map((w) => ({
+        absPath: w.absPath,
+        existed: fs.existsSync(w.absPath),
+        prevBuffer: fs.existsSync(w.absPath) ? fs.readFileSync(w.absPath) : null,
+      }));
+      const committedCount: number[] = [];
+      try {
+        for (let i = 0; i < stagedWrites.length; i++) {
+          const entry = stagedWrites[i];
+          if (this.onBeforeCommitFile) {
+            await this.onBeforeCommitFile(entry.relPath, i);
+          }
+          await writeAtomicFile(entry.absPath, entry.content);
+          committedCount.push(i);
+        }
+      } catch (writeErr) {
+        for (let idx = committedCount.length - 1; idx >= 0; idx--) {
+          const snap = snapshots[committedCount[idx]];
+          try {
+            if (snap.existed && snap.prevBuffer !== null) {
+              await fs.promises.writeFile(snap.absPath, snap.prevBuffer);
+            } else if (!snap.existed && fs.existsSync(snap.absPath)) {
+              await fs.promises.unlink(snap.absPath);
+            }
+          } catch {
+            // Preserve original commit error while attempting complete rollback
+          }
+        }
+        throw writeErr;
+      }
 
       this.qaResolver?.invalidateProject(dir);
       const detail = await this.projectService.getProject(projectId);
