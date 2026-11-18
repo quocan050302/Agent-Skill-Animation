@@ -10,8 +10,6 @@
   ],
   "scripts": {
     "dev": "node scripts/dev-runner.mjs",
-    "dev:server": "npm --workspace=app/server run dev",
-    "dev:frontend": "npm --workspace=app/frontend run dev",
     "build": "npm --workspace=app/shared run build && npm --workspace=app/server run build && npm --workspace=app/frontend run build",
     "test": "npm --workspace=app/server run test && npm --workspace=app/frontend run test",
     "test:e2e": "npm --workspace=app/frontend run test:e2e"

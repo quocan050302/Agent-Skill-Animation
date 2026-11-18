@@ -33,10 +33,16 @@
 ./scripts/setup.sh
 ```
 
-### Khởi động ứng dụng (Localhost)
+### Khởi động ứng dụng (1 lệnh cho cả FE + BE)
+```powershell
+# Chạy đồng thời Backend (:4310) + Frontend (:5176) với log [BE] / [FE]
+cd D:\Project_github\Agent-Skill\Skill-B6
+npm run dev
+```
+Hoặc dùng script PowerShell / Shell (tự hỗ trợ `-Open` mở trình duyệt / `-Prod` chạy bản build một cổng):
 ```powershell
 # Windows PowerShell (Dev mode: Vite :5176 + Fastify API :4310)
-.\scripts\dev.ps1
+.\scripts\dev.ps1 -Open
 
 # Hoặc chạy bản build production tại một cổng duy nhất http://127.0.0.1:4310
 .\scripts\dev.ps1 -Prod -Open
