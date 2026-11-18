@@ -1,0 +1,45 @@
+{
+  "schema": "b6-asset-manifest/1",
+  "assets": [
+    {
+      "id": "bg_dawn_plaza_tram",
+      "role": "background",
+      "classification": "PRODUCTION ASSET",
+      "path": "assets/production/bg_dawn_plaza_tram.png",
+      "sha256": "8406d145173d2ffe31fa7b7502b1317b3ea1b6b94759627d36a97f57b00dbfb2",
+      "source": "anti_image_gen",
+      "tool": "Antigravity image-generator",
+      "createdAt": "2026-11-18T15:50:00Z"
+    },
+    {
+      "id": "prop_tram_pole",
+      "role": "prop",
+      "classification": "PRODUCTION ASSET",
+      "path": "assets/production/prop_tram_pole.png",
+      "sha256": "3abdd4a5ba048257a44aed3b3b8ea00cd206d66e1b99e0e95bf69f083233388c",
+      "source": "anti_image_gen",
+      "tool": "Antigravity image-generator",
+      "createdAt": "2026-11-18T15:50:00Z"
+    },
+    {
+      "id": "prop_orange_rail",
+      "role": "prop",
+      "classification": "PRODUCTION ASSET",
+      "path": "assets/production/prop_orange_rail.png",
+      "sha256": "88c6265aab328b2f3a464ac97fd98e3c5ab7790a3f9dbbc1c0c20c3e0da65405",
+      "source": "anti_image_gen",
+      "tool": "Antigravity image-generator",
+      "createdAt": "2026-11-18T15:50:00Z"
+    },
+    {
+      "id": "prop_pip_head_shock",
+      "role": "prop",
+      "classification": "PRODUCTION ASSET",
+      "path": "assets/production/prop_pip_head_shock.png",
+      "sha256": "73ab60f5c24d12e807007441e1f9b8ae5556c576ec6a7329d137741df453cee1",
+      "source": "anti_image_gen",
+      "tool": "Antigravity image-generator",
+      "createdAt": "2026-11-18T15:50:00Z"
+    }
+  ]
+}

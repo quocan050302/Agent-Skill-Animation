@@ -56,12 +56,16 @@ def main(argv: list[str] | None = None) -> int:
             for sh in shot_spans:
                 action_markers.append({"id": sh.get("id", "shot"), "t": float(sh.get("start", 0.0)) + 0.25, "label": sh.get("sfx", "action"), "active": True})
 
+    out_dir = Path(args.out_dir)
     scene_evidence = None
     if args.evidence and Path(args.evidence).is_file():
         ev_doc = json.loads(Path(args.evidence).read_text(encoding="utf-8"))
         scene_evidence = ev_doc.get("frames") if isinstance(ev_doc, dict) else ev_doc
+    else:
+        sem_jsonl = out_dir / "semantic-evidence.jsonl"
+        if sem_jsonl.is_file():
+            scene_evidence = [json.loads(line) for line in sem_jsonl.read_text(encoding="utf-8").splitlines() if line.strip()]
 
-    out_dir = Path(args.out_dir)
     report, qc = run_editorial_qc_for_video(
         args.video,
         out_dir,

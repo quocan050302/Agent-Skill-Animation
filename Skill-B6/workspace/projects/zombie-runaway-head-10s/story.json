@@ -1,0 +1,74 @@
+{
+  "schema": "b6-story/1",
+  "title": "The Zombie Who Lost His Head",
+  "premise": "A dawn sneeze blows zombie Pip's head loose onto a wet plaza; after a frantic puddle chase past a shocked commuter and safety rail, he slaps it back on backwards and walks straight into a tram pole.",
+  "hook": "At dawn on the tram plaza, one massive sneeze pops Pip's own head clean off his shoulders!",
+  "status": "authored",
+  "narration": "One sneeze blew Pip's head off! It bounced across the dawn curb. Pip dashed while commuters stared! It ducked past the orange rail! Pip slipped, then scooped his head back up. He stuck it on backwards \u2014 straight into a pole!",
+  "beats": [
+    {
+      "id": "b1",
+      "start": 0.0,
+      "end": 1.05,
+      "action": "Pip winds up and sneezes his own head clear off his shoulders",
+      "cause": "Morning chill + huge sneeze",
+      "payoff": "Popped head rockets forward"
+    },
+    {
+      "id": "b2",
+      "start": 1.05,
+      "end": 2.2,
+      "action": "Detached head bounces twice across the cobblestone curb and rolls away",
+      "cause": "Round head + slick dawn stone",
+      "payoff": "Runaway head momentum"
+    },
+    {
+      "id": "b3",
+      "start": 2.2,
+      "end": 3.8,
+      "action": "Headless Pip sprints past commuter Maya whose eyes pop in disbelief",
+      "cause": "Chasing bouncing head",
+      "payoff": "Comedic commuter reaction"
+    },
+    {
+      "id": "b4",
+      "start": 3.8,
+      "end": 5.3,
+      "action": "Pip hurdles over an orange safety rail while Maya ducks behind a shelter post",
+      "cause": "Obstacle in chase lane",
+      "payoff": "Close escape without stopping"
+    },
+    {
+      "id": "b5",
+      "start": 5.3,
+      "end": 6.35,
+      "action": "Pip skids on a puddle and stumbles forward just short of the head",
+      "cause": "Wet cobblestones",
+      "payoff": "Near-miss tension"
+    },
+    {
+      "id": "b6",
+      "start": 6.35,
+      "end": 7.45,
+      "action": "Pip reaches out both hands and scoops up his runaway head",
+      "cause": "Head slows by pole",
+      "payoff": "Relief catch"
+    },
+    {
+      "id": "b7",
+      "start": 7.45,
+      "end": 8.55,
+      "action": "Pip slaps his head back onto his poncho collar completely backwards",
+      "cause": "Blind headless reassembly",
+      "payoff": "Facing the wrong way!"
+    },
+    {
+      "id": "b8",
+      "start": 8.55,
+      "end": 10.0,
+      "action": "Confident Pip marches straight into the tall tram stop pole as Maya gasps",
+      "cause": "Backwards eyes can't see forward",
+      "payoff": "Clang payoff bonk"
+    }
+  ]
+}

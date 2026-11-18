@@ -1,0 +1,86 @@
+[
+  {
+    "id": "c1",
+    "start": 0.05,
+    "end": 0.55,
+    "text": "One sneeze"
+  },
+  {
+    "id": "c2",
+    "start": 0.55,
+    "end": 1.15,
+    "text": "blew Pip's head off!"
+  },
+  {
+    "id": "c3",
+    "start": 1.2,
+    "end": 1.65,
+    "text": "It bounced across"
+  },
+  {
+    "id": "c4",
+    "start": 1.65,
+    "end": 2.1,
+    "text": "the dawn curb."
+  },
+  {
+    "id": "c5",
+    "start": 2.25,
+    "end": 2.85,
+    "text": "Pip dashed while"
+  },
+  {
+    "id": "c6",
+    "start": 2.85,
+    "end": 3.45,
+    "text": "commuters stared!"
+  },
+  {
+    "id": "c7",
+    "start": 3.45,
+    "end": 3.9,
+    "text": "It ducked past"
+  },
+  {
+    "id": "c8",
+    "start": 3.9,
+    "end": 4.4,
+    "text": "the orange rail!"
+  },
+  {
+    "id": "c9",
+    "start": 4.75,
+    "end": 5.65,
+    "text": "Pip slipped, then"
+  },
+  {
+    "id": "c10",
+    "start": 5.65,
+    "end": 6.45,
+    "text": "scooped his head"
+  },
+  {
+    "id": "c11",
+    "start": 6.45,
+    "end": 7.15,
+    "text": "back up."
+  },
+  {
+    "id": "c12",
+    "start": 7.75,
+    "end": 8.45,
+    "text": "He stuck it on"
+  },
+  {
+    "id": "c13",
+    "start": 8.45,
+    "end": 9.05,
+    "text": "backwards —"
+  },
+  {
+    "id": "c14",
+    "start": 9.05,
+    "end": 9.9,
+    "text": "straight into a pole!"
+  }
+]

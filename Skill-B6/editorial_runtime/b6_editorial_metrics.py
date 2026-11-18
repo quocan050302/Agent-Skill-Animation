@@ -352,6 +352,7 @@ def compute_frame_activity(
             "frame": f_idx,
             "t": round(t, 4),
             "second": int(math.floor(max(0.0, (f_idx - 1) / fps_val))),
+            "quarter_second": int(math.floor(max(0.0, (f_idx - 1) / fps_val) * 4.0)),
             "rgb_mad": round(rgb_mad, 4),
             "y_mad": round(y_mad, 4),
             "p95_motion": round(p95_motion, 4),
@@ -466,6 +467,23 @@ def compute_frame_activity(
             }
         )
 
+    per_quarter_second: list[dict[str, Any]] = []
+    total_quarters = max(1, int(math.ceil(duration_s * 4.0 - 1e-6)))
+    for q in range(total_quarters):
+        q_rows = [r for r in frame_rows if r["quarter_second"] == q]
+        q_noncut = [r for r in q_rows if not r["is_cut"]]
+        q_cuts = [r for r in q_rows if r["is_cut"]]
+        per_quarter_second.append(
+            {
+                "quarter_index": q,
+                "start_s": round(q * 0.25, 3),
+                "end_s": round(min(duration_s, (q + 1) * 0.25), 3),
+                "cuts_in_window": len(q_cuts),
+                "raw": _agg(q_rows),
+                "cut_excluded": _agg(q_noncut if q_noncut else q_rows),
+            }
+        )
+
     per_shot: list[dict[str, Any]] = []
     if shot_spans:
         for sh in shot_spans:
@@ -495,6 +513,7 @@ def compute_frame_activity(
         "overall_raw": _agg(frame_rows),
         "overall_cut_excluded": _agg(non_cut_rows if non_cut_rows else frame_rows),
         "per_second": per_second,
+        "per_quarter_second": per_quarter_second,
         "per_shot": per_shot,
         "frames": frame_rows,
     }
@@ -861,6 +880,83 @@ def analyze_audio_pacing(
     }
 
 
+def _summarize_actor_prop_mask_motion(scene_evidence: Sequence[Mapping[str, Any]] | None) -> dict[str, Any]:
+    """Compute true actor-only & prop-only displacement velocity separately from ambient image residual."""
+    if not scene_evidence or len(scene_evidence) < 2:
+        return {
+            "source": "unavailable",
+            "actor_mask_motion_mean": None,
+            "prop_mask_motion_mean": None,
+            "meaningful_action_coverage": None,
+        }
+
+    # Case A: b6-semantic-frame/1 records with `actors` & `props` dictionaries
+    if any(isinstance(r.get("actors"), dict) for r in scene_evidence):
+        actor_steps: list[float] = []
+        prop_steps: list[float] = []
+        active_flags: list[bool] = []
+        prev_actors: dict[str, tuple[float, float]] = {}
+        prev_props: dict[str, tuple[float, float]] = {}
+        for r in scene_evidence:
+            step_a: list[float] = []
+            step_p: list[float] = []
+            cur_actors: dict[str, tuple[float, float]] = {}
+            for aid, ainfo in (r.get("actors") or {}).items():
+                c = ainfo.get("centroid_xy")
+                if c and len(c) >= 2:
+                    pt = (float(c[0]), float(c[1]))
+                    cur_actors[str(aid)] = pt
+                    if str(aid) in prev_actors:
+                        d = math.hypot(pt[0] - prev_actors[str(aid)][0], pt[1] - prev_actors[str(aid)][1])
+                        step_a.append(d)
+                        actor_steps.append(d)
+            prev_actors = cur_actors
+
+            cur_props: dict[str, tuple[float, float]] = {}
+            for pid, pinfo in (r.get("props") or {}).items():
+                c = pinfo.get("centroid_xy")
+                if c and len(c) >= 2:
+                    pt = (float(c[0]), float(c[1]))
+                    cur_props[str(pid)] = pt
+                    if str(pid) in prev_props:
+                        d = math.hypot(pt[0] - prev_props[str(pid)][0], pt[1] - prev_props[str(pid)][1])
+                        step_p.append(d)
+                        prop_steps.append(d)
+            prev_props = cur_props
+            if step_a or step_p:
+                active_flags.append(max(step_a + step_p) >= 0.45)
+
+        return {
+            "source": "semantic_masks",
+            "actor_mask_motion_mean": round(float(np.mean(actor_steps)), 4) if actor_steps else 0.0,
+            "prop_mask_motion_mean": round(float(np.mean(prop_steps)), 4) if prop_steps else 0.0,
+            "meaningful_action_coverage": round(sum(1 for x in active_flags if x) / max(1, len(active_flags)), 4),
+        }
+
+    # Case B: b6-motion-frame/1 records (`root_x`, `root_y`)
+    if any("root_x" in r for r in scene_evidence):
+        root_steps: list[float] = []
+        for i in range(1, len(scene_evidence)):
+            r0, r1 = scene_evidence[i - 1], scene_evidence[i]
+            if r1.get("is_cut"):
+                continue
+            d = math.hypot(float(r1.get("root_x", 0.0)) - float(r0.get("root_x", 0.0)), float(r1.get("root_y", 0.0)) - float(r0.get("root_y", 0.0)))
+            root_steps.append(d)
+        return {
+            "source": "motion_root_fallback",
+            "actor_mask_motion_mean": round(float(np.mean(root_steps)), 4) if root_steps else 0.0,
+            "prop_mask_motion_mean": None,
+            "meaningful_action_coverage": round(sum(1 for d in root_steps if d >= 0.45) / max(1, len(root_steps)), 4),
+        }
+
+    return {
+        "source": "unavailable",
+        "actor_mask_motion_mean": None,
+        "prop_mask_motion_mean": None,
+        "meaningful_action_coverage": None,
+    }
+
+
 def analyze_video_editorial_metrics(
     video_path: str | Path,
     *,
@@ -944,6 +1040,15 @@ def analyze_video_editorial_metrics(
 
     # Strip per-frame array from exported report (keep bounded compact summary!)
     compact_activity = {k: v for k, v in activity.items() if k != "frames"}
+    mask_motion = _summarize_actor_prop_mask_motion(scene_evidence)
+    q_buckets = compact_activity.get("per_quarter_second") or []
+    active_q = sum(
+        1
+        for qb in q_buckets
+        if float((qb.get("cut_excluded") or {}).get("foreground_relative_motion_mean", 0.0)) >= 0.30
+        or float((qb.get("cut_excluded") or {}).get("y_mad_mean", 0.0)) >= 1.10
+    )
+    fallback_cov = round(active_q / max(1, len(q_buckets)), 4) if q_buckets else 0.0
     warnings = list(dict.fromkeys([*variety["warnings"], *[l["reason"] for l in lulls["lulls"]], *gaming["flags"], *audio["warnings"]]))
 
     report = {
@@ -973,6 +1078,15 @@ def analyze_video_editorial_metrics(
             "flow_mag_mean": activity["overall_cut_excluded"]["flow_mag_mean"],
             "camera_global_motion_mean": activity["overall_cut_excluded"]["camera_global_motion_mean"],
             "foreground_relative_motion_mean": activity["overall_cut_excluded"]["foreground_relative_motion_mean"],
+            "image_residual_foreground_motion_mean": activity["overall_cut_excluded"]["foreground_relative_motion_mean"],
+            "actor_mask_motion_mean": mask_motion["actor_mask_motion_mean"],
+            "prop_mask_motion_mean": mask_motion["prop_mask_motion_mean"],
+            "actor_prop_motion_source": mask_motion["source"],
+            "meaningful_action_coverage": (
+                mask_motion["meaningful_action_coverage"]
+                if mask_motion["meaningful_action_coverage"] is not None
+                else fallback_cov
+            ),
             "flow_coherence_mean": activity["overall_cut_excluded"]["flow_coherence_mean"],
             "pct_near_static": activity["overall_cut_excluded"]["pct_near_static"],
             "unique_compositions": variety["unique_compositions"],
@@ -982,6 +1096,7 @@ def analyze_video_editorial_metrics(
             "high_pixel_low_semantics": gaming["high_pixel_low_semantics"],
         },
         "per_second": compact_activity["per_second"],
+        "per_quarter_second": compact_activity["per_quarter_second"],
         "per_shot": compact_activity["per_shot"],
         "shot_variety": variety,
         "semantic_lulls": lulls,

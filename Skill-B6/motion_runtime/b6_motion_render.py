@@ -344,11 +344,13 @@ def render_articulated_scene(
     foreground_occlusion_mask: np.ndarray | None = None,
     frame_index: int = 0,
     runtime: Any = None,
+    capture_semantic_masks: bool = False,
 ) -> Any:
     """B6-compliant compositor replacing static straight-line legs with 2-bone bent-knee legs.
 
     Preserves all upstream arm, cuff, neck-attachment, prop-contact, foreground-matte,
-    visibility-minima, and SHA-256 evidence audits so `run.py` validates authentically.
+    visibility-minima, and SHA-256 evidence audits so `run.py` validates authentically,
+    while supporting opt-in per-actor `head_mount_state` (`attached|detaching|detached|reattaching`).
     """
     w, h = map(int, size)
     if w <= 0 or h <= 0:
@@ -595,17 +597,37 @@ def render_articulated_scene(
         for side, spec in v.arms.items():
             if spec.layer == "back":
                 draw_arm(side)
-        sprite(v.body, m)
+        body_key = f"{a.actor_id}:body" if capture_semantic_masks else None
+        sprite(v.body, m, body_key)
         for side, spec in v.arms.items():
             if spec.layer == "front":
                 draw_arm(side)
 
-        body_warped = _warp(v.body.image, m @ v.body.image_to_local, (w, h))
-        head_asset = v.head if a.head_variant is None else v.heads[a.head_variant]
-        head_warped = _warp(head_asset.image, runtime._head_placement(a) @ head_asset.image_to_local, (w, h))
-        composite(head_warped)
-        if v.neck_attachment is not None:
-            neck_rows.append(runtime._neck_screen_evidence(a, (w, h), body_warped, head_warped))
+        head_mount_state = str(item.get("head_mount_state") or "attached")
+        if head_mount_state not in ("attached", "detaching", "detached", "reattaching"):
+            raise ValueError(f"{a.actor_id}: invalid head_mount_state '{head_mount_state}'")
+
+        if head_mount_state == "attached":
+            body_warped = _warp(v.body.image, m @ v.body.image_to_local, (w, h))
+            head_asset = v.head if a.head_variant is None else v.heads[a.head_variant]
+            head_warped = _warp(head_asset.image, runtime._head_placement(a) @ head_asset.image_to_local, (w, h))
+            head_key = f"{a.actor_id}:head" if capture_semantic_masks else None
+            composite(head_warped, head_key)
+            if v.neck_attachment is not None:
+                nrow = runtime._neck_screen_evidence(a, (w, h), body_warped, head_warped)
+                nrow["head_mount_state"] = head_mount_state
+                nrow["expected_detached"] = False
+                neck_rows.append(nrow)
+        elif v.neck_attachment is not None:
+            neck_rows.append(
+                {
+                    "actor_id": a.actor_id,
+                    "head_mount_state": head_mount_state,
+                    "expected_detached": True,
+                    "mount_center_in_frame": _inside_canvas((w, h), _point(m, v.head_anchor)),
+                    "actual_main_alpha_connected": False,
+                }
+            )
 
     # 4. Props + contiguous foreground arm part lifting
     prop_masks: dict[str, np.ndarray] = {}
@@ -663,6 +685,13 @@ def render_articulated_scene(
         else:
             colored(mask, color, f"{key}:hand")
 
+    # Capture pre-foreground actor/prop visible masks when semantic telemetry requested
+    pre_fg8 = (
+        {k: np.uint8(np.clip(a, 0.0, 1.0) * 255.0) for k, a in visible.items()}
+        if capture_semantic_masks
+        else None
+    )
+
     # 5. Foreground parallax with strict occlusion matte check
     if foreground is not None:
         fg = _rgba(foreground, (w, h))
@@ -684,6 +713,8 @@ def render_articulated_scene(
     pixel_rows: list[dict[str, Any]] = []
 
     for row in neck_rows:
+        if row.get("expected_detached", False):
+            continue
         if row["mount_center_in_frame"] and not row["actual_main_alpha_connected"]:
             errors.append(f"{row['actor_id']}: actual rendered head/body alpha disconnected at neck mount")
 
@@ -789,6 +820,7 @@ def render_articulated_scene(
         id_codes[key] = code
         id_image[mask > 32] = code
 
+    actor_mount_states = {str(item["pose"].actor_id): str(item.get("head_mount_state") or "attached") for item in actors_specs}
     qa = {
         "schema": "b6-puppet-render/1",
         "motion_schema": "b6-studio-articulated/1",
@@ -803,6 +835,7 @@ def render_articulated_scene(
                 "art_hashes": dict(a.character.art_hashes),
                 "head_variant": a.head_variant,
                 "head_angle_deg": a.head_angle_deg,
+                "head_mount_state": actor_mount_states.get(a.actor_id, "attached"),
                 "head_anchor": a.view.head_anchor.tolist(),
             }
             for a in actors
@@ -829,5 +862,10 @@ def render_articulated_scene(
         "pixel_evidence": pixel_rows,
     }
     if runtime is not None and hasattr(runtime, "RenderResult"):
-        return runtime.RenderResult(beauty, limb_masks, parts, id_image, qa)
-    return _StandaloneRenderResult(beauty, limb_masks, parts, id_image, qa)
+        out_res = runtime.RenderResult(beauty, limb_masks, parts, id_image, qa)
+    else:
+        out_res = _StandaloneRenderResult(beauty, limb_masks, parts, id_image, qa)
+    if capture_semantic_masks and pre_fg8 is not None:
+        out_res._pre_fg_part_masks = pre_fg8
+        out_res._raw_part_masks = raw8
+    return out_res

@@ -10,6 +10,8 @@ import type {
   EditorSyncState,
   MotionMode,
   Ratio,
+  SemanticActionSpec,
+  SemanticMode,
   ShotEasing,
   ShotItem,
 } from '@b6-studio/shared';
@@ -38,6 +40,9 @@ export interface EditorBindingStatus {
   gaitHonestyNote: string;
   editorialMode: 'none' | 'editorial_v1' | 'editorial_verified';
   editorialQcVerified: boolean;
+  semanticMode: 'none' | 'semantic_v1' | 'semantic_verified';
+  semanticQcVerified: boolean;
+  semanticActionCount: number;
   shotVarietyWarnings: string[];
   mappings: FieldRuntimeBindingRow[];
 }
@@ -106,6 +111,13 @@ export const FIELD_RUNTIME_MAPPINGS: Omit<FieldRuntimeBindingRow, 'liveBound'>[]
     affectedRegion: 'Cỡ cảnh (extreme_close/close/insert/medium/wide), mục tiêu focus (actor/eyes/prop), look-ahead & bảo vệ vùng phụ đề',
     verificationMethod: 'Đổi shotSize / focus.targetKind / transition / cameraMovement -> preview -> kiểm tra pixel MAD & decoded shot scale',
   },
+  {
+    uiField: 'Semantic Action Contract (detach, roll, hide_behind, take, reattach, collide, react)',
+    jsonPath: 'scene-control.json -> {semanticMode, semanticActions[], shots[].semanticActions[]}',
+    pythonFunction: 'scene_runtime.semantic_state_at(context, t) + b6_semantic_qc.evaluate_semantic_qc()',
+    affectedRegion: 'Trạng thái tháo/lắp đầu, quỹ đạo prop, che khuất thật sau occluder, tiếp xúc tay-prop và bằng chứng decoded MP4',
+    verificationMethod: 'Chạy analyze-semantic -> đối chiếu semantic-evidence.jsonl, mask overlay & decoded MP4 RGB contrast/MAD',
+  },
 ];
 
 export const SCENE_RUNTIME_PY_SOURCE = `"""Canonical editor-to-renderer runtime adapter for B6 Local Studio.
@@ -120,6 +132,7 @@ from typing import Any
 
 _PLAN_CACHE: dict[tuple[str, str], dict[str, Any]] = {}
 _EDITORIAL_CACHE: dict[tuple[str, str], Any] = {}
+_SEMANTIC_CACHE: dict[tuple[str, str], Any] = {}
 
 
 def _clamp01(x: float) -> float:
@@ -599,6 +612,60 @@ def camera_editorial_at(context, t: float, base_cam=None, scene_semantics: dict[
     return camera_director_at(context, t, base_cam=base_cam, focus_world_xy=focus_xy)
 
 
+def _get_compiled_semantic(context):
+    key = (str(context.base), str(getattr(context, "fingerprint", "")))
+    if key in _SEMANTIC_CACHE:
+        return _SEMANTIC_CACHE[key]
+    plan = load_scene_plan(context)
+    has_sem = str(plan.get("semanticMode") or "none") == "semantic_v1" or bool(plan.get("semanticActions")) or any(
+        bool(s.get("semanticActions")) for s in (plan.get("shots") or [])
+    )
+    if not has_sem:
+        _SEMANTIC_CACHE[key] = None
+        return None
+    try:
+        import b6_semantic_contract as sc
+        compiled = sc.compile_semantic_action_plan(plan, strict=False)
+        _SEMANTIC_CACHE[key] = compiled
+        return compiled
+    except Exception:
+        _SEMANTIC_CACHE[key] = None
+        return None
+
+
+def semantic_state_at(context, t: float) -> dict[str, Any]:
+    compiled = _get_compiled_semantic(context)
+    if compiled is not None:
+        try:
+            import b6_semantic_contract as sc
+            return sc.semantic_expected_state_at(compiled, t)
+        except Exception:
+            pass
+    shot, u = shot_at(context, t)
+    acts = list((shot or {}).get("semanticActions") or [])
+    return {
+        "schema": "b6-semantic-action/fallback",
+        "t": round(max(0.0, float(t)), 5),
+        "active_actions": [
+            {
+                "id": a.get("id"),
+                "action_type": a.get("actionType"),
+                "actor_id": a.get("actorId"),
+                "target_prop_id": a.get("targetPropId"),
+                "occluder_id": a.get("occluderId"),
+                "progress": round(u, 4),
+            }
+            for a in acts
+        ],
+        "part_mount_states": {},
+        "held_props": {},
+    }
+
+
+def semantic_actions_at(context, t: float) -> list[dict[str, Any]]:
+    return list(semantic_state_at(context, t).get("active_actions") or [])
+
+
 def qa_trace_at(context, t: float) -> dict[str, Any]:
     shot, u = shot_at(context, t)
     cam = camera_at(context, t)
@@ -606,6 +673,7 @@ def qa_trace_at(context, t: float) -> dict[str, Any]:
     ms = motion_state_at(context, t)
     beat = director_beat_at(context, t)
     ed = editorial_state_at(context, t)
+    sem = semantic_state_at(context, t)
     return {
         "t": round(float(t), 4),
         "shot_id": shot.get("id") if shot else None,
@@ -614,6 +682,7 @@ def qa_trace_at(context, t: float) -> dict[str, Any]:
         "actor": {"x": round(actor["x"], 2), "y": round(actor["y"], 2), "head_angle_deg": round(actor["head_angle_deg"], 2), "expression": actor["expression"]},
         "motion": {"mode": ms["mode"], "preset": ms["preset"], "camera_preset": ms["camera_preset"], "visual_beat": ms["visual_beat"]},
         "editorial": {"shot_size": ed.get("shot_size"), "role": ed.get("role"), "camera_movement": ed.get("camera_movement")},
+        "semantic": {"active_actions": sem.get("active_actions", []), "part_mount_states": sem.get("part_mount_states", {})},
         "director_beat": beat.get("beatKind") if beat else None,
     }
 `;
@@ -631,6 +700,8 @@ export class EditorBindingService {
     motionMode?: MotionMode;
     editorialMode?: EditorialMode;
     editorialProfile?: EditorialProfile;
+    semanticMode?: SemanticMode;
+    semanticActions?: SemanticActionSpec[];
     directorBeats?: DirectorBeat[];
     shots: ShotItem[];
     captions: CaptionCue[];
@@ -657,6 +728,8 @@ export class EditorBindingService {
       ...(params.motionMode ? { motionMode: params.motionMode } : {}),
       ...(params.editorialMode ? { editorialMode: params.editorialMode } : {}),
       ...(params.editorialProfile ? { editorialProfile: params.editorialProfile } : {}),
+      ...(params.semanticMode ? { semanticMode: params.semanticMode } : {}),
+      ...(params.semanticActions?.length ? { semanticActions: params.semanticActions } : {}),
       ...(params.directorBeats?.length ? { directorBeats: params.directorBeats } : {}),
       shots: params.shots,
       captions: params.captions,
@@ -815,6 +888,51 @@ export class EditorBindingService {
       }
     }
 
+    // Semantic action contract validation when semanticMode === 'semantic_v1' or actions declared
+    const collectedSemActions: Array<SemanticActionSpec & { startS: number; endS: number }> = [];
+    for (const raw of plan.semanticActions ?? []) {
+      collectedSemActions.push({
+        ...raw,
+        startS: raw.startS ?? 0,
+        endS: raw.endS ?? plan.duration,
+      });
+    }
+    for (const sh of plan.shots) {
+      for (const raw of sh.semanticActions ?? []) {
+        collectedSemActions.push({
+          ...raw,
+          shotId: raw.shotId ?? sh.id,
+          startS: raw.startS ?? sh.start,
+          endS: raw.endS ?? sh.end,
+        });
+      }
+    }
+    if (collectedSemActions.length > 0) {
+      const seenSemIds = new Set<string>();
+      for (const sa of collectedSemActions) {
+        if (seenSemIds.has(sa.id)) {
+          errors.push(`Semantic action bị trùng id "${sa.id}".`);
+        }
+        seenSemIds.add(sa.id);
+        if (sa.endS <= sa.startS || sa.startS < -0.001 || sa.endS > plan.duration + 0.002) {
+          errors.push(`Semantic action "${sa.id}" có khoảng thời gian [${sa.startS}, ${sa.endS}] vượt ngoài duration (${plan.duration}s).`);
+        }
+        if (knownActors.size > 0 && !knownActors.has(sa.actorId)) {
+          errors.push(`Semantic action "${sa.id}" dùng actorId "${sa.actorId}" chưa khai báo trong characters.json.`);
+        }
+      }
+      for (const sa of collectedSemActions) {
+        for (const preId of sa.prerequisiteIds ?? []) {
+          const pre = collectedSemActions.find((x) => x.id === preId);
+          if (!pre) {
+            errors.push(`Semantic action "${sa.id}" tham chiếu prerequisite "${preId}" không tồn tại.`);
+          } else if (pre.startS > sa.startS + 0.001) {
+            errors.push(`Semantic causality: "${preId}" bắt đầu sau "${sa.id}".`);
+          }
+        }
+      }
+    }
+
     return { valid: errors.length === 0, errors, warnings };
   }
 
@@ -827,6 +945,7 @@ export class EditorBindingService {
       editorSyncState: EditorSyncState;
       motionQcStatus?: string;
       editorialQcStatus?: string;
+      semanticQcStatus?: string;
     },
   ): Promise<EditorBindingStatus> {
     const hasRuntimeFile = fs.existsSync(path.join(projectDir, 'scene_runtime.py'));
@@ -836,12 +955,16 @@ export class EditorBindingService {
 
     let optsArticulated = detail.projectJson?.motion_mode === 'articulated_v1';
     let optsEditorial = detail.projectJson?.editorial_mode === 'editorial_v1';
+    let optsSemantic = detail.projectJson?.semantic_mode === 'semantic_v1';
+    let semanticActionCount = 0;
     const shotVarietyWarnings: string[] = [];
     if (hasControlFile) {
       try {
         const ctrl = await readJsonFile<{
           motionMode?: string;
           editorialMode?: string;
+          semanticMode?: string;
+          semanticActions?: unknown[];
           shots?: Array<{
             id?: string;
             motion?: { mode?: string };
@@ -851,6 +974,7 @@ export class EditorBindingService {
               cameraMovement?: string;
               focus?: { targetKind?: string; actorId?: string; propId?: string };
             };
+            semanticActions?: unknown[];
           }>;
         }>(path.join(projectDir, 'scene-control.json'));
         if (!optsArticulated) {
@@ -861,6 +985,18 @@ export class EditorBindingService {
         if (!optsEditorial) {
           optsEditorial = ctrl?.editorialMode === 'editorial_v1';
         }
+        if (!optsSemantic) {
+          optsSemantic =
+            ctrl?.semanticMode === 'semantic_v1' ||
+            Boolean(ctrl?.semanticActions?.length) ||
+            Boolean(ctrl?.shots?.some((s) => Boolean(s.semanticActions?.length)));
+        }
+        const topSemCount = Array.isArray(ctrl?.semanticActions) ? ctrl.semanticActions.length : 0;
+        const shotSemCount = (ctrl?.shots ?? []).reduce(
+          (acc, s) => acc + (Array.isArray(s.semanticActions) ? s.semanticActions.length : 0),
+          0,
+        );
+        semanticActionCount = topSemCount + shotSemCount;
         const shots = ctrl?.shots ?? [];
         for (let i = 1; i < shots.length; i++) {
           const prev = shots[i - 1]?.editorial;
@@ -889,8 +1025,13 @@ export class EditorBindingService {
     const hasEditorialFiles =
       fs.existsSync(path.join(projectDir, 'b6_editorial_contract.py')) &&
       fs.existsSync(path.join(projectDir, 'b6_editorial_director.py'));
+    const hasSemanticFiles =
+      fs.existsSync(path.join(projectDir, 'b6_semantic_contract.py')) &&
+      fs.existsSync(path.join(projectDir, 'b6_semantic_evidence.py')) &&
+      fs.existsSync(path.join(projectDir, 'b6_semantic_qc.py'));
     const qcPassed = qaState.motionQcStatus === 'pass' && qaState.technicalStatus === 'pass';
     const edQcPassed = qaState.editorialQcStatus === 'pass' && qaState.technicalStatus === 'pass';
+    const semQcPassed = qaState.semanticQcStatus === 'pass' && qaState.technicalStatus === 'pass';
     const motionEngineMode: EditorBindingStatus['motionEngineMode'] = !optsArticulated
       ? 'legacy_stance'
       : qcPassed && hasArticulatedFiles
@@ -901,6 +1042,11 @@ export class EditorBindingService {
       : edQcPassed && hasEditorialFiles
       ? 'editorial_verified'
       : 'editorial_v1';
+    const semanticMode: EditorBindingStatus['semanticMode'] = !optsSemantic
+      ? 'none'
+      : semQcPassed && hasSemanticFiles
+      ? 'semantic_verified'
+      : 'semantic_v1';
 
     const revision = Number(detail.meta.revision ?? 1);
     const lastRenderedRevision =
@@ -927,6 +1073,9 @@ export class EditorBindingService {
       gaitHonestyNote,
       editorialMode,
       editorialQcVerified: editorialMode === 'editorial_verified',
+      semanticMode,
+      semanticQcVerified: semanticMode === 'semantic_verified',
+      semanticActionCount,
       shotVarietyWarnings,
       mappings: FIELD_RUNTIME_MAPPINGS.map((m) => ({
         ...m,

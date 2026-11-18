@@ -156,6 +156,11 @@ function normalizeShotsFromPlan(rawShots: Array<Record<string, unknown>>): ShotI
     cameraPreset: s.cameraPreset as ShotItem['cameraPreset'],
     visualBeat: s.visualBeat as ShotItem['visualBeat'],
     editorial: s.editorial as ShotItem['editorial'],
+    semanticActions: Array.isArray(s.semanticActions)
+      ? (s.semanticActions as ShotItem['semanticActions'])
+      : Array.isArray(s.semantic_actions)
+      ? (s.semantic_actions as ShotItem['semanticActions'])
+      : undefined,
     transition: String(s.transition ?? 'cut'),
     short_cut_reason: typeof s.short_cut_reason === 'string' ? s.short_cut_reason : undefined,
     asset_inputs: Array.isArray(s.asset_inputs) ? s.asset_inputs.map(String) : [],
@@ -294,6 +299,7 @@ export class ScriptTimelineService {
             ...(s.cameraPreset ? { cameraPreset: s.cameraPreset } : {}),
             ...(s.visualBeat ? { visualBeat: s.visualBeat } : {}),
             ...(s.editorial ? { editorial: s.editorial } : {}),
+            ...(s.semanticActions?.length ? { semanticActions: s.semanticActions } : {}),
             transition: s.transition,
             ...(s.short_cut_reason ? { short_cut_reason: s.short_cut_reason } : {}),
             ...(s.asset_inputs?.length ? { asset_inputs: s.asset_inputs } : {}),
@@ -346,6 +352,15 @@ export class ScriptTimelineService {
         (Array.isArray(existingControl?.directorBeats)
           ? (existingControl.directorBeats as NonNullable<PatchProjectInput['directorBeats']>)
           : undefined);
+      const effectiveSemanticMode =
+        patch.semanticMode ??
+        (projectJson.semantic_mode as PatchProjectInput['semanticMode'] | undefined) ??
+        (existingControl?.semanticMode as PatchProjectInput['semanticMode'] | undefined);
+      const effectiveSemanticActions =
+        patch.semanticActions ??
+        (Array.isArray(existingControl?.semanticActions)
+          ? (existingControl.semanticActions as NonNullable<PatchProjectInput['semanticActions']>)
+          : undefined);
       if (patch.motionMode !== undefined) {
         projectJson.motion_mode = patch.motionMode;
       }
@@ -359,6 +374,13 @@ export class ScriptTimelineService {
       if (patch.directorBeats !== undefined && planObj) {
         planObj.directorBeats = patch.directorBeats;
       }
+      if (patch.semanticMode !== undefined) {
+        projectJson.semantic_mode = patch.semanticMode;
+        if (planObj) planObj.semanticMode = patch.semanticMode;
+      }
+      if (patch.semanticActions !== undefined && planObj) {
+        planObj.semanticActions = patch.semanticActions;
+      }
 
       const hasRichCanonical = updatedShots.some((s) =>
         Boolean(
@@ -370,9 +392,10 @@ export class ScriptTimelineService {
             s.motionMode === 'articulated_v1' ||
             s.cameraPreset ||
             s.visualBeat ||
-            s.editorial,
+            s.editorial ||
+            s.semanticActions?.length,
         ),
-      ) || effectiveEditorialMode === 'editorial_v1';
+      ) || effectiveEditorialMode === 'editorial_v1' || effectiveSemanticMode === 'semantic_v1' || Boolean(effectiveSemanticActions?.length);
       const voiceCfg = projectJson.voice as { sha256?: string } | undefined;
 
       const canonicalPlan = this.editorBindingService.buildCanonicalScenePlan({
@@ -387,6 +410,8 @@ export class ScriptTimelineService {
         ...(effectiveMotionMode ? { motionMode: effectiveMotionMode } : {}),
         ...(effectiveEditorialMode ? { editorialMode: effectiveEditorialMode } : {}),
         ...(effectiveEditorialProfile ? { editorialProfile: effectiveEditorialProfile } : {}),
+        ...(effectiveSemanticMode ? { semanticMode: effectiveSemanticMode } : {}),
+        ...(effectiveSemanticActions?.length ? { semanticActions: effectiveSemanticActions } : {}),
         ...(effectiveDirectorBeats?.length ? { directorBeats: effectiveDirectorBeats } : {}),
         shots: updatedShots,
         captions: captionsJson,
@@ -424,7 +449,11 @@ export class ScriptTimelineService {
         }
         const sceneRuntimeAbs = path.join(dir, 'scene_runtime.py');
         const curRuntimeText = fs.existsSync(sceneRuntimeAbs) ? fs.readFileSync(sceneRuntimeAbs, 'utf8') : '';
-        if (!curRuntimeText || (effectiveEditorialMode === 'editorial_v1' && !curRuntimeText.includes('camera_editorial_at'))) {
+        if (
+          !curRuntimeText ||
+          (effectiveEditorialMode === 'editorial_v1' && !curRuntimeText.includes('camera_editorial_at')) ||
+          (effectiveSemanticMode === 'semantic_v1' && !curRuntimeText.includes('semantic_state_at'))
+        ) {
           stagedWrites.push({
             relPath: 'scene_runtime.py',
             absPath: sceneRuntimeAbs,
@@ -446,6 +475,22 @@ export class ScriptTimelineService {
               const destContent = fs.existsSync(destAbs) ? fs.readFileSync(destAbs, 'utf8') : '';
               if (destContent !== srcContent) {
                 stagedWrites.push({ relPath: edFile, absPath: destAbs, content: srcContent });
+              }
+            }
+          }
+        }
+        if (effectiveSemanticMode === 'semantic_v1') {
+          for (const semFile of ['b6_semantic_contract.py', 'b6_semantic_evidence.py', 'b6_semantic_qc.py']) {
+            if (!curInputs.includes(semFile)) {
+              curInputs.push(semFile);
+            }
+            const srcAbs = path.join(APP_ROOT, 'semantic_runtime', semFile);
+            const destAbs = path.join(dir, semFile);
+            if (fs.existsSync(srcAbs)) {
+              const srcContent = fs.readFileSync(srcAbs, 'utf8');
+              const destContent = fs.existsSync(destAbs) ? fs.readFileSync(destAbs, 'utf8') : '';
+              if (destContent !== srcContent) {
+                stagedWrites.push({ relPath: semFile, absPath: destAbs, content: srcContent });
               }
             }
           }

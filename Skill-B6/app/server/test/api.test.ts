@@ -1312,3 +1312,215 @@ describe('Editorial Director Contract, QC Gate & Real Render Binding (B6-04)', (
     }
   }, 60000);
 });
+
+describe('Semantic Action Contract, Hardened QA Truth & Security (B6-05)', () => {
+  it('enforces strict pass===true && status===pass, rejects missing digests, and invalidates tampered semantic evidence', async () => {
+    const tmpRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-b05-qa-hard-'));
+    const projectsDir = path.join(tmpRoot, 'projects');
+    const jobsDir = path.join(tmpRoot, 'jobs');
+    const srcSamurai = path.join(process.cwd(), '..', '..', 'workspace', 'projects', 'samurai-red-leaf-10s');
+    const projDir = path.join(projectsDir, 'sem-hard');
+    fs.mkdirSync(projectsDir, { recursive: true });
+    fs.mkdirSync(jobsDir, { recursive: true });
+    fs.cpSync(srcSamurai, projDir, {
+      recursive: true,
+      filter: (src) => !src.includes(`${path.sep}outputs`),
+    });
+
+    const pJsonPath = path.join(projDir, 'project.json');
+    const pJson = JSON.parse(fs.readFileSync(pJsonPath, 'utf8'));
+    pJson.editorial_mode = 'editorial_v1';
+    pJson.semantic_mode = 'semantic_v1';
+    fs.writeFileSync(pJsonPath, JSON.stringify(pJson, null, 2));
+
+    const testApp = await buildApp({ projectsDir, jobsDir });
+    try {
+      const bind1 = (await testApp.app.inject({ method: 'GET', url: '/api/projects/sem-hard/editor-binding?ratio=9:16' })).json();
+      const curFp = bind1.qa.currentSourceFingerprint as string;
+      expect(bind1.qa.semanticQcStatus).toBe('pending');
+      expect(bind1.qa.reasonCodes).toContain('SEMANTIC_QC_PENDING');
+
+      const outDir = path.join(projDir, 'outputs', 'preview-01');
+      fs.mkdirSync(outDir, { recursive: true });
+
+      // 1. Contradictory editorial_qc.json (`status: "fail", pass: true`) MUST FAIL (previously bypassed by ||)
+      const edRepBytes = Buffer.from(JSON.stringify({ schema: 'b6-editorial-report/1', video_sha256: 'v'.repeat(64), summary: { frame_count: 300 } }));
+      fs.writeFileSync(path.join(outDir, 'editorial-report.json'), edRepBytes);
+      const edRepSha = crypto.createHash('sha256').update(edRepBytes).digest('hex');
+      fs.writeFileSync(
+        path.join(outDir, 'editorial_qc.json'),
+        JSON.stringify({
+          schema: 'b6-editorial-qc/1',
+          status: 'fail',
+          pass: true,
+          source_fingerprint: curFp,
+          video_sha256: 'v'.repeat(64),
+          editorial_report_sha256: edRepSha,
+          frames_checked: 300,
+          errors: [],
+        }),
+      );
+      // Missing source_fingerprint on motion_qc.json MUST NOT pass
+      fs.writeFileSync(
+        path.join(outDir, 'motion_qc.json'),
+        JSON.stringify({ schema: 'b6-motion-qc/1', status: 'pass', pass: true, errors: [], summary: { total_frames: 300 } }),
+      );
+      const qaContradict = (await testApp.app.inject({ method: 'GET', url: '/api/projects/sem-hard/qa?ratio=9:16' })).json().qa;
+      expect(qaContradict.editorialQcStatus).toBe('fail');
+      expect(qaContradict.motionQcStatus).toBe('fail');
+      expect(qaContradict.renderUnlocked).toBe(false);
+
+      // 2. Editorial missing video_sha256 or editorial_report_sha256 MUST fail
+      fs.writeFileSync(
+        path.join(outDir, 'editorial_qc.json'),
+        JSON.stringify({ schema: 'b6-editorial-qc/1', status: 'pass', pass: true, source_fingerprint: curFp, frames_checked: 300, errors: [] }),
+      );
+      const qaMissingDigests = (await testApp.app.inject({ method: 'GET', url: '/api/projects/sem-hard/qa?ratio=9:16' })).json().qa;
+      expect(qaMissingDigests.editorialQcStatus).toBe('fail');
+
+      // 3. Semantic QC valid vs tampered evidence JSONL -> immediate 'stale'
+      const evBytes = Buffer.from('{"frame":0,"t":0.0}\n');
+      const repBytes = Buffer.from(
+        JSON.stringify({
+          schema: 'b6-semantic-report/1',
+          video_sha256: 'v'.repeat(64),
+          decoded_binding: { verified: true },
+          summary: { action_count: 1, verified_action_count: 1, status: 'pass', pass: true },
+          action_results: [{ id: 'a1', action_type: 'walk', classification: 'verified_pass' }],
+        }),
+      );
+      const evPath = path.join(outDir, 'semantic-evidence.jsonl');
+      const sRepPath = path.join(outDir, 'semantic-report.json');
+      const sQcPath = path.join(outDir, 'semantic_qc.json');
+      fs.writeFileSync(evPath, evBytes);
+      fs.writeFileSync(sRepPath, repBytes);
+      fs.writeFileSync(
+        sQcPath,
+        JSON.stringify({
+          schema: 'b6-semantic-qc/1',
+          status: 'pass',
+          pass: true,
+          source_fingerprint: curFp,
+          video_sha256: 'v'.repeat(64),
+          semantic_report_sha256: crypto.createHash('sha256').update(repBytes).digest('hex'),
+          semantic_evidence_sha256: crypto.createHash('sha256').update(evBytes).digest('hex'),
+          decoded_frame_verified: true,
+          action_count: 1,
+          verified_action_count: 1,
+          coverage_ratio: 1.0,
+          frames_checked: 300,
+          errors: [],
+        }),
+      );
+      const qaSemOk = (await testApp.app.inject({ method: 'GET', url: '/api/projects/sem-hard/qa?ratio=9:16' })).json().qa;
+      expect(qaSemOk.semanticQcStatus).toBe('pass');
+
+      // Tamper 1 byte in semantic-evidence.jsonl -> MUST bust to stale!
+      fs.writeFileSync(evPath, '{"frame":0,"t":0.1}\n');
+      const qaSemTamper = (await testApp.app.inject({ method: 'GET', url: '/api/projects/sem-hard/qa?ratio=9:16' })).json().qa;
+      expect(qaSemTamper.semanticQcStatus).toBe('stale');
+      expect(qaSemTamper.reasonCodes).toContain('SEMANTIC_QC_STALE');
+      expect(qaSemTamper.renderUnlocked).toBe(false);
+
+      // Unverified decoded binding MUST fail
+      fs.writeFileSync(evPath, evBytes);
+      fs.writeFileSync(
+        sQcPath,
+        JSON.stringify({
+          schema: 'b6-semantic-qc/1',
+          status: 'pass',
+          pass: true,
+          source_fingerprint: curFp,
+          video_sha256: 'v'.repeat(64),
+          semantic_report_sha256: crypto.createHash('sha256').update(repBytes).digest('hex'),
+          semantic_evidence_sha256: crypto.createHash('sha256').update(evBytes).digest('hex'),
+          decoded_frame_verified: false,
+          action_count: 1,
+          verified_action_count: 1,
+          coverage_ratio: 1.0,
+          frames_checked: 300,
+          errors: [],
+        }),
+      );
+      const qaDecFail = (await testApp.app.inject({ method: 'GET', url: '/api/projects/sem-hard/qa?ratio=9:16' })).json().qa;
+      expect(qaDecFail.semanticQcStatus).toBe('fail');
+
+      // 4. Path traversal safety on semantic routes
+      const travPost = await testApp.app.inject({
+        method: 'POST',
+        url: '/api/projects/sem-hard/analyze-semantic',
+        payload: { ratio: '9:16', reportRel: '../../etc/passwd' },
+      });
+      expect(travPost.statusCode).toBe(400);
+
+      const travGet = await testApp.app.inject({
+        method: 'GET',
+        url: '/api/projects/sem-hard/semantic-report?ratio=9:16&reportRel=../../etc/passwd',
+      });
+      expect(travGet.statusCode).toBe(400);
+    } finally {
+      await testApp.app.close();
+      await fsp.rm(tmpRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('persists semanticMode & semanticActions transactionally and rejects broken semantic prerequisites', async () => {
+    const tmpRoot = await fsp.mkdtemp(path.join(os.tmpdir(), 'b6-b05-sem-patch-'));
+    const projectsDir = path.join(tmpRoot, 'projects');
+    const jobsDir = path.join(tmpRoot, 'jobs');
+    const srcSamurai = path.join(process.cwd(), '..', '..', 'workspace', 'projects', 'samurai-red-leaf-10s');
+    const projDir = path.join(projectsDir, 'sem-patch');
+    fs.mkdirSync(projectsDir, { recursive: true });
+    fs.mkdirSync(jobsDir, { recursive: true });
+    fs.cpSync(srcSamurai, projDir, {
+      recursive: true,
+      filter: (src) => !src.includes(`${path.sep}outputs`),
+    });
+
+    const pApp = await buildApp({ projectsDir, jobsDir });
+    try {
+      const initDetail = (await pApp.app.inject({ method: 'GET', url: '/api/projects/sem-patch' })).json().project;
+      const rev0 = initDetail.meta.revision;
+
+      // Invalid prerequisite reference -> MUST fail cleanly with 400 and leave revision unchanged
+      const badPatch = await pApp.app.inject({
+        method: 'PATCH',
+        url: '/api/projects/sem-patch',
+        payload: {
+          expectedRevision: rev0,
+          semanticMode: 'semantic_v1',
+          semanticActions: [
+            { id: 'bad_step', actionType: 'walk', actorId: 'ren', startS: 0, endS: 2, prerequisiteIds: ['nonexistent_pre'] },
+          ],
+        },
+      });
+      expect(badPatch.statusCode).toBe(400);
+      const afterBad = (await pApp.app.inject({ method: 'GET', url: '/api/projects/sem-patch' })).json().project;
+      expect(afterBad.meta.revision).toBe(rev0);
+
+      // Valid patch with semantic_v1 + action -> persists cleanly and writes scene_runtime + semantic helpers
+      const okPatch = await pApp.app.inject({
+        method: 'PATCH',
+        url: '/api/projects/sem-patch',
+        payload: {
+          expectedRevision: rev0,
+          semanticMode: 'semantic_v1',
+          semanticActions: [
+            { id: 'ren_walk', actionType: 'walk', actorId: 'ren', startS: 0, endS: 2.5, prerequisiteIds: [] },
+          ],
+        },
+      });
+      expect(okPatch.statusCode).toBe(200);
+      expect(okPatch.json().detail.projectJson.semantic_mode).toBe('semantic_v1');
+      expect(fs.existsSync(path.join(projDir, 'b6_semantic_contract.py'))).toBe(true);
+      expect(fs.readFileSync(path.join(projDir, 'scene_runtime.py'), 'utf8')).toContain('semantic_state_at');
+
+      const bind = (await pApp.app.inject({ method: 'GET', url: '/api/projects/sem-patch/editor-binding?ratio=9:16' })).json().binding;
+      expect(bind.semanticMode).toBe('semantic_v1');
+      expect(bind.semanticActionCount).toBe(1);
+    } finally {
+      await pApp.app.close();
+      await fsp.rm(tmpRoot, { recursive: true, force: true });
+    }
+  });
+});

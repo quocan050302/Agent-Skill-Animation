@@ -371,6 +371,7 @@ export async function buildApp(deps: ServerDependencies = {}): Promise<{
       editorSyncState: qa.summary.editorSyncState,
       motionQcStatus: qa.summary.motionQcStatus,
       editorialQcStatus: qa.summary.editorialQcStatus,
+      semanticQcStatus: qa.summary.semanticQcStatus,
     });
     return { binding, qa: qa.summary };
   });
@@ -387,6 +388,7 @@ export async function buildApp(deps: ServerDependencies = {}): Promise<{
       editorSyncState: qa.summary.editorSyncState,
       motionQcStatus: qa.summary.motionQcStatus,
       editorialQcStatus: qa.summary.editorialQcStatus,
+      semanticQcStatus: qa.summary.semanticQcStatus,
     });
     const manifestPath = path.join(APP_ROOT, 'motion_runtime', 'manifest.json');
     const manifest = fs.existsSync(manifestPath)
@@ -575,6 +577,171 @@ export async function buildApp(deps: ServerDependencies = {}): Promise<{
     const job = await jobQueue.enqueue({
       projectId: id,
       kind: 'analyze-editorial',
+      ratio: body.ratio,
+      spec,
+      heavyEncode: false,
+    });
+    return { job };
+  });
+
+  app.get('/api/projects/:id/semantic-report', async (req) => {
+    const { id } = req.params as { id: string };
+    const query = z
+      .object({
+        ratio: RatioSchema.default('9:16'),
+        includeActions: z.coerce.boolean().default(true),
+        reportRel: z.string().optional(),
+      })
+      .parse(req.query ?? {});
+    const dir = projectService.getProjectDir(id);
+    const qa = await qaResolver.resolveQaState(dir, query.ratio);
+    const semSummary = qa.summary.semanticQcSummary as Record<string, unknown> | undefined;
+
+    let reportAbs: string | null = null;
+    if (query.reportRel) {
+      reportAbs = resolveInsideRoot(dir, query.reportRel, true);
+    } else if (semSummary && typeof semSummary.reportPath === 'string') {
+      const candidate = resolveInsideRoot(dir, semSummary.reportPath, false);
+      if (fs.existsSync(candidate)) reportAbs = candidate;
+    }
+    if (!reportAbs && qa.latestReport?.reportRel) {
+      const candidate = path.join(dir, path.dirname(qa.latestReport.reportRel), 'semantic-report.json');
+      if (fs.existsSync(candidate)) reportAbs = candidate;
+    }
+    if (!reportAbs) {
+      const outputsDir = path.join(dir, 'outputs');
+      if (fs.existsSync(outputsDir)) {
+        const candidates: Array<{ abs: string; mtimeMs: number }> = [];
+        for (const entry of fs.readdirSync(outputsDir, { withFileTypes: true })) {
+          if (!entry.isDirectory()) continue;
+          const p = path.join(outputsDir, entry.name, 'semantic-report.json');
+          if (fs.existsSync(p)) {
+            candidates.push({ abs: p, mtimeMs: fs.statSync(p).mtimeMs });
+          }
+        }
+        candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
+        if (candidates[0]) reportAbs = candidates[0].abs;
+      }
+    }
+
+    if (!reportAbs) {
+      return {
+        projectId: id,
+        ratio: query.ratio,
+        available: false,
+        stale: true,
+        reportPath: null,
+        qcPath: null,
+        evidencePath: null,
+        qcStatus: qa.summary.semanticQcStatus ?? 'pending',
+        qc: qa.summary.semanticQcSummary ?? null,
+        report: null,
+        debugLinks: [],
+        evidenceLinks: qa.summary.evidenceLinks,
+        statusNote: 'Chưa có semantic-report.json; hãy render preview (với semantic_v1) hoặc bấm Phân tích Semantic.',
+      };
+    }
+
+    const rawReport = await readJsonFile<Record<string, unknown>>(reportAbs);
+    const outSubDir = path.dirname(reportAbs);
+    const qcAbs = path.join(outSubDir, 'semantic_qc.json');
+    const evAbs = path.join(outSubDir, 'semantic-evidence.jsonl');
+    const rawQc = fs.existsSync(qcAbs) ? await readJsonFile<Record<string, unknown>>(qcAbs) : null;
+    const reportRel = path.relative(dir, reportAbs).replace(/\\/g, '/');
+    const qcRel = fs.existsSync(qcAbs) ? path.relative(dir, qcAbs).replace(/\\/g, '/') : null;
+    const evRel = fs.existsSync(evAbs) ? path.relative(dir, evAbs).replace(/\\/g, '/') : null;
+    const stale =
+      qa.summary.semanticQcStatus === 'stale' ||
+      Boolean(
+        qa.summary.previewSha256 &&
+          rawQc &&
+          typeof rawQc.video_sha256 === 'string' &&
+          rawQc.video_sha256 !== qa.summary.previewSha256,
+      ) ||
+      Boolean(
+        qa.summary.currentSourceFingerprint &&
+          rawQc &&
+          typeof rawQc.source_fingerprint === 'string' &&
+          rawQc.source_fingerprint !== qa.summary.currentSourceFingerprint,
+      );
+
+    const debugLinks: Array<{ label: string; url: string; relPath: string }> = [];
+    const semDbgDir = path.join(outSubDir, 'semantic_debug');
+    if (fs.existsSync(semDbgDir)) {
+      for (const fname of fs.readdirSync(semDbgDir).filter((f) => /\.(png|jpg|jpeg)$/i.test(f)).sort()) {
+        const rel = path.relative(dir, path.join(semDbgDir, fname)).replace(/\\/g, '/');
+        debugLinks.push({
+          label: fname,
+          relPath: rel,
+          url: `/api/media/${encodeURIComponent(id)}/${rel.split('/').map(encodeURIComponent).join('/')}`,
+        });
+      }
+    }
+
+    const trimmedReport: Record<string, unknown> = { ...rawReport };
+    if (!query.includeActions && Array.isArray(trimmedReport.action_results)) {
+      trimmedReport.action_count = trimmedReport.action_results.length;
+      delete trimmedReport.action_results;
+    }
+
+    return {
+      projectId: id,
+      ratio: query.ratio,
+      available: true,
+      stale,
+      reportPath: reportRel,
+      qcPath: qcRel,
+      evidencePath: evRel,
+      qcStatus: qa.summary.semanticQcStatus ?? (rawQc?.status as string | undefined) ?? 'pending',
+      qc: rawQc ?? qa.summary.semanticQcSummary ?? null,
+      report: trimmedReport,
+      debugLinks,
+      evidenceLinks: qa.summary.evidenceLinks,
+    };
+  });
+
+  app.post('/api/projects/:id/analyze-semantic', async (req) => {
+    const { id } = req.params as { id: string };
+    const dir = projectService.getProjectDir(id);
+    const body = z
+      .object({
+        ratio: RatioSchema.default('9:16'),
+        reportRel: z.string().min(1).optional(),
+        videoRel: z.string().min(1).optional(),
+        evidenceRel: z.string().min(1).optional(),
+      })
+      .parse(req.body ?? {});
+
+    let reportRel = body.reportRel;
+    if (!reportRel && !body.videoRel) {
+      const qa = await qaResolver.resolveQaState(dir, body.ratio);
+      if (qa.latestReport?.reportRel && fs.existsSync(path.join(dir, qa.latestReport.reportRel))) {
+        reportRel = qa.latestReport.reportRel;
+      } else {
+        const outputsDir = path.join(dir, 'outputs');
+        if (fs.existsSync(outputsDir)) {
+          const candidates: Array<{ rel: string; mtimeMs: number }> = [];
+          for (const entry of fs.readdirSync(outputsDir, { withFileTypes: true })) {
+            if (!entry.isDirectory()) continue;
+            const rp = path.join(outputsDir, entry.name, 'report.json');
+            if (fs.existsSync(rp)) {
+              candidates.push({ rel: `outputs/${entry.name}/report.json`, mtimeMs: fs.statSync(rp).mtimeMs });
+            }
+          }
+          candidates.sort((a, b) => b.mtimeMs - a.mtimeMs);
+          if (candidates[0]) reportRel = candidates[0].rel;
+        }
+      }
+    }
+
+    const spec = commandAdapter.buildAnalyzeSemantic(dir, body.ratio, {
+      reportRel,
+      videoRel: body.videoRel,
+      evidenceRel: body.evidenceRel,
+    });
+    const job = await jobQueue.enqueue({
+      projectId: id,
+      kind: 'analyze-semantic',
       ratio: body.ratio,
       spec,
       heavyEncode: false,

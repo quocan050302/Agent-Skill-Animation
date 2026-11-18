@@ -395,6 +395,79 @@ export class B6CommandAdapter {
     };
   }
 
+  buildAnalyzeSemantic(
+    projectDir: string,
+    ratio: '9:16' | '16:9',
+    opts: {
+      videoRel?: string;
+      reportRel?: string;
+      evidenceRel?: string;
+    } = {},
+  ): CommandSpec {
+    const pythonExe = resolvePythonExe();
+    const cliPath = path.join(APP_ROOT, 'semantic_runtime', 'b6_semantic_cli.py');
+    if (!fs.existsSync(cliPath)) {
+      throw new Error('Không tìm thấy semantic_runtime/b6_semantic_cli.py.');
+    }
+
+    let reportAbs: string | null = null;
+    if (opts.reportRel) {
+      reportAbs = resolveInsideRoot(projectDir, opts.reportRel, true);
+    }
+
+    let videoRel = opts.videoRel;
+    if (!videoRel && reportAbs) {
+      try {
+        const rep = JSON.parse(fs.readFileSync(reportAbs, 'utf8')) as { video?: string };
+        if (typeof rep.video === 'string' && rep.video.length > 0) {
+          videoRel = rep.video;
+        }
+      } catch {
+        throw new Error(`Không đọc được report JSON hợp lệ từ "${opts.reportRel}".`);
+      }
+    }
+    if (!videoRel) {
+      throw new Error('Cần có videoRel hoặc preview report chứa đường dẫn video MP4 để phân tích Semantic.');
+    }
+    const videoAbs = resolveInsideRoot(projectDir, videoRel, true);
+    const outDirAbs = reportAbs ? path.dirname(reportAbs) : path.dirname(videoAbs);
+    const outDirRel = path.relative(projectDir, outDirAbs).replace(/\\/g, '/');
+    const sceneControlPath = path.join(projectDir, 'scene-control.json');
+    if (!fs.existsSync(sceneControlPath)) {
+      throw new Error('Thiếu scene-control.json để kiểm định Semantic.');
+    }
+
+    const args = [
+      cliPath,
+      '--video',
+      videoAbs,
+      '--out-dir',
+      outDirAbs,
+      '--scene-control',
+      sceneControlPath,
+    ];
+    if (reportAbs) {
+      args.push('--report', reportAbs);
+    }
+    const evCandidates = [
+      opts.evidenceRel ? resolveInsideRoot(projectDir, opts.evidenceRel, false) : null,
+      path.join(outDirAbs, 'semantic-evidence.jsonl'),
+    ].filter((p): p is string => Boolean(p && fs.existsSync(p)));
+    if (evCandidates[0]) {
+      args.push('--evidence', evCandidates[0]);
+    }
+
+    return {
+      executable: pythonExe,
+      args,
+      cwd: APP_ROOT,
+      env: this.buildEnv(),
+      displayCommand: `${path.basename(pythonExe)} semantic_runtime/b6_semantic_cli.py --video ${videoRel} --out-dir ${outDirRel} (${ratio})`,
+      outputDir: null,
+      reportPath: path.join(outDirAbs, 'semantic_qc.json'),
+    };
+  }
+
   assertSafeOutputRel(projectId: string, rel: string): string {
     assertSafeId(projectId);
     return rel;

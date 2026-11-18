@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { BarChart3, ExternalLink, FolderOpen, StopCircle } from 'lucide-react';
 import type { JobRecord } from '@b6-studio/shared';
-import type { EditorialReportResponseDto, OutputArtifactDto, ReviewStateDto } from '../api/client';
+import type {
+  EditorialReportResponseDto,
+  OutputArtifactDto,
+  ReviewStateDto,
+  SemanticReportResponseDto,
+} from '../api/client';
 
 interface JobsQaViewProps {
   projectId: string | null;
@@ -14,6 +19,8 @@ interface JobsQaViewProps {
   reviewState: ReviewStateDto | null;
   editorialReport?: EditorialReportResponseDto | null;
   onAnalyzeEditorial?: () => Promise<void>;
+  semanticReport?: SemanticReportResponseDto | null;
+  onAnalyzeSemantic?: () => Promise<void>;
   activeJob?: JobRecord | null;
   onOpenFolder: () => Promise<void>;
 }
@@ -29,12 +36,16 @@ export const JobsQaView: React.FC<JobsQaViewProps> = ({
   reviewState,
   editorialReport,
   onAnalyzeEditorial,
+  semanticReport,
+  onAnalyzeSemantic,
   activeJob,
   onOpenFolder,
 }) => {
   const [madMode, setMadMode] = useState<'cut_excluded' | 'raw'>('cut_excluded');
   const [analyzeBusy, setAnalyzeBusy] = useState(false);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [semBusy, setSemBusy] = useState(false);
+  const [semError, setSemError] = useState<string | null>(null);
   const statusBadge = (s: JobRecord['status']) => {
     if (s === 'succeeded') return 'badge-success';
     if (s === 'running' || s === 'queued') return 'badge-warning';
@@ -240,9 +251,19 @@ export const JobsQaView: React.FC<JobsQaViewProps> = ({
                       </div>
                     </div>
                     <div style={{ padding: 8, background: 'var(--surface-subtle)', borderRadius: 6 }}>
-                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>Foreground Motion</div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>Image Residual Flow</div>
                       <div style={{ fontWeight: 700, fontSize: 15 }}>
                         {Number(sum.foreground_relative_motion_mean ?? 0).toFixed(2)} px/f
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--muted)' }}>
+                        Actor mask:{' '}
+                        {typeof sum.actor_mask_motion_mean === 'number'
+                          ? `${sum.actor_mask_motion_mean.toFixed(2)} px/f`
+                          : 'n/a'}{' '}
+                        · Prop:{' '}
+                        {typeof sum.prop_mask_motion_mean === 'number'
+                          ? `${sum.prop_mask_motion_mean.toFixed(2)} px/f`
+                          : 'n/a'}
                       </div>
                     </div>
                     <div style={{ padding: 8, background: 'var(--surface-subtle)', borderRadius: 6 }}>
@@ -321,6 +342,171 @@ export const JobsQaView: React.FC<JobsQaViewProps> = ({
                     Báo cáo: <code>{editorialReport.reportPath}</code>
                     {editorialReport.qcPath ? ` · QC: ${editorialReport.qcPath}` : ''} · Lưu ý: MAD/optical-flow là telemetry biến thiên khung hình, KHÔNG thay thế đánh giá giữ chân người xem thật.
                   </div>
+                </>
+              );
+            })()}
+          </div>
+        </details>
+      )}
+
+      {/* Semantic Action Evidence Panel */}
+      {projectId && (
+        <details open className="card" data-testid="semantic-evidence-panel" style={{ minWidth: 0 }}>
+          <summary
+            style={{
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 8,
+              listStyle: 'none',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <BarChart3 size={16} />
+              <strong>Semantic Evidence &amp; Action Verification</strong>
+              <span
+                className={`badge ${
+                  semanticReport?.stale
+                    ? 'badge-warning'
+                    : (semanticReport?.qcStatus ?? reviewState?.semanticQcStatus) === 'pass'
+                    ? 'badge-success'
+                    : (semanticReport?.qcStatus ?? reviewState?.semanticQcStatus) === 'fail'
+                    ? 'badge-danger'
+                    : 'badge-neutral'
+                }`}
+                data-testid="semantic-qc-status-badge"
+              >
+                {semanticReport?.stale
+                  ? 'STALE (Cần kiểm lại)'
+                  : (semanticReport?.qcStatus ?? reviewState?.semanticQcStatus ?? 'pending').toUpperCase()}
+              </span>
+            </div>
+            {onAnalyzeSemantic && (
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                data-testid="analyze-semantic-btn"
+                disabled={
+                  semBusy ||
+                  Boolean(activeJob && (activeJob.status === 'running' || activeJob.status === 'queued'))
+                }
+                onClick={async (e) => {
+                  e.preventDefault();
+                  setSemError(null);
+                  setSemBusy(true);
+                  try {
+                    await onAnalyzeSemantic();
+                  } catch (err) {
+                    setSemError(err instanceof Error ? err.message : String(err));
+                  } finally {
+                    setSemBusy(false);
+                  }
+                }}
+              >
+                {semBusy || (activeJob?.kind === 'analyze-semantic' && (activeJob.status === 'running' || activeJob.status === 'queued'))
+                  ? 'Đang kiểm Semantic…'
+                  : 'Phân tích Semantic'}
+              </button>
+            )}
+          </summary>
+
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {semError && (
+              <div style={{ fontSize: 12, color: 'var(--danger)', background: 'var(--danger-soft)', padding: '6px 10px', borderRadius: 6 }}>
+                Lỗi Phân tích Semantic: {semError}
+              </div>
+            )}
+            {!semanticReport?.available || !semanticReport.report ? (
+              <div className="field-hint">
+                {semanticReport?.statusNote ??
+                  'Chưa có semantic-report.json cho preview hiện tại (chỉ yêu cầu ở dự án semantic_v1).'}
+              </div>
+            ) : (() => {
+              const srep = semanticReport.report;
+              const ssum = (srep.summary ?? {}) as Record<string, unknown>;
+              const dbind = (srep.decoded_binding ?? {}) as Record<string, unknown>;
+              const rows = Array.isArray(srep.action_results) ? (srep.action_results as Array<Record<string, unknown>>) : [];
+              const errs = Array.isArray(srep.errors) ? (srep.errors as string[]) : [];
+              return (
+                <>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(135px, 100%), 1fr))', gap: 8 }}>
+                    <div style={{ padding: 8, background: 'var(--surface-subtle)', borderRadius: 6 }}>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>Verified Actions</div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>
+                        {Number(ssum.verified_action_count ?? 0)}/{Number(ssum.action_count ?? 0)}
+                      </div>
+                    </div>
+                    <div style={{ padding: 8, background: 'var(--surface-subtle)', borderRadius: 6 }}>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>Evidence Coverage</div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>
+                        {(Number(ssum.coverage_ratio ?? 0) * 100).toFixed(0)}% ({Number(ssum.frames_checked ?? 0)}f)
+                      </div>
+                    </div>
+                    <div style={{ padding: 8, background: 'var(--surface-subtle)', borderRadius: 6 }}>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>Decoded MP4 Binding</div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>
+                        {dbind.verified ? 'VERIFIED' : 'MISMATCH'} (corr {Number(dbind.min_corr_vs_beauty ?? 0).toFixed(2)})
+                      </div>
+                    </div>
+                  </div>
+                  {errs.length > 0 && (
+                    <div style={{ fontSize: 12, padding: 8, borderRadius: 6, background: 'var(--danger-soft)', color: 'var(--danger)' }}>
+                      {errs.map((er, idx) => (
+                        <div key={idx}>• {er}</div>
+                      ))}
+                    </div>
+                  )}
+                  {rows.length > 0 && (
+                    <div style={{ overflowX: 'auto', width: '100%' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                        <thead>
+                          <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)', color: 'var(--muted)' }}>
+                            <th style={{ padding: '4px 6px' }}>Action</th>
+                            <th style={{ padding: '4px 6px' }}>Actor / Target</th>
+                            <th style={{ padding: '4px 6px' }}>Window</th>
+                            <th style={{ padding: '4px 6px' }}>Verdict</th>
+                            <th style={{ padding: '4px 6px' }}>Evidence</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {rows.map((ar, idx) => (
+                            <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
+                              <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)' }}>
+                                {String(ar.id ?? '')} ({String(ar.action_type ?? '')})
+                              </td>
+                              <td style={{ padding: '4px 6px' }}>
+                                {String(ar.actor_id ?? '')}
+                                {ar.target_prop_id ? ` → ${String(ar.target_prop_id)}` : ar.occluder_id ? ` @ ${String(ar.occluder_id)}` : ''}
+                              </td>
+                              <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)' }}>
+                                {Number(ar.start_s ?? 0).toFixed(2)}–{Number(ar.end_s ?? 0).toFixed(2)}s
+                              </td>
+                              <td style={{ padding: '4px 6px' }}>
+                                <span className={`badge ${ar.classification === 'verified_pass' ? 'badge-success' : ar.classification === 'uncertain_needs_human_review' ? 'badge-warning' : 'badge-danger'}`}>
+                                  {String(ar.classification ?? '')}
+                                </span>
+                              </td>
+                              <td style={{ padding: '4px 6px', fontSize: 11, color: 'var(--muted)' }}>
+                                {JSON.stringify(ar.metrics ?? {}).slice(0, 90)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  {semanticReport.debugLinks.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontSize: 11 }}>
+                      <span style={{ color: 'var(--muted)' }}>Debug Triptychs / Masks:</span>
+                      {semanticReport.debugLinks.map((dl) => (
+                        <a key={dl.relPath} href={dl.url} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)' }}>
+                          {dl.label} <ExternalLink size={10} />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </>
               );
             })()}

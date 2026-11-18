@@ -194,6 +194,113 @@ class MotionCoreTests(unittest.TestCase):
         jump_rows[20] = {**jump_rows[20], "root_x": float(jump_rows[19]["root_x"]) + 90.0}
         self.assertEqual(validate_motion_contract(jump_rows)["status"], "fail")
 
+    def test_opt_in_head_mount_state_supports_detach_without_weakening_attached_neck_check(self) -> None:
+        from types import SimpleNamespace
+        from PIL import Image
+        import cv2
+        from motion_runtime import render_articulated_scene
+
+        # Minimal synthetic character with strict neck_attachment box at neck (x=40..60, y=55..65)
+        body_arr = np.zeros((160, 100, 4), dtype=np.uint8)
+        body_arr[60:145, 25:75] = (200, 170, 50, 255)
+        head_arr = np.zeros((160, 100, 4), dtype=np.uint8)
+        head_arr[15:62, 30:70] = (65, 210, 180, 255)
+        head_disconnected = np.zeros((160, 100, 4), dtype=np.uint8)
+        head_disconnected[5:22, 30:70] = (65, 210, 180, 255)
+        cuff_l = np.zeros((160, 100), dtype=np.uint8)
+        cuff_l[66:84, 28:44] = 255
+        cuff_r = np.zeros((160, 100), dtype=np.uint8)
+        cuff_r[66:84, 58:74] = 255
+
+        i2l = np.array([[1.0, 0.0, -50.0], [0.0, 1.0, -145.0], [0.0, 0.0, 1.0]])
+        body_asset = SimpleNamespace(image=Image.fromarray(body_arr), image_to_local=i2l)
+        head_asset_ok = SimpleNamespace(image=Image.fromarray(head_arr), image_to_local=i2l)
+        head_asset_gap = SimpleNamespace(image=Image.fromarray(head_disconnected), image_to_local=i2l)
+        cuff_asset_l = SimpleNamespace(image=Image.fromarray(cuff_l), image_to_local=i2l)
+        cuff_asset_r = SimpleNamespace(image=Image.fromarray(cuff_r), image_to_local=i2l)
+        arm_spec_l = SimpleNamespace(
+            socket=np.array([-16.0, -72.0]),
+            outlet_segment=np.array([[-18.0, -74.0], [-14.0, -70.0]]),
+            lengths=(18.0, 18.0),
+            pole=1.0,
+            ink_width=5.0,
+            ink_path=None,
+            hand_asset=None,
+            hand_radius=4.0,
+            cuff=cuff_asset_l,
+            layer="front",
+            visibility_min={"upper": 0.1, "forearm": 0.1, "hand": 0.1},
+        )
+        arm_spec_r = SimpleNamespace(
+            socket=np.array([16.0, -72.0]),
+            outlet_segment=np.array([[14.0, -74.0], [18.0, -70.0]]),
+            lengths=(18.0, 18.0),
+            pole=-1.0,
+            ink_width=5.0,
+            ink_path=None,
+            hand_asset=None,
+            hand_radius=4.0,
+            cuff=cuff_asset_r,
+            layer="front",
+            visibility_min={"upper": 0.1, "forearm": 0.1, "hand": 0.1},
+        )
+        view = SimpleNamespace(
+            view_id="three_quarter",
+            ink_color=(20, 20, 20),
+            arms={"left": arm_spec_l, "right": arm_spec_r},
+            legs={"left": {"ink_width": 5.0, "foot_size": (14.0, 5.0)}, "right": {"ink_width": 5.0, "foot_size": (14.0, 5.0)}},
+            body=body_asset,
+            head=head_asset_ok,
+            heads={"broken": head_asset_gap},
+            neck_attachment={"mount_polygon": [[40, 58], [60, 58], [60, 64], [40, 64]]},
+            head_anchor=np.array([0.0, -85.0]),
+        )
+        char_pkg = SimpleNamespace(character_id="z_test", fingerprint="fp", art_hashes={})
+        placement = np.array([[1.0, 0.0, 180.0], [0.0, 1.0, 300.0], [0.0, 0.0, 1.0]])
+        arms_ch = {"left": np.array([[-16.0, -72.0], [-30.0, -64.0], [-36.0, -50.0]]), "right": np.array([[16.0, -72.0], [30.0, -64.0], [36.0, -50.0]])}
+
+        def _fake_line_mask(sz, p0, p1, width, key):
+            w, h = sz
+            m = np.zeros((h, w), dtype=np.uint8)
+            cv2.line(m, tuple(np.rint(p0).astype(int)), tuple(np.rint(p1).astype(int)), 255, max(2, int(round(width))), cv2.LINE_AA)
+            return m
+
+        def _fake_ellipse_mask(sz, center, radii):
+            w, h = sz
+            m = np.zeros((h, w), dtype=np.uint8)
+            cv2.ellipse(m, tuple(np.rint(center).astype(int)), (max(2, int(round(radii[0]))), max(2, int(round(radii[1])))), 0, 0, 360, 255, -1)
+            return m
+
+        def _fake_neck_evidence(actor, sz, b_warp, h_warp):
+            connected = bool(np.any((b_warp[:, :, 3] > 32) & (h_warp[:, :, 3] > 32)))
+            return {"actor_id": actor.actor_id, "mount_center_in_frame": True, "actual_main_alpha_connected": connected}
+
+        rt = SimpleNamespace(
+            _line_mask=_fake_line_mask,
+            _ellipse_mask=_fake_ellipse_mask,
+            _head_placement=lambda actor: actor.placement,
+            _neck_screen_evidence=_fake_neck_evidence,
+        )
+        gait = sample_gait(self.profile, 0.0, ShotMotion("s1", 0.0, 1.0, 0.0, 0.0, state="idle"))
+
+        # 1. Default attached with broken floating head fails neck check
+        pose_broken = SimpleNamespace(actor_id="z", character=char_pkg, view=view, placement=placement, arms=arms_ch, head_variant="broken", head_angle_deg=0.0, action="idle", phase=0.0, arm_actions={})
+        res_bad = render_articulated_scene((360, 400), [{"pose": pose_broken, "gait": gait, "profile": self.profile}], runtime=rt)
+        self.assertTrue(any("neck mount" in e for e in res_bad.qa["errors"]), res_bad.qa["errors"])
+
+        # 2. Explicit head_mount_state="detached" succeeds without neck check error while emitting masks
+        pose_ok = SimpleNamespace(actor_id="z", character=char_pkg, view=view, placement=placement, arms=arms_ch, head_variant=None, head_angle_deg=0.0, action="idle", phase=0.0, arm_actions={})
+        res_det = render_articulated_scene((360, 400), [{"pose": pose_ok, "gait": gait, "profile": self.profile, "head_mount_state": "detached"}], runtime=rt, capture_semantic_masks=True)
+        self.assertFalse(any("neck mount" in e for e in res_det.qa["errors"]), res_det.qa["errors"])
+        self.assertEqual(res_det.qa["actors"][0]["head_mount_state"], "detached")
+        self.assertNotIn("z:head", res_det.part_masks)
+
+        # 3. Reattached with connected head passes & enforces neck check cleanly
+        res_re = render_articulated_scene((360, 400), [{"pose": pose_ok, "gait": gait, "profile": self.profile, "head_mount_state": "attached"}], runtime=rt, capture_semantic_masks=True)
+        self.assertEqual(res_re.qa["errors"], [])
+        self.assertIn("z:head", res_re.part_masks)
+        self.assertTrue(hasattr(res_re, "_pre_fg_part_masks"))
+
 
 if __name__ == "__main__":
     unittest.main()

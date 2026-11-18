@@ -111,8 +111,13 @@ export class QaEvidenceResolver {
       'scene.py',
       'scene-control.json',
       'scene_runtime.py',
+      'b6_semantic_contract.py',
+      'b6_editorial_contract.py',
       'characters.json',
       'engine/manifest.json',
+      'outputs/preview-01/motion_qc.json',
+      'outputs/preview-01/editorial_qc.json',
+      'outputs/preview-01/semantic_qc.json',
       ratio === '9:16' ? 'formats/portrait.json' : 'formats/landscape.json',
     ];
     try {
@@ -782,6 +787,302 @@ export class QaEvidenceResolver {
     return { status: 'approved', approvalPath: approvalName, record: rec, reasonCodes: [] };
   }
 
+  private async verifyMotionQcFile(
+    absDir: string,
+    qcPath: string,
+    currentFingerprint: string | null,
+  ): Promise<{ status: QaTechnicalVerdict; summary: Record<string, unknown>; reasonCodes: string[] }> {
+    const relPath = path.relative(absDir, qcPath).replace(/\\/g, '/');
+    try {
+      const qcDoc = await readJsonFile<{
+        schema?: string;
+        status?: string;
+        pass?: unknown;
+        source_fingerprint?: unknown;
+        frames_checked?: unknown;
+        errors?: unknown;
+        metrics?: Record<string, unknown>;
+        summary?: { total_frames?: unknown };
+      }>(qcPath);
+
+      const errList = Array.isArray(qcDoc.errors) ? qcDoc.errors.map(String) : [];
+      const totalFrames = Number(qcDoc.frames_checked ?? qcDoc.summary?.total_frames ?? 0);
+      const fpVal = typeof qcDoc.source_fingerprint === 'string' ? qcDoc.source_fingerprint.trim() : '';
+      const hasPassBool = typeof qcDoc.pass === 'boolean';
+      const legacyV1Ok = !hasPassBool && qcDoc.schema === 'b6-motion-qc/1' && qcDoc.status === 'pass';
+      const strictBoolOk = qcDoc.pass === true && qcDoc.status === 'pass';
+      const structurallyValid =
+        (strictBoolOk || legacyV1Ok) &&
+        Array.isArray(qcDoc.errors) &&
+        errList.length === 0 &&
+        Number.isFinite(totalFrames) &&
+        totalFrames > 0;
+
+      const reasonCodes: string[] = [];
+      let status: QaTechnicalVerdict;
+      if (!fpVal) {
+        status = 'fail';
+        reasonCodes.push('MOTION_QC_MISSING_FINGERPRINT');
+      } else if (currentFingerprint && fpVal !== currentFingerprint) {
+        status = 'stale';
+        reasonCodes.push('MOTION_QC_STALE');
+      } else if (!structurallyValid) {
+        status = 'fail';
+        reasonCodes.push('MOTION_QC_FAILED');
+      } else {
+        status = 'pass';
+      }
+
+      return {
+        status,
+        reasonCodes,
+        summary: {
+          path: relPath,
+          pass: status === 'pass',
+          framesChecked: Number.isFinite(totalFrames) ? totalFrames : 0,
+          errors: errList,
+          metrics: qcDoc.metrics ?? qcDoc.summary ?? {},
+        },
+      };
+    } catch {
+      return {
+        status: 'fail',
+        reasonCodes: ['MOTION_QC_FAILED'],
+        summary: { path: relPath, pass: false, errors: ['Corrupt motion_qc.json'] },
+      };
+    }
+  }
+
+  private async verifyEditorialQcFile(
+    absDir: string,
+    edQcPath: string,
+    currentFingerprint: string | null,
+    bestPreviewVideoSha: string | null,
+  ): Promise<{ status: QaTechnicalVerdict; summary: Record<string, unknown>; reasonCodes: string[] }> {
+    const relPath = path.relative(absDir, edQcPath).replace(/\\/g, '/');
+    try {
+      const edDoc = await readJsonFile<{
+        schema?: string;
+        status?: string;
+        pass?: unknown;
+        source_fingerprint?: unknown;
+        video_sha256?: unknown;
+        editorial_report_sha256?: unknown;
+        frames_checked?: unknown;
+        errors?: unknown;
+        warnings?: unknown;
+        descriptive_coverage?: Record<string, unknown>;
+        audience_retention_estimate?: string;
+      }>(edQcPath);
+
+      const edRepPath = path.join(path.dirname(edQcPath), 'editorial-report.json');
+      const edRepExists = fs.existsSync(edRepPath);
+      const errList = Array.isArray(edDoc.errors) ? edDoc.errors.map(String) : [];
+      const framesChecked = Number(edDoc.frames_checked ?? 0);
+      const fpVal = typeof edDoc.source_fingerprint === 'string' ? edDoc.source_fingerprint.trim() : '';
+      const vidShaVal = typeof edDoc.video_sha256 === 'string' ? edDoc.video_sha256.trim() : '';
+      const repShaDeclared = typeof edDoc.editorial_report_sha256 === 'string' ? edDoc.editorial_report_sha256.trim() : '';
+
+      let repValid = false;
+      let repShaActual = '';
+      if (edRepExists) {
+        repShaActual = await sha256File(edRepPath);
+        try {
+          const repDoc = await readJsonFile<{ schema?: string; video_sha256?: string; summary?: { frame_count?: unknown } }>(edRepPath);
+          repValid =
+            repDoc.schema === 'b6-editorial-report/1' &&
+            typeof repDoc.video_sha256 === 'string' &&
+            repDoc.video_sha256 === vidShaVal &&
+            Number(repDoc.summary?.frame_count ?? 0) > 0;
+        } catch {
+          repValid = false;
+        }
+      }
+
+      const reasonCodes: string[] = [];
+      let status: QaTechnicalVerdict;
+      if (fpVal && currentFingerprint && fpVal !== currentFingerprint) {
+        status = 'stale';
+        reasonCodes.push('EDITORIAL_QC_STALE');
+      } else if (bestPreviewVideoSha && vidShaVal && vidShaVal !== bestPreviewVideoSha) {
+        status = 'stale';
+        reasonCodes.push('EDITORIAL_QC_STALE');
+      } else if (repShaDeclared && edRepExists && repShaActual !== repShaDeclared) {
+        status = 'stale';
+        reasonCodes.push('EDITORIAL_QC_STALE');
+      } else if (
+        edDoc.schema !== 'b6-editorial-qc/1' ||
+        edDoc.pass !== true ||
+        edDoc.status !== 'pass' ||
+        !fpVal ||
+        !vidShaVal ||
+        !repShaDeclared ||
+        !edRepExists ||
+        !repValid ||
+        !Array.isArray(edDoc.errors) ||
+        errList.length > 0 ||
+        !Number.isFinite(framesChecked) ||
+        framesChecked <= 0
+      ) {
+        status = 'fail';
+        reasonCodes.push('EDITORIAL_QC_FAILED');
+      } else {
+        status = 'pass';
+      }
+
+      return {
+        status,
+        reasonCodes,
+        summary: {
+          path: relPath,
+          reportPath: edRepExists ? path.relative(absDir, edRepPath).replace(/\\/g, '/') : null,
+          pass: status === 'pass',
+          framesChecked: Number.isFinite(framesChecked) ? framesChecked : 0,
+          errors: errList,
+          warnings: Array.isArray(edDoc.warnings) ? edDoc.warnings : [],
+          descriptiveCoverage: edDoc.descriptive_coverage ?? {},
+          audienceRetentionEstimate: edDoc.audience_retention_estimate ?? 'unavailable',
+        },
+      };
+    } catch {
+      return {
+        status: 'fail',
+        reasonCodes: ['EDITORIAL_QC_FAILED'],
+        summary: { path: relPath, pass: false, errors: ['Corrupt editorial_qc.json'] },
+      };
+    }
+  }
+
+  private async verifySemanticQcFile(
+    absDir: string,
+    semQcPath: string,
+    currentFingerprint: string | null,
+    bestPreviewVideoSha: string | null,
+  ): Promise<{ status: QaTechnicalVerdict; summary: Record<string, unknown>; reasonCodes: string[] }> {
+    const relPath = path.relative(absDir, semQcPath).replace(/\\/g, '/');
+    try {
+      const semDoc = await readJsonFile<{
+        schema?: string;
+        status?: string;
+        pass?: unknown;
+        source_fingerprint?: unknown;
+        video_sha256?: unknown;
+        semantic_report_sha256?: unknown;
+        semantic_evidence_sha256?: unknown;
+        decoded_frame_verified?: unknown;
+        action_count?: unknown;
+        verified_action_count?: unknown;
+        coverage_ratio?: unknown;
+        frames_checked?: unknown;
+        uncertain_actions?: unknown;
+        errors?: unknown;
+        warnings?: unknown;
+        reason_codes?: unknown;
+      }>(semQcPath);
+
+      const dirName = path.dirname(semQcPath);
+      const repPath = path.join(dirName, 'semantic-report.json');
+      const evPath = path.join(dirName, 'semantic-evidence.jsonl');
+      const repExists = fs.existsSync(repPath);
+      const evExists = fs.existsSync(evPath);
+
+      const fpVal = typeof semDoc.source_fingerprint === 'string' ? semDoc.source_fingerprint.trim() : '';
+      const vidShaVal = typeof semDoc.video_sha256 === 'string' ? semDoc.video_sha256.trim() : '';
+      const repShaDecl = typeof semDoc.semantic_report_sha256 === 'string' ? semDoc.semantic_report_sha256.trim() : '';
+      const evShaDecl = typeof semDoc.semantic_evidence_sha256 === 'string' ? semDoc.semantic_evidence_sha256.trim() : '';
+
+      const repShaActual = repExists ? await sha256File(repPath) : '';
+      const evShaActual = evExists ? await sha256File(evPath) : '';
+      let repValid = false;
+      if (repExists) {
+        try {
+          const repDoc = await readJsonFile<{
+            schema?: string;
+            video_sha256?: string;
+            decoded_binding?: { verified?: unknown };
+          }>(repPath);
+          repValid =
+            repDoc.schema === 'b6-semantic-report/1' &&
+            repDoc.video_sha256 === vidShaVal &&
+            repDoc.decoded_binding?.verified === true;
+        } catch {
+          repValid = false;
+        }
+      }
+
+      const errList = Array.isArray(semDoc.errors) ? semDoc.errors.map(String) : [];
+      const framesChecked = Number(semDoc.frames_checked ?? 0);
+      const covRatio = Number(semDoc.coverage_ratio ?? 0);
+      const actCount = Number(semDoc.action_count ?? 0);
+      const verCount = Number(semDoc.verified_action_count ?? 0);
+
+      const reasonCodes: string[] = [];
+      let status: QaTechnicalVerdict;
+      if (fpVal && currentFingerprint && fpVal !== currentFingerprint) {
+        status = 'stale';
+        reasonCodes.push('SEMANTIC_QC_STALE');
+      } else if (bestPreviewVideoSha && vidShaVal && vidShaVal !== bestPreviewVideoSha) {
+        status = 'stale';
+        reasonCodes.push('SEMANTIC_QC_STALE');
+      } else if ((repShaDecl && repExists && repShaActual !== repShaDecl) || (evShaDecl && evExists && evShaActual !== evShaDecl)) {
+        status = 'stale';
+        reasonCodes.push('SEMANTIC_QC_STALE');
+      } else if (
+        semDoc.schema !== 'b6-semantic-qc/1' ||
+        semDoc.pass !== true ||
+        semDoc.status !== 'pass' ||
+        semDoc.decoded_frame_verified !== true ||
+        !fpVal ||
+        !vidShaVal ||
+        !repShaDecl ||
+        !evShaDecl ||
+        !repExists ||
+        !evExists ||
+        !repValid ||
+        !Array.isArray(semDoc.errors) ||
+        errList.length > 0 ||
+        !Number.isFinite(framesChecked) ||
+        framesChecked <= 0 ||
+        !Number.isFinite(covRatio) ||
+        covRatio < 0.9 ||
+        !Number.isFinite(actCount) ||
+        actCount <= 0 ||
+        verCount !== actCount
+      ) {
+        status = 'fail';
+        reasonCodes.push('SEMANTIC_QC_FAILED');
+      } else {
+        status = 'pass';
+      }
+
+      return {
+        status,
+        reasonCodes,
+        summary: {
+          path: relPath,
+          reportPath: repExists ? path.relative(absDir, repPath).replace(/\\/g, '/') : null,
+          evidencePath: evExists ? path.relative(absDir, evPath).replace(/\\/g, '/') : null,
+          pass: status === 'pass',
+          actionCount: Number.isFinite(actCount) ? actCount : 0,
+          verifiedActionCount: Number.isFinite(verCount) ? verCount : 0,
+          coverageRatio: Number.isFinite(covRatio) ? covRatio : 0,
+          framesChecked: Number.isFinite(framesChecked) ? framesChecked : 0,
+          decodedFrameVerified: semDoc.decoded_frame_verified === true,
+          uncertainActions: Array.isArray(semDoc.uncertain_actions) ? semDoc.uncertain_actions : [],
+          errors: errList,
+          warnings: Array.isArray(semDoc.warnings) ? semDoc.warnings : [],
+          reasonCodes: Array.isArray(semDoc.reason_codes) ? semDoc.reason_codes : [],
+        },
+      };
+    } catch {
+      return {
+        status: 'fail',
+        reasonCodes: ['SEMANTIC_QC_FAILED'],
+        summary: { path: relPath, pass: false, errors: ['Corrupt semantic_qc.json'] },
+      };
+    }
+  }
+
   async resolveQaState(projectDir: string, ratio: Ratio): Promise<ResolvedProjectQaState> {
     const absDir = path.resolve(projectDir);
     const fpInfo = await this.resolveCurrentProjectFingerprint(absDir, ratio);
@@ -910,6 +1211,7 @@ export class QaEvidenceResolver {
 
     let motionQcStatus: QaTechnicalVerdict | undefined;
     let motionQcSummary: Record<string, unknown> | undefined;
+    let motionReasonCodes: string[] = [];
     const qcCandidates: string[] = [];
     if (bestPreview?.reportRel) {
       qcCandidates.push(path.join(absDir, path.dirname(bestPreview.reportRel), 'motion_qc.json'));
@@ -920,51 +1222,39 @@ export class QaEvidenceResolver {
       if (!qcPath) {
         motionQcStatus = 'pending';
       } else {
-        try {
-          const qcDoc = await readJsonFile<{
-            status?: string;
-            pass?: boolean;
-            source_fingerprint?: string | null;
-            frames_checked?: number;
-            errors?: string[];
-            metrics?: Record<string, unknown>;
-          }>(qcPath);
-          const fpMismatch = Boolean(
-            qcDoc.source_fingerprint && fpInfo.fingerprint && qcDoc.source_fingerprint !== fpInfo.fingerprint,
-          );
-          const qcPassed = qcDoc.pass === true || qcDoc.status === 'pass';
-          if (fpMismatch) {
-            motionQcStatus = 'stale';
-          } else if (qcPassed) {
-            motionQcStatus = 'pass';
-          } else {
-            motionQcStatus = 'fail';
-          }
-          motionQcSummary = {
-            path: path.relative(absDir, qcPath).replace(/\\/g, '/'),
-            pass: qcPassed,
-            framesChecked: qcDoc.frames_checked ?? 0,
-            errors: Array.isArray(qcDoc.errors) ? qcDoc.errors : [],
-            metrics: qcDoc.metrics ?? {},
-          };
-        } catch {
-          motionQcStatus = 'fail';
-        }
+        const res = await this.verifyMotionQcFile(absDir, qcPath, fpInfo.fingerprint);
+        motionQcStatus = res.status;
+        motionQcSummary = res.summary;
+        motionReasonCodes = res.reasonCodes;
       }
     }
 
     // Editorial QC verification (for editorial_v1 opt-in projects only; zero impact on legacy projects)
     let usesEditorial = false;
+    let usesSemantic = false;
     try {
-      const projRaw = await readJsonFile<{ editorial_mode?: string }>(path.join(absDir, 'project.json'));
+      const projRaw = await readJsonFile<{ editorial_mode?: string; semantic_mode?: string }>(path.join(absDir, 'project.json'));
       usesEditorial = projRaw?.editorial_mode === 'editorial_v1';
+      usesSemantic = projRaw?.semantic_mode === 'semantic_v1';
     } catch {
       usesEditorial = false;
+      usesSemantic = false;
     }
-    if (!usesEditorial && fs.existsSync(path.join(absDir, 'scene-control.json'))) {
+    if ((!usesEditorial || !usesSemantic) && fs.existsSync(path.join(absDir, 'scene-control.json'))) {
       try {
-        const ctrlRaw = await readJsonFile<{ editorialMode?: string }>(path.join(absDir, 'scene-control.json'));
-        usesEditorial = ctrlRaw?.editorialMode === 'editorial_v1';
+        const ctrlRaw = await readJsonFile<{
+          editorialMode?: string;
+          semanticMode?: string;
+          semanticActions?: unknown[];
+          shots?: Array<{ semanticActions?: unknown[] }>;
+        }>(path.join(absDir, 'scene-control.json'));
+        if (!usesEditorial) usesEditorial = ctrlRaw?.editorialMode === 'editorial_v1';
+        if (!usesSemantic) {
+          usesSemantic =
+            ctrlRaw?.semanticMode === 'semantic_v1' ||
+            Boolean(ctrlRaw?.semanticActions?.length) ||
+            Boolean(ctrlRaw?.shots?.some((s) => Boolean(s.semanticActions?.length)));
+        }
       } catch {
         // ignore
       }
@@ -972,6 +1262,7 @@ export class QaEvidenceResolver {
 
     let editorialQcStatus: QaTechnicalVerdict | undefined;
     let editorialQcSummary: Record<string, unknown> | undefined;
+    let edReasonCodes: string[] = [];
     const edQcCandidates: string[] = [];
     if (bestPreview?.reportRel) {
       edQcCandidates.push(path.join(absDir, path.dirname(bestPreview.reportRel), 'editorial_qc.json'));
@@ -985,51 +1276,34 @@ export class QaEvidenceResolver {
       if (!edQcPath) {
         editorialQcStatus = 'pending';
       } else {
-        try {
-          const edDoc = await readJsonFile<{
-            status?: string;
-            pass?: boolean;
-            source_fingerprint?: string | null;
-            video_sha256?: string | null;
-            editorial_report_sha256?: string | null;
-            frames_checked?: number;
-            errors?: string[];
-            warnings?: string[];
-            descriptive_coverage?: Record<string, unknown>;
-            audience_retention_estimate?: string;
-          }>(edQcPath);
-          const edRepPath = path.join(path.dirname(edQcPath), 'editorial-report.json');
-          const edRepExists = fs.existsSync(edRepPath);
-          const edRepShaOk =
-            !edDoc.editorial_report_sha256 ||
-            (edRepExists && (await sha256File(edRepPath)) === edDoc.editorial_report_sha256);
-          const fpMismatch = Boolean(
-            (edDoc.source_fingerprint && fpInfo.fingerprint && edDoc.source_fingerprint !== fpInfo.fingerprint) ||
-              (bestPreview?.videoSha256 && edDoc.video_sha256 && edDoc.video_sha256 !== bestPreview.videoSha256) ||
-              !edRepExists ||
-              !edRepShaOk,
-          );
-          const edPassed = edDoc.pass === true || edDoc.status === 'pass';
-          if (fpMismatch) {
-            editorialQcStatus = 'stale';
-          } else if (edPassed) {
-            editorialQcStatus = 'pass';
-          } else {
-            editorialQcStatus = 'fail';
-          }
-          editorialQcSummary = {
-            path: path.relative(absDir, edQcPath).replace(/\\/g, '/'),
-            reportPath: edRepExists ? path.relative(absDir, edRepPath).replace(/\\/g, '/') : null,
-            pass: edPassed && !fpMismatch,
-            framesChecked: edDoc.frames_checked ?? 0,
-            errors: Array.isArray(edDoc.errors) ? edDoc.errors : [],
-            warnings: Array.isArray(edDoc.warnings) ? edDoc.warnings : [],
-            descriptiveCoverage: edDoc.descriptive_coverage ?? {},
-            audienceRetentionEstimate: edDoc.audience_retention_estimate ?? 'unavailable',
-          };
-        } catch {
-          editorialQcStatus = 'fail';
-        }
+        const res = await this.verifyEditorialQcFile(absDir, edQcPath, fpInfo.fingerprint, bestPreview?.videoSha256 ?? null);
+        editorialQcStatus = res.status;
+        editorialQcSummary = res.summary;
+        edReasonCodes = res.reasonCodes;
+      }
+    }
+
+    let semanticQcStatus: QaTechnicalVerdict | undefined;
+    let semanticQcSummary: Record<string, unknown> | undefined;
+    let semReasonCodes: string[] = [];
+    const semQcCandidates: string[] = [];
+    if (bestPreview?.reportRel) {
+      semQcCandidates.push(path.join(absDir, path.dirname(bestPreview.reportRel), 'semantic_qc.json'));
+    }
+    semQcCandidates.push(
+      path.join(absDir, 'outputs', 'preview-01', 'semantic_qc.json'),
+      path.join(absDir, 'semantic_qc.json'),
+    );
+    const semQcPath = semQcCandidates.find((p) => fs.existsSync(p));
+    if (usesSemantic) {
+      if (!semQcPath) {
+        semanticQcStatus = 'pending';
+        semReasonCodes = ['SEMANTIC_QC_PENDING'];
+      } else {
+        const res = await this.verifySemanticQcFile(absDir, semQcPath, fpInfo.fingerprint, bestPreview?.videoSha256 ?? null);
+        semanticQcStatus = res.status;
+        semanticQcSummary = res.summary;
+        semReasonCodes = res.reasonCodes;
       }
     }
 
@@ -1052,10 +1326,9 @@ export class QaEvidenceResolver {
         ...(bestPreview?.reasonCodes ?? []),
         ...(latestMotionReview?.reasonCodes ?? []),
         ...approval.reasonCodes,
-        ...(motionQcStatus === 'fail' ? ['MOTION_QC_FAILED'] : []),
-        ...(motionQcStatus === 'stale' ? ['MOTION_QC_STALE'] : []),
-        ...(editorialQcStatus === 'fail' ? ['EDITORIAL_QC_FAILED'] : []),
-        ...(editorialQcStatus === 'stale' ? ['EDITORIAL_QC_STALE'] : []),
+        ...motionReasonCodes,
+        ...edReasonCodes,
+        ...semReasonCodes,
         ...(usesEditorial && editorialQcStatus === 'pending' ? ['EDITORIAL_QC_PENDING'] : []),
       ]),
     );
@@ -1072,6 +1345,9 @@ export class QaEvidenceResolver {
       ...(editorialQcStatus === 'fail' ? ['Editorial QC chưa PASS (cần sửa nhịp/framing/gaming)'] : []),
       ...(editorialQcStatus === 'stale' ? ['Editorial QC đã cũ so với video/nguồn hiện tại'] : []),
       ...(usesEditorial && editorialQcStatus === 'pending' ? ['Chưa có editorial_qc.json cho dự án editorial_v1'] : []),
+      ...(semanticQcStatus === 'fail' ? ['Semantic Action QC chưa PASS (hành động kể chuyện chưa được chứng minh khớp video)'] : []),
+      ...(semanticQcStatus === 'stale' ? ['Semantic Action QC đã cũ so với video/nguồn hiện tại'] : []),
+      ...(usesSemantic && semanticQcStatus === 'pending' ? ['Chưa có semantic_qc.json cho dự án semantic_v1'] : []),
       ...(latestMotionReview && latestMotionReview.status !== 'pass'
         ? [`Visual review 35 mục chưa hoàn tất (${latestMotionReview.status})`]
         : []),
@@ -1120,6 +1396,27 @@ export class QaEvidenceResolver {
         status: editorialQcStatus ?? 'pending',
       });
     }
+    if (semanticQcSummary?.path) {
+      evidenceLinks.push({
+        label: 'Semantic QC JSON',
+        path: String(semanticQcSummary.path),
+        status: semanticQcStatus ?? 'pending',
+      });
+    }
+    if (semanticQcSummary?.reportPath) {
+      evidenceLinks.push({
+        label: 'Semantic Report JSON',
+        path: String(semanticQcSummary.reportPath),
+        status: semanticQcStatus ?? 'pending',
+      });
+    }
+    if (semanticQcSummary?.evidencePath) {
+      evidenceLinks.push({
+        label: 'Semantic Evidence JSONL',
+        path: String(semanticQcSummary.evidencePath),
+        status: semanticQcStatus ?? 'pending',
+      });
+    }
 
     const summary: QaEvidenceSummary = {
       technicalStatus,
@@ -1129,6 +1426,8 @@ export class QaEvidenceResolver {
       ...(motionQcSummary ? { motionQcSummary } : {}),
       ...(editorialQcStatus ? { editorialQcStatus } : {}),
       ...(editorialQcSummary ? { editorialQcSummary } : {}),
+      ...(semanticQcStatus ? { semanticQcStatus } : {}),
+      ...(semanticQcSummary ? { semanticQcSummary } : {}),
       reasonCodes,
       staleReasons,
       blockingReasons,
@@ -1144,7 +1443,8 @@ export class QaEvidenceResolver {
         visualReviewStatus === 'pass' &&
         userApprovalStatus === 'approved' &&
         (!usesArticulated || motionQcStatus === 'pass') &&
-        (!usesEditorial || editorialQcStatus === 'pass'),
+        (!usesEditorial || editorialQcStatus === 'pass') &&
+        (!usesSemantic || semanticQcStatus === 'pass'),
       evidenceLinks,
     };
 

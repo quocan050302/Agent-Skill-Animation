@@ -93,5 +93,56 @@ npm run verify:all
 
 - **Walk / Run Gait (`legacy_stance` vs `articulated_v1`)**: `b6_puppet.py` gốc (`legacy_stance`, giữ nguyên cho La Mã R1 & Cao bồi R2) chỉ hỗ trợ chân đứng tĩnh với `ankle_targets` giới hạn (±25% chiều dài chân). Tầng mở rộng `Skill-B6/motion_runtime/` (`articulated_v1`, áp dụng cho Samurai R3 và project mới chọn opt-in) cung cấp 2-bone bent-knee IK + khóa bàn chân theo world + `b6_motion_qc.py`, trong khi `render` vẫn tuân thủ kiểm định 35 mục visual review và user approval riêng.
 - **Native 9:16 vs 16:9**: B6 đạt chất lượng cao nhất ở **9:16 dọc** (lấy Eiffel V44 làm chuẩn mực chính). Chuyển sang 16:9 phải author riêng bố cục, camera và `native_layout_reason`, không crop/kéo giãn.
-- **Tạo ảnh & Giọng đọc (Image / TTS)**: Chưa có callable API trực tiếp từ web app localhost sang tool tạo ảnh của Anti. Tạo ảnh qua cơ chế `asset-request.json` + `assets/inbox/`, âm thanh qua nhập WAV/M4A hoặc tổng hợp local (ví dụ Windows SAPI TTS).
+- **Tạo ảnh & Giọng đọc (Image / TTS)**: Chưa có callable API trực tiếp từ web app localhost sang tool tạo ảnh của Anti. Tạo ảnh qua cơ chế `asset-request.json` + `assets/inbox/`, âm thanh qua nhập WAV/M4A hoặc tổng hợp local (ví dụ macOS `say` / Windows SAPI TTS).
 - **Upstream Windows Notes**: File `b6_motion_review.py` của upstream dùng `-vsync vfr` (đã bỏ ở FFmpeg 9) và `write_text()` CRLF khi lưu lịch sử lỗi `.b6-review-history/`. Xem chi tiết tại [docs/B6-SOURCE-AUDIT.md](docs/B6-SOURCE-AUDIT.md).
+
+---
+
+## 6. B6-04 & B6-05 (Semantic Action Validation) — Checkpoint 2026-11-18
+
+### Đã hoàn thành & xác thực kỹ thuật
+- **Editorial Runtime (`editorial_runtime/`, B6-04 + mở rộng B6-05)**:
+  - Đã thêm phân tích `0.25s` buckets (`per_quarter_second`) và tách riêng chuyển động theo mask nhân vật/đạo cụ (`actor_mask_motion_mean`, `prop_mask_motion_mean`, `meaningful_action_coverage`) khỏi camera-compensated optical residual trong `editorial_runtime/b6_editorial_metrics.py` & `editorial_runtime/b6_editorial_cli.py`.
+- **Semantic Runtime (`semantic_runtime/`, `b6-semantic/1`)**:
+  - `b6_semantic_contract.py`: Hợp đồng semantic actions (`sneeze`, `detach`, `drop`, `bounce`, `roll`, `chase`, `avoid_obstacle`, `hide_behind`, `trip`, `reach`, `take`, `reattach`, `walk`, `collide`, `react`), kiểm tra causality / thứ tự `prerequisiteIds` và từ chối unknown action thiếu criteria.
+  - `b6_semantic_evidence.py`: Đo pixel mask, `cv2.distanceTransform` contact (`actor->prop`, `actor@occluder`), occlusion thật (`occlusion_ratio`, `in_front_leak_ratio`), trajectory, decoded MP4 binding (`beauty_sha256`, `decoded_luma_std`) và ảnh debug overlay/triptych.
+  - `b6_semantic_qc.py` & `b6_semantic_cli.py`: Kiểm tra độ phủ từng frame, cross-check decoded MP4 với `semantic-evidence.jsonl`, xuất `semantic_qc.json` + `semantic-report.json` (`--strict-exit`), giữ nguyên `human_visual_review: "PENDING"` & `user_approval: "PENDING"`.
+- **Motion Render & Hydration Backward Compatibility**:
+  - `motion_runtime/b6_motion_render.py`: Hỗ trợ opt-in `head_mount_state` (`attached|detaching|detached|reattaching`) & `capture_semantic_masks=False`, bảo toàn `legacy_v1_sha256` trong `motion_runtime/manifest.json`.
+  - `scripts/hydrate-project.mjs`: Tự hydrate `semantic_v1`; xác nhận 4 project mẫu cũ (`roman-gladiator-10s`, `cowboy-hat-10s`, `samurai-red-leaf-10s`, `zombie-mirror-10s`) nguyên vẹn 100% checksum theo `BASELINE.json`.
+- **Shared Schemas, Server QA Truth Hardening & Frontend UI**:
+  - `app/shared/src/schemas.ts`, `qa-evidence-service.ts`, `editor-binding-service.ts`, `app.ts`, `b6-command-adapter.ts`, `job-queue.ts`, `review-service.ts`, `script-timeline-service.ts`: Siết chặt `pass === true && status === 'pass'`, kiểm tra hash/fingerprint chống stale/tamper, thêm `GET /api/projects/:id/semantic-report`, `POST /api/projects/:id/analyze-semantic`, và cập nhật UI (`PlayerStage.tsx`, `InspectorPanel.tsx`, `JobsQaView.tsx`) tách rõ `Image Residual Flow` vs `Actor mask`.
+- **Project mẫu mới `workspace/projects/zombie-runaway-head-10s`** (*"The Zombie Who Lost His Head"*):
+  - Tài nguyên RGBA gốc tạo bằng Antigravity `image-generator` (`pip`, `maya`, `bg_dawn_plaza_tram.png`, `prop_tram_pole.png`, `prop_orange_rail.png`, `prop_pip_head_shock.png`), âm thanh mix `audio/narration_mixed.wav` (`Daniel en_GB` + Foley), 14 phụ đề single-line Archivo Black khớp envelope lời thoại, `16` causal semantic actions, và render full `720x1280` `30fps` `10.0s` tại `workspace/projects/zombie-runaway-head-10s/outputs/preview-01/preview.mp4`.
+- **Bài kiểm thử đã chạy và PASS gần nhất**:
+  - Python `unittest`: `29/29` test (`motion_runtime/tests/test_motion_core.py`, `editorial_runtime/tests/test_editorial_runtime.py`, `semantic_runtime/tests/test_semantic_{contract,evidence,qc}.py`).
+  - Workspace build + FE typecheck + Server Vitest: `npm run build`, `npm --workspace=app/frontend run typecheck`, `npm --workspace=app/server run test` (`21/21` passed).
+  - Kiểm tra checksum 4 project baseline trong [`BASELINE.json`](docs/agent-runs/B6-LOCAL-STUDIO-05/BASELINE.json): `0` mismatches.
+
+---
+
+## 7. Kế hoạch thực hiện tiếp ngày mai (2026-11-19 — Continuation Checklist)
+
+> Xem log chi tiết & tài liệu run tại [`docs/agent-runs/B6-LOCAL-STUDIO-05/README.md`](docs/agent-runs/B6-LOCAL-STUDIO-05/README.md).
+
+1. **Xử lý nhánh Git về `master` (nếu cần hợp nhất)**:
+   - Trong lúc thực hiện checkpoint, `HEAD` hiện tại ở trên nhánh `feat/short-01-original-engine-fidelity` (chứa commit baseline `9936680` của `Skill-Cartoon-Short`). Không force-push hay reset; để đưa toàn bộ phần `Skill-B6` lên `master` sạch sẽ không làm mất `Skill-Cartoon-Short`:
+     ```bash
+     git fetch origin
+     git checkout master
+     git cherry-pick <SHA_COMMIT_B6_05_TREN_NHANH_NAY>
+     git push origin master
+     ```
+2. **Kiểm tra hậu kiểm output & review trực quan `zombie-runaway-head-10s`**:
+   - Nếu `outputs/preview-01` chưa có đủ `semantic_qc.json`, `editorial_qc.json`, `motion_qc.json`, `semantic_debug/`, `outputs/review-01`: chạy lại bước collect 300-frame evidence + `b6_editorial_cli.py` + `b6_semantic_cli.py --strict-exit` + `run.py review-pack`.
+   - Mở xem trực quan `outputs/preview-01/semantic_debug/{triptych_*, mask_overlay_*}.png`, `editorial-contact-sheet.jpg`, `editorial-pacing-chart.svg`, và phát kiểm âm thanh/hình `preview.mp4`.
+   - Chép MP4, contact sheet 12+54 tile, `0/0.5/1s` keyframes và các báo cáo JSON QC vào `docs/agent-runs/B6-LOCAL-STUDIO-05/` (làm deliverable tự chứa, không sửa `approval-9x16.json`, giữ nguyên `human_visual_review: PENDING`).
+3. **Chạy trọn bộ Release Verification + E2E Playwright + Pure Clean Clone**:
+   - Chạy `cd Skill-B6 && npm run build && node scripts/verify-all.mjs --tier release --benchmark-workers --max-workers 2` (gồm cả `playwright_e2e` với screenshot vào `docs/agent-runs/B6-LOCAL-STUDIO-05/screenshots/`).
+   - Mở xem trực quan toàn bộ screenshot Playwright E2E trên desktop `1440x900` và mobile `375px`.
+   - Sau khi commit sạch, chạy thêm `--pure-clone` để xác nhận `cleanCloneMode=pure_committed_git_clone`, `decodedPixelsParity=true`, và checksum 4 legacy projects khớp 100%.
+4. **Hoàn tất bộ báo cáo nghiệm thu `docs/agent-runs/B6-LOCAL-STUDIO-05/`**:
+   - Viết đầy đủ: `SEMANTIC-EVENT-REVIEW.md`, `PACING-COMPARISON.md` (so sánh Samurai B6-03 vs Zombie-Mirror B6-04 vs Zombie-Runaway-Head B6-05), `TEST-MATRIX.md`, `QA-REPORT.md`, `BENCHMARK.md`, `CLEAN-CLONE-REPORT.md`, `OUTPUT-MANIFEST.json`, và cập nhật tổng kết `README.md`.
+5. **Commit & Push cuối cùng lên `origin master`**:
+   - Chỉ sau khi toàn bộ gate đạt PASS thật và người dùng/reviewer xem video thực tế, mới ghi nhận trạng thái hoàn tất cuối cùng (không tự mở khóa `renderUnlocked` trước khi có `check-review` / `approve`).
+

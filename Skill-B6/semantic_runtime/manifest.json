@@ -1,0 +1,27 @@
+{
+  "schema": "b6-semantic-runtime-manifest/1",
+  "version": "1.0.0",
+  "semantic_schema": "b6-semantic-action/1",
+  "files": {
+    "__init__.py": {
+      "sha256": "7c222344af9b30979ba8afe5c4997b9b593b56988c484e06163f377a5ccc18ac",
+      "bytes": 2167
+    },
+    "b6_semantic_cli.py": {
+      "sha256": "78cf8d507f59af8e0ce19d54707623ce5fdd7bf0157ff9fcbd8b2904397b7096",
+      "bytes": 7965
+    },
+    "b6_semantic_contract.py": {
+      "sha256": "88dbd7a7b13249a69244cd2b0f7bd27f760ddeca52090aa98bd83b61a156fa9a",
+      "bytes": 24729
+    },
+    "b6_semantic_evidence.py": {
+      "sha256": "06d10a18e6818ad99ac0e345c96b7f582f89988ff7c81e0bfac2b50af3447b78",
+      "bytes": 25026
+    },
+    "b6_semantic_qc.py": {
+      "sha256": "091225cd74cf883c30b8728efcd3a488c33ee8fc4842a2c0989f66e0145de071",
+      "bytes": 37038
+    }
+  }
+}

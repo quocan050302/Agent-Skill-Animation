@@ -16,6 +16,8 @@ export interface ReviewSummary {
   motionQcSummary?: QaEvidenceSummary['motionQcSummary'];
   editorialQcStatus?: QaEvidenceSummary['editorialQcStatus'];
   editorialQcSummary?: QaEvidenceSummary['editorialQcSummary'];
+  semanticQcStatus?: QaEvidenceSummary['semanticQcStatus'];
+  semanticQcSummary?: QaEvidenceSummary['semanticQcSummary'];
   reasonCodes: string[];
   staleReasons: string[];
   blockingReasons: string[];
@@ -107,6 +109,8 @@ export class ReviewService {
       ...(resolved.summary.motionQcSummary ? { motionQcSummary: resolved.summary.motionQcSummary } : {}),
       ...(resolved.summary.editorialQcStatus ? { editorialQcStatus: resolved.summary.editorialQcStatus } : {}),
       ...(resolved.summary.editorialQcSummary ? { editorialQcSummary: resolved.summary.editorialQcSummary } : {}),
+      ...(resolved.summary.semanticQcStatus ? { semanticQcStatus: resolved.summary.semanticQcStatus } : {}),
+      ...(resolved.summary.semanticQcSummary ? { semanticQcSummary: resolved.summary.semanticQcSummary } : {}),
       reasonCodes: resolved.summary.reasonCodes,
       staleReasons: resolved.summary.staleReasons,
       blockingReasons: resolved.summary.blockingReasons,

@@ -168,6 +168,26 @@ if (editorialManifest?.files) {
 
 const EDITORIAL_RUNTIME_FILES = ['b6_editorial_contract.py', 'b6_editorial_director.py'];
 
+const SEMANTIC_RUNTIME_DIR = path.join(APP_ROOT, 'semantic_runtime');
+const SEMANTIC_MANIFEST_PATH = path.join(SEMANTIC_RUNTIME_DIR, 'manifest.json');
+const semanticManifest = fs.existsSync(SEMANTIC_MANIFEST_PATH)
+  ? JSON.parse(fs.readFileSync(SEMANTIC_MANIFEST_PATH, 'utf8'))
+  : null;
+if (semanticManifest?.files) {
+  for (const [fname, meta] of Object.entries(semanticManifest.files)) {
+    const abs = path.join(SEMANTIC_RUNTIME_DIR, fname);
+    if (!fs.existsSync(abs) || sha256File(abs) !== meta.sha256) {
+      throw new Error(`Shared semantic_runtime integrity mismatch for ${fname} against semantic_runtime/manifest.json`);
+    }
+  }
+}
+
+const SEMANTIC_RUNTIME_FILES = [
+  'b6_semantic_contract.py',
+  'b6_semantic_evidence.py',
+  'b6_semantic_qc.py',
+];
+
 const HELPER_SCRIPTS = [
   ['b6_production.py', 'run.py'],
   ['b6_motion_review.py', 'motion_review.py'],
@@ -284,13 +304,21 @@ for (const projDir of projectTargets) {
   const controlJson = fs.existsSync(controlPath) ? JSON.parse(fs.readFileSync(controlPath, 'utf8')) : null;
   const usesArticulated =
     projectJson?.motion_mode === 'articulated_v1' || controlJson?.motionMode === 'articulated_v1';
+  const usesSemantic =
+    projectJson?.semantic_mode === 'semantic_v1' || controlJson?.semanticMode === 'semantic_v1';
   if (usesArticulated && motionManifest?.files) {
     for (const fname of ARTICULATED_RUNTIME_FILES) {
       const destAbs = path.join(projDir, fname);
       const srcAbs = path.join(MOTION_RUNTIME_DIR, fname);
-      const expectedSha = motionManifest.files[fname]?.sha256;
-      const missingOrStale = !fs.existsSync(destAbs) || (expectedSha && sha256File(destAbs) !== expectedSha);
-      if (missingOrStale) {
+      const fileMeta = motionManifest.files[fname] ?? {};
+      const expectedSha = fileMeta.sha256;
+      const legacySha = !usesSemantic ? fileMeta.legacy_v1_sha256 : null;
+      const actualDestSha = fs.existsSync(destAbs) ? sha256File(destAbs) : null;
+      const matches = Boolean(
+        actualDestSha &&
+          ((expectedSha && actualDestSha === expectedSha) || (legacySha && actualDestSha === legacySha)),
+      );
+      if (!matches) {
         if (verifyOnly) {
           errors.push(`motion_runtime helper missing/mismatch: ${fname}`);
         } else if (dryRun) {
@@ -320,6 +348,26 @@ for (const projDir of projectTargets) {
         } else {
           fs.copyFileSync(srcAbs, destAbs);
           actions.push(`hydrated_editorial:${fname}`);
+        }
+      }
+    }
+  }
+
+  // 4d. Hydrate semantic_runtime helpers ONLY for projects opting into semantic_v1
+  if (usesSemantic && semanticManifest?.files) {
+    for (const fname of SEMANTIC_RUNTIME_FILES) {
+      const destAbs = path.join(projDir, fname);
+      const srcAbs = path.join(SEMANTIC_RUNTIME_DIR, fname);
+      const expectedSha = semanticManifest.files[fname]?.sha256;
+      const missingOrStale = !fs.existsSync(destAbs) || (expectedSha && sha256File(destAbs) !== expectedSha);
+      if (missingOrStale) {
+        if (verifyOnly) {
+          errors.push(`semantic_runtime helper missing/mismatch: ${fname}`);
+        } else if (dryRun) {
+          actions.push(`would_hydrate_semantic:${fname}`);
+        } else {
+          fs.copyFileSync(srcAbs, destAbs);
+          actions.push(`hydrated_semantic:${fname}`);
         }
       }
     }

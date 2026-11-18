@@ -222,6 +222,15 @@ export const PlayerStage: React.FC<PlayerStageProps> = ({
                   {currentShot.editorial.focus?.targetKind ?? 'actor_full'}
                 </div>
               )}
+              {(currentShot.semanticActions?.length ?? 0) > 0 && (
+                <div data-testid="semantic-overlay-actions">
+                  sem:{' '}
+                  {currentShot.semanticActions!
+                    .filter((a) => currentTime >= (a.startS ?? currentShot.start) - 0.05 && currentTime <= (a.endS ?? currentShot.end) + 0.05)
+                    .map((a) => `${a.actionType}(${a.actorId}${a.targetPropId ? `→${a.targetPropId}` : a.occluderId ? `@${a.occluderId}` : ''})`)
+                    .join(', ') || currentShot.semanticActions!.map((a) => a.actionType).join(', ')}
+                </div>
+              )}
               {currentShot.motion?.gait && (
                 <div>
                   cadence {currentShot.motion.gait.cadenceHz}Hz · stride {currentShot.motion.gait.strideLen}px ·

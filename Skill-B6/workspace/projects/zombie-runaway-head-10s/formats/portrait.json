@@ -1,0 +1,1088 @@
+{
+  "schema": "b6-format-plan/1",
+  "ratio": "9:16",
+  "native_design": "9:16",
+  "width": 720,
+  "height": 1280,
+  "fps": 30,
+  "duration": 10.0,
+  "motionMode": "articulated_v1",
+  "editorialMode": "editorial_v1",
+  "editorialProfile": {
+    "schema": "b6-studio-editorial/1",
+    "mode": "editorial_v1",
+    "rules": {
+      "minHoldS": 0.35,
+      "maxAngularVelDegS": 90,
+      "maxCamSpeedPxS": 1150,
+      "maxCamAccelPxS2": 4800,
+      "allowStrobe": false,
+      "protectCaptionBand": true
+    }
+  },
+  "semanticMode": "semantic_v1",
+  "directorBeats": [
+    {
+      "id": "beat_sneeze",
+      "start": 0.0,
+      "end": 1.05,
+      "beatKind": "hook",
+      "cameraPreset": "reaction_closeup",
+      "purpose": "Huge morning sneeze pops Pip head loose"
+    },
+    {
+      "id": "beat_chase",
+      "start": 1.05,
+      "end": 5.3,
+      "beatKind": "escalation",
+      "cameraPreset": "follow",
+      "purpose": "Runaway head bounces & rolls past Maya and barrier rail"
+    },
+    {
+      "id": "beat_recover",
+      "start": 5.3,
+      "end": 8.55,
+      "beatKind": "surprise",
+      "cameraPreset": "object_insert",
+      "purpose": "Puddle slip, rescue scoop, and backwards head snap"
+    },
+    {
+      "id": "beat_bonk",
+      "start": 8.55,
+      "end": 10.0,
+      "beatKind": "payoff",
+      "cameraPreset": "impact",
+      "purpose": "Blind backwards strut into tram stop pole"
+    }
+  ],
+  "caption": {
+    "profile": "eiffel-v44-portrait-archivo-black-v1",
+    "native_design": "9:16",
+    "font_family": "Archivo Black",
+    "font_file": "fonts/ArchivoBlack.ttf",
+    "font_sha256": "dd9a89a019b4849f66ab75455fe7bdf931311042cbb0f0f97acc061539703180",
+    "font_size": 47,
+    "stroke": 4,
+    "fill": "#ffffff",
+    "stroke_fill": "#171319",
+    "supersampling": 3,
+    "resample": "lanczos",
+    "anchor": "ms",
+    "side": 44,
+    "switch": "hard_cut",
+    "autoshrink": false,
+    "pop": false,
+    "baseline": 914,
+    "band": [
+      864,
+      951
+    ],
+    "native_layout_reason": "Single-line Archivo Black bottom caption band clear of character feet and runaway head ground lane across 9:16 portrait shots"
+  },
+  "cast_inventory": [
+    {
+      "id": "pip",
+      "role": "Runaway-head dawn zombie protagonist",
+      "shot_ids": [
+        "shot_01_sneeze_pop",
+        "shot_02_drop_bounce",
+        "shot_03_roll_and_chase",
+        "shot_04_rail_avoid_hide",
+        "shot_05_trip_skid",
+        "shot_06_reach_take",
+        "shot_07_reattach_backwards",
+        "shot_08_bonk_payoff"
+      ]
+    },
+    {
+      "id": "maya",
+      "role": "Startled tram commuter onlooker",
+      "shot_ids": [
+        "shot_01_sneeze_pop",
+        "shot_02_drop_bounce",
+        "shot_03_roll_and_chase",
+        "shot_04_rail_avoid_hide",
+        "shot_05_trip_skid",
+        "shot_06_reach_take",
+        "shot_07_reattach_backwards",
+        "shot_08_bonk_payoff"
+      ]
+    }
+  ],
+  "shots": [
+    {
+      "id": "shot_01_sneeze_pop",
+      "start": 0.0,
+      "end": 1.05,
+      "actor": "pip",
+      "environment": "misty dawn city transit plaza",
+      "sceneGoal": "Open tight on Pip's huge sneeze and pop his head off within 1s",
+      "composition": "Close-up push onto Pip's face and poncho collar as head pops airborne",
+      "action": "Pip winds up a giant sneeze and detaches his own head into midair",
+      "expression": "sneeze",
+      "props": [
+        "z_head"
+      ],
+      "staging": {
+        "pip": {
+          "x": -250,
+          "y": 0,
+          "z": 860
+        },
+        "maya": {
+          "x": 150,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Tight push into Pip collar for comic hook",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": -250,
+          "y": -200,
+          "z": 360,
+          "fov": 52
+        },
+        {
+          "t": 1.05,
+          "x": -230,
+          "y": -215,
+          "z": 340,
+          "fov": 52
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "anticipate",
+        "startX": -250,
+        "endX": -242,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 1.6,
+          "strideLen": 60,
+          "footLift": 14,
+          "targetSpeed": 0,
+          "pelvisDrop": 6,
+          "armSwingAmp": 0.25,
+          "anticipateS": 0.16,
+          "settleS": 0.14,
+          "facing": 1
+        },
+        "cameraPreset": "reaction_closeup",
+        "visualBeat": "hook",
+        "headVariant": "sneeze"
+      },
+      "cameraPreset": "reaction_closeup",
+      "visualBeat": "hook",
+      "editorial": {
+        "role": "hook",
+        "shotSize": "close",
+        "focus": {
+          "targetKind": "actor_head",
+          "actorId": "pip",
+          "propId": "",
+          "offsetXy": [
+            0,
+            0
+          ],
+          "scaleHint": 0.9,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "push",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Instant sneeze hook opening",
+          "preserveEyeline": true,
+          "matchAction": false
+        },
+        "intensity": "high",
+        "pacingAdvice": "snappy",
+        "actionOnsetS": 0.25,
+        "reactionHoldS": 0.15
+      },
+      "semanticActions": [
+        {
+          "id": "pip_sneeze",
+          "actionType": "sneeze",
+          "actorId": "pip",
+          "startS": 0.0,
+          "endS": 0.45
+        },
+        {
+          "id": "pip_head_detach",
+          "actionType": "detach",
+          "actorId": "pip",
+          "targetPropId": "z_head",
+          "partId": "head",
+          "startS": 0.4,
+          "endS": 1.05,
+          "prerequisiteIds": [
+            "pip_sneeze"
+          ]
+        }
+      ],
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_dawn_plaza_tram.png",
+        "assets/production/prop_pip_head_shock.png"
+      ],
+      "sfx": "achoo_pop"
+    },
+    {
+      "id": "shot_02_drop_bounce",
+      "start": 1.05,
+      "end": 2.2,
+      "actor": "pip",
+      "environment": "wet cobblestone walkway edge",
+      "sceneGoal": "Show detached head physically drop onto cobblestones and bounce spinning down the path",
+      "composition": "Low prop insert tracking airborne-to-ground shock head bouncing twice across wet stones",
+      "action": "Detached head drops hard onto dawn cobblestones and bounces spinning away",
+      "expression": "neutral",
+      "props": [
+        "z_head"
+      ],
+      "staging": {
+        "pip": {
+          "x": -220,
+          "y": 0,
+          "z": 860
+        },
+        "maya": {
+          "x": 150,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Low dynamic tracking insert on bouncing head",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": -110,
+          "y": -95,
+          "z": 310,
+          "fov": 52
+        },
+        {
+          "t": 1.15,
+          "x": 10,
+          "y": -85,
+          "z": 310,
+          "fov": 52
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "walk",
+        "startX": -242,
+        "endX": -155,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.3,
+          "strideLen": 88,
+          "footLift": 26,
+          "targetSpeed": 85,
+          "pelvisDrop": 5,
+          "armSwingAmp": 0.45,
+          "anticipateS": 0.1,
+          "settleS": 0.1,
+          "facing": 1
+        },
+        "cameraPreset": "object_insert",
+        "visualBeat": "action"
+      },
+      "cameraPreset": "object_insert",
+      "visualBeat": "action",
+      "editorial": {
+        "role": "prop_insert",
+        "shotSize": "insert",
+        "focus": {
+          "targetKind": "prop",
+          "actorId": "",
+          "propId": "z_head",
+          "offsetXy": [
+            0,
+            0
+          ],
+          "scaleHint": 0.95,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "follow_prop",
+        "transition": {
+          "kind": "match_action_cut",
+          "durationS": 0,
+          "reason": "Follow detached head drop from neck",
+          "preserveEyeline": true,
+          "matchAction": true
+        },
+        "intensity": "high",
+        "pacingAdvice": "snappy",
+        "actionOnsetS": 1.2,
+        "reactionHoldS": 0.0
+      },
+      "semanticActions": [
+        {
+          "id": "head_drop",
+          "actionType": "drop",
+          "actorId": "pip",
+          "targetPropId": "z_head",
+          "startS": 1.05,
+          "endS": 1.45,
+          "prerequisiteIds": [
+            "pip_head_detach"
+          ]
+        },
+        {
+          "id": "head_bounce",
+          "actionType": "bounce",
+          "actorId": "pip",
+          "targetPropId": "z_head",
+          "startS": 1.35,
+          "endS": 2.2,
+          "prerequisiteIds": [
+            "head_drop"
+          ]
+        }
+      ],
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_dawn_plaza_tram.png",
+        "assets/production/prop_pip_head_shock.png"
+      ],
+      "sfx": "bounce_boing"
+    },
+    {
+      "id": "shot_03_roll_and_chase",
+      "start": 2.2,
+      "end": 3.8,
+      "actor": "pip",
+      "environment": "dawn tram plaza lane past commuter",
+      "sceneGoal": "Show fast headless pursuit of spinning head while commuter Maya reacts in shock",
+      "composition": "Wide two-character tracking view revealing headless Pip sprinting past gasping Maya",
+      "action": "Pip runs after his spinning rolling head while Maya whips into shock",
+      "expression": "neutral",
+      "props": [
+        "z_head"
+      ],
+      "staging": {
+        "pip": {
+          "x": -155,
+          "y": 0,
+          "z": 860
+        },
+        "maya": {
+          "x": 145,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Wide lateral chase pan across plaza puddles",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": -10,
+          "y": -175,
+          "z": 40,
+          "fov": 56
+        },
+        {
+          "t": 1.6,
+          "x": 65,
+          "y": -175,
+          "z": 40,
+          "fov": 56
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "run",
+        "startX": -155,
+        "endX": 45,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.9,
+          "strideLen": 122,
+          "footLift": 42,
+          "targetSpeed": 150,
+          "pelvisDrop": 7,
+          "armSwingAmp": 0.55,
+          "anticipateS": 0.08,
+          "settleS": 0.08,
+          "facing": 1
+        },
+        "cameraPreset": "follow",
+        "visualBeat": "escalation"
+      },
+      "cameraPreset": "follow",
+      "visualBeat": "escalation",
+      "editorial": {
+        "role": "chase",
+        "shotSize": "wide",
+        "focus": {
+          "targetKind": "action_group",
+          "actorId": "pip",
+          "propId": "z_head",
+          "offsetXy": [
+            0,
+            0
+          ],
+          "scaleHint": 1.0,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "track",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Reveal wide chase + commuter reaction",
+          "preserveEyeline": true,
+          "matchAction": false
+        },
+        "intensity": "high",
+        "pacingAdvice": "snappy",
+        "actionOnsetS": 2.35,
+        "reactionHoldS": 0.0
+      },
+      "semanticActions": [
+        {
+          "id": "head_roll",
+          "actionType": "roll",
+          "actorId": "pip",
+          "targetPropId": "z_head",
+          "startS": 2.2,
+          "endS": 3.8,
+          "prerequisiteIds": [
+            "head_bounce"
+          ]
+        },
+        {
+          "id": "pip_chase",
+          "actionType": "chase",
+          "actorId": "pip",
+          "startS": 2.2,
+          "endS": 3.8
+        },
+        {
+          "id": "maya_react_chase",
+          "actionType": "react",
+          "actorId": "maya",
+          "startS": 2.6,
+          "endS": 3.7
+        }
+      ],
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_dawn_plaza_tram.png",
+        "assets/production/prop_pip_head_shock.png",
+        "assets/production/prop_orange_rail.png"
+      ],
+      "sfx": "puddle_sprint"
+    },
+    {
+      "id": "shot_04_rail_avoid_hide",
+      "start": 3.8,
+      "end": 5.3,
+      "actor": "pip",
+      "environment": "orange safety rail & foreground tram shelter pillar",
+      "sceneGoal": "Pip vaults smoothly past orange barrier rail while startled Maya ducks cleanly behind shelter pillar",
+      "composition": "Medium lateral whip shot across barrier rail hurdle and genuine foreground post occlusion",
+      "action": "Pip avoids orange barrier rail as Maya hides behind tram shelter post",
+      "expression": "neutral",
+      "props": [
+        "z_head",
+        "orange_rail"
+      ],
+      "staging": {
+        "pip": {
+          "x": 45,
+          "y": 0,
+          "z": 860
+        },
+        "maya": {
+          "x": 165,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Medium obstacle-clearance tracking shot",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": 100,
+          "y": -175,
+          "z": 160,
+          "fov": 54
+        },
+        {
+          "t": 1.5,
+          "x": 195,
+          "y": -175,
+          "z": 160,
+          "fov": 54
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "dash",
+        "startX": 45,
+        "endX": 182,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.8,
+          "strideLen": 118,
+          "footLift": 46,
+          "targetSpeed": 135,
+          "pelvisDrop": 6,
+          "armSwingAmp": 0.55,
+          "anticipateS": 0.08,
+          "settleS": 0.08,
+          "facing": 1
+        },
+        "cameraPreset": "follow",
+        "visualBeat": "escalation"
+      },
+      "cameraPreset": "follow",
+      "visualBeat": "escalation",
+      "editorial": {
+        "role": "escalation",
+        "shotSize": "medium",
+        "focus": {
+          "targetKind": "actor_full",
+          "actorId": "pip",
+          "propId": "",
+          "offsetXy": [
+            0,
+            0
+          ],
+          "scaleHint": 1.0,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "whip_with_subject",
+        "transition": {
+          "kind": "match_action_cut",
+          "durationS": 0,
+          "reason": "Match sprint into rail hurdle",
+          "preserveEyeline": true,
+          "matchAction": true
+        },
+        "intensity": "high",
+        "pacingAdvice": "snappy",
+        "actionOnsetS": 3.95,
+        "reactionHoldS": 0.0
+      },
+      "semanticActions": [
+        {
+          "id": "pip_avoid_rail",
+          "actionType": "avoid_obstacle",
+          "actorId": "pip",
+          "occluderId": "orange_rail",
+          "startS": 3.8,
+          "endS": 4.75
+        },
+        {
+          "id": "maya_hide_post",
+          "actionType": "hide_behind",
+          "actorId": "maya",
+          "occluderId": "fg_shelter_post",
+          "startS": 4.25,
+          "endS": 5.25
+        }
+      ],
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_dawn_plaza_tram.png",
+        "assets/production/prop_pip_head_shock.png",
+        "assets/production/prop_orange_rail.png",
+        "assets/production/prop_tram_pole.png"
+      ],
+      "sfx": "rail_whoosh"
+    },
+    {
+      "id": "shot_05_trip_skid",
+      "start": 5.3,
+      "end": 6.35,
+      "actor": "pip",
+      "environment": "slick puddle before tram stop pole",
+      "sceneGoal": "Pip visibly trips forward into a comic low puddle stumble right before catching the head",
+      "composition": "Dynamic punch-in showing extreme forward tilt & pelvis drop over splashed puddle",
+      "action": "Pip slips on puddle and lunges forward into a dramatic low trip",
+      "expression": "neutral",
+      "props": [
+        "z_head"
+      ],
+      "staging": {
+        "pip": {
+          "x": 182,
+          "y": 0,
+          "z": 860
+        },
+        "maya": {
+          "x": 120,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Push into low lunge trip stance",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": 205,
+          "y": -165,
+          "z": 215,
+          "fov": 53
+        },
+        {
+          "t": 1.05,
+          "x": 240,
+          "y": -145,
+          "z": 245,
+          "fov": 53
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "stop",
+        "startX": 182,
+        "endX": 236,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.2,
+          "strideLen": 72,
+          "footLift": 24,
+          "targetSpeed": 60,
+          "pelvisDrop": 14,
+          "armSwingAmp": 0.6,
+          "anticipateS": 0.08,
+          "settleS": 0.14,
+          "facing": 1
+        },
+        "cameraPreset": "impact",
+        "visualBeat": "surprise"
+      },
+      "cameraPreset": "impact",
+      "visualBeat": "surprise",
+      "editorial": {
+        "role": "reversal",
+        "shotSize": "medium",
+        "focus": {
+          "targetKind": "actor_full",
+          "actorId": "pip",
+          "propId": "",
+          "offsetXy": [
+            0,
+            0
+          ],
+          "scaleHint": 1.05,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "push",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Sudden comic slip hazard before pickup",
+          "preserveEyeline": true,
+          "matchAction": false
+        },
+        "intensity": "high",
+        "pacingAdvice": "snappy",
+        "actionOnsetS": 5.45,
+        "reactionHoldS": 0.1
+      },
+      "semanticActions": [
+        {
+          "id": "pip_trip_puddle",
+          "actionType": "trip",
+          "actorId": "pip",
+          "startS": 5.3,
+          "endS": 6.35
+        }
+      ],
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_dawn_plaza_tram.png",
+        "assets/production/prop_pip_head_shock.png",
+        "assets/production/prop_tram_pole.png"
+      ],
+      "sfx": "puddle_skid"
+    },
+    {
+      "id": "shot_06_reach_take",
+      "start": 6.35,
+      "end": 7.45,
+      "actor": "pip",
+      "environment": "curb next to tram stop pole",
+      "sceneGoal": "Prove hand approach and true 0px grip contact lifting z_head off ground",
+      "composition": "Close follow shot on Pip's crouched IK arms scooping and lifting z_head",
+      "action": "Pip reaches out, physically grabs, and scoops up his fallen head",
+      "expression": "neutral",
+      "props": [
+        "z_head"
+      ],
+      "staging": {
+        "pip": {
+          "x": 236,
+          "y": 0,
+          "z": 860
+        },
+        "maya": {
+          "x": 120,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Close follow on hands & lifted head prop",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": 265,
+          "y": -115,
+          "z": 310,
+          "fov": 52
+        },
+        {
+          "t": 1.1,
+          "x": 255,
+          "y": -165,
+          "z": 315,
+          "fov": 52
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "recover",
+        "startX": 236,
+        "endX": 244,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 1.6,
+          "strideLen": 40,
+          "footLift": 12,
+          "targetSpeed": 0,
+          "pelvisDrop": 6,
+          "armSwingAmp": 0.25,
+          "anticipateS": 0.12,
+          "settleS": 0.16,
+          "facing": 1
+        },
+        "cameraPreset": "object_insert",
+        "visualBeat": "action"
+      },
+      "cameraPreset": "object_insert",
+      "visualBeat": "action",
+      "editorial": {
+        "role": "reveal",
+        "shotSize": "close",
+        "focus": {
+          "targetKind": "actor_hand",
+          "actorId": "pip",
+          "propId": "z_head",
+          "offsetXy": [
+            18,
+            -10
+          ],
+          "scaleHint": 0.95,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "follow_prop",
+        "transition": {
+          "kind": "match_action_cut",
+          "durationS": 0,
+          "reason": "Move close on scoop pickup from tumble",
+          "preserveEyeline": true,
+          "matchAction": true
+        },
+        "intensity": "normal",
+        "pacingAdvice": "snappy",
+        "actionOnsetS": 6.45,
+        "reactionHoldS": 0.0
+      },
+      "semanticActions": [
+        {
+          "id": "pip_reach_head",
+          "actionType": "reach",
+          "actorId": "pip",
+          "targetPropId": "z_head",
+          "startS": 6.35,
+          "endS": 6.8
+        },
+        {
+          "id": "pip_take_head",
+          "actionType": "take",
+          "actorId": "pip",
+          "targetPropId": "z_head",
+          "startS": 6.75,
+          "endS": 7.45,
+          "prerequisiteIds": [
+            "pip_reach_head"
+          ]
+        }
+      ],
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_dawn_plaza_tram.png",
+        "assets/production/prop_pip_head_shock.png",
+        "assets/production/prop_tram_pole.png"
+      ],
+      "sfx": "scoop_grab"
+    },
+    {
+      "id": "shot_07_reattach_backwards",
+      "start": 7.45,
+      "end": 8.55,
+      "actor": "pip",
+      "environment": "curb under warm streetlamp",
+      "sceneGoal": "Show clear collar reattachment resulting in backwards head orientation",
+      "composition": "Extreme close-up on Pip's collar & back-of-head X-bandaid facing camera front",
+      "action": "Pip snaps his head back onto the collar completely backwards",
+      "expression": "backwards",
+      "props": [
+        "z_head"
+      ],
+      "staging": {
+        "pip": {
+          "x": 244,
+          "y": 0,
+          "z": 860
+        },
+        "maya": {
+          "x": 120,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Extreme close-up push on collar punchline",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": 244,
+          "y": -205,
+          "z": 385,
+          "fov": 50
+        },
+        {
+          "t": 1.1,
+          "x": 244,
+          "y": -212,
+          "z": 405,
+          "fov": 50
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "recover",
+        "startX": 244,
+        "endX": 244,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 1.6,
+          "strideLen": 40,
+          "footLift": 12,
+          "targetSpeed": 0,
+          "pelvisDrop": 4,
+          "armSwingAmp": 0.2,
+          "anticipateS": 0.14,
+          "settleS": 0.16,
+          "facing": 1
+        },
+        "cameraPreset": "reaction_closeup",
+        "visualBeat": "surprise",
+        "headVariant": "backwards"
+      },
+      "cameraPreset": "reaction_closeup",
+      "visualBeat": "surprise",
+      "editorial": {
+        "role": "payoff",
+        "shotSize": "extreme_close",
+        "focus": {
+          "targetKind": "actor_head",
+          "actorId": "pip",
+          "propId": "",
+          "offsetXy": [
+            0,
+            0
+          ],
+          "scaleHint": 0.85,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "push",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Punch in ECU to showcase backwards head gag",
+          "preserveEyeline": true,
+          "matchAction": false
+        },
+        "intensity": "high",
+        "pacingAdvice": "hold_payoff",
+        "actionOnsetS": 7.75,
+        "reactionHoldS": 0.25
+      },
+      "semanticActions": [
+        {
+          "id": "pip_reattach_backwards",
+          "actionType": "reattach",
+          "actorId": "pip",
+          "targetPropId": "z_head",
+          "partId": "head",
+          "expectedOrientation": "backwards",
+          "expectedHeadVariant": "backwards",
+          "startS": 7.45,
+          "endS": 8.45,
+          "prerequisiteIds": [
+            "pip_take_head"
+          ]
+        }
+      ],
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_dawn_plaza_tram.png",
+        "assets/production/prop_pip_head_shock.png",
+        "assets/production/prop_tram_pole.png"
+      ],
+      "sfx": "twist_plop"
+    },
+    {
+      "id": "shot_08_bonk_payoff",
+      "start": 8.55,
+      "end": 10.0,
+      "actor": "pip",
+      "environment": "tram stop pole plaza finale",
+      "sceneGoal": "Pip struts blindly with backwards head into tall tram pole with physical impact, recoil & Maya reaction",
+      "composition": "Wide comedic payoff revealing Pip walking smack into tram pole while Maya gasps",
+      "action": "Pip walks blindly straight into the tram pole and recoils dizzy",
+      "expression": "backwards",
+      "props": [
+        "tram_pole"
+      ],
+      "staging": {
+        "pip": {
+          "x": 244,
+          "y": 0,
+          "z": 860
+        },
+        "maya": {
+          "x": 145,
+          "y": 0,
+          "z": 860
+        }
+      },
+      "camera": "Wide pullback revealing full collision and commuter shock",
+      "cameraKeys": [
+        {
+          "t": 0.0,
+          "x": 240,
+          "y": -175,
+          "z": 100,
+          "fov": 56
+        },
+        {
+          "t": 1.45,
+          "x": 245,
+          "y": -175,
+          "z": 95,
+          "fov": 56
+        }
+      ],
+      "motionMode": "articulated_v1",
+      "motion": {
+        "mode": "articulated_v1",
+        "preset": "walk",
+        "startX": 244,
+        "endX": 308,
+        "startY": 0,
+        "endY": 0,
+        "gait": {
+          "cadenceHz": 2.2,
+          "strideLen": 68,
+          "footLift": 22,
+          "targetSpeed": 80,
+          "pelvisDrop": 5,
+          "armSwingAmp": 0.35,
+          "anticipateS": 0.08,
+          "settleS": 0.25,
+          "facing": 1
+        },
+        "cameraPreset": "impact",
+        "visualBeat": "payoff",
+        "headVariant": "backwards"
+      },
+      "cameraPreset": "impact",
+      "visualBeat": "payoff",
+      "editorial": {
+        "role": "exit",
+        "shotSize": "wide",
+        "focus": {
+          "targetKind": "actor_full",
+          "actorId": "pip",
+          "propId": "",
+          "offsetXy": [
+            15,
+            -10
+          ],
+          "scaleHint": 1.0,
+          "safeMargin": 0.08
+        },
+        "cameraMovement": "pull",
+        "transition": {
+          "kind": "hard_cut",
+          "durationS": 0,
+          "reason": "Pull wide to land backwards-walk pole gag",
+          "preserveEyeline": true,
+          "matchAction": false
+        },
+        "intensity": "high",
+        "pacingAdvice": "hold_payoff",
+        "actionOnsetS": 8.95,
+        "reactionHoldS": 0.3
+      },
+      "semanticActions": [
+        {
+          "id": "pip_blind_walk",
+          "actionType": "walk",
+          "actorId": "pip",
+          "startS": 8.55,
+          "endS": 9.18
+        },
+        {
+          "id": "pip_pole_collide",
+          "actionType": "collide",
+          "actorId": "pip",
+          "occluderId": "tram_pole",
+          "startS": 9.1,
+          "endS": 9.7,
+          "prerequisiteIds": [
+            "pip_reattach_backwards",
+            "pip_blind_walk"
+          ]
+        },
+        {
+          "id": "maya_payoff_react",
+          "actionType": "react",
+          "actorId": "maya",
+          "startS": 9.15,
+          "endS": 9.95
+        }
+      ],
+      "transition": "cut",
+      "asset_inputs": [
+        "assets/production/bg_dawn_plaza_tram.png",
+        "assets/production/prop_tram_pole.png"
+      ],
+      "sfx": "pole_clang"
+    }
+  ]
+}

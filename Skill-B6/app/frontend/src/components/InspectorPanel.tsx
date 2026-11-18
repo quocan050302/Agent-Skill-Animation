@@ -17,6 +17,7 @@ import {
   type MotionPreset,
   type PropKeyframe,
   type Ratio,
+  type SemanticActionSpec,
   type ShotEasing,
   type ShotItem,
   type ShotMotionSpec,
@@ -1029,6 +1030,80 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                   })()}
                 </div>
 
+                {/* Semantic Actions Contract Controls */}
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 6 }}>
+                    <span className="section-label" style={{ margin: 0 }}>Semantic Actions (Story Proof)</span>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      data-testid="add-semantic-action-btn"
+                      onClick={() => {
+                        const existing = selectedShot.semanticActions ?? [];
+                        const nextAct: SemanticActionSpec = {
+                          id: `${selectedShot.id}_act_${existing.length + 1}`,
+                          shotId: selectedShot.id,
+                          actionType: 'walk',
+                          actorId: selectedShot.actor || 'actor',
+                          startS: selectedShot.start,
+                          endS: selectedShot.end,
+                          prerequisiteIds: [],
+                          notes: '',
+                        };
+                        onUpdateShot(selectedShotIndex, {
+                          ...selectedShot,
+                          semanticActions: [...existing, nextAct],
+                        });
+                      }}
+                    >
+                      <Plus size={13} />
+                      <span>Action</span>
+                    </button>
+                  </div>
+                  {(selectedShot.semanticActions ?? []).length === 0 ? (
+                    <div className="field-hint" style={{ fontSize: 11 }}>
+                      Chưa gắn Semantic Action cho shot này (chỉ bật nếu dùng <code>semantic_v1</code>).
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {(selectedShot.semanticActions ?? []).map((sa, saIdx) => (
+                        <div
+                          key={sa.id}
+                          style={{ padding: 6, border: '1px solid var(--border)', borderRadius: 6, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 4, fontSize: 11 }}
+                        >
+                          <label className="field">
+                            <span style={{ fontSize: 10, color: 'var(--muted)' }}>Action Type</span>
+                            <input
+                              className="input"
+                              data-testid={`semantic-action-type-${saIdx}`}
+                              style={{ minHeight: 26, padding: '2px 5px', fontSize: 11 }}
+                              value={sa.actionType}
+                              onChange={(e) => {
+                                const list = [...(selectedShot.semanticActions ?? [])];
+                                list[saIdx] = { ...sa, actionType: e.target.value };
+                                onUpdateShot(selectedShotIndex, { ...selectedShot, semanticActions: list });
+                              }}
+                            />
+                          </label>
+                          <label className="field">
+                            <span style={{ fontSize: 10, color: 'var(--muted)' }}>Actor / Prop or Occluder</span>
+                            <input
+                              className="input"
+                              style={{ minHeight: 26, padding: '2px 5px', fontSize: 11 }}
+                              value={sa.targetPropId ?? sa.occluderId ?? sa.actorId}
+                              onChange={(e) => {
+                                const list = [...(selectedShot.semanticActions ?? [])];
+                                list[saIdx] = { ...sa, targetPropId: e.target.value || undefined };
+                                onUpdateShot(selectedShotIndex, { ...selectedShot, semanticActions: list });
+                              }}
+                            />
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span className="section-label" style={{ margin: 0 }}>Vị trí & Tư thế Actor (Start → End)</span>
@@ -1592,6 +1667,30 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
                         : reviewState.editorialQcStatus === 'stale'
                         ? 'STALE (Cần phân tích lại)'
                         : 'Chờ Editorial QC'}
+                    </span>
+                  </div>
+                )}
+                {reviewState.semanticQcStatus && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    <span>Semantic Action QC:</span>
+                    <span
+                      className={`badge ${
+                        reviewState.semanticQcStatus === 'pass'
+                          ? 'badge-success'
+                          : reviewState.semanticQcStatus === 'fail'
+                          ? 'badge-danger'
+                          : reviewState.semanticQcStatus === 'stale'
+                          ? 'badge-warning'
+                          : 'badge-neutral'
+                      }`}
+                    >
+                      {reviewState.semanticQcStatus === 'pass'
+                        ? 'PASS Semantic QC'
+                        : reviewState.semanticQcStatus === 'fail'
+                        ? 'FAIL Semantic QC'
+                        : reviewState.semanticQcStatus === 'stale'
+                        ? 'STALE (Cần phân tích lại)'
+                        : 'Chờ Semantic QC'}
                     </span>
                   </div>
                 )}

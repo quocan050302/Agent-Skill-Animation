@@ -1,0 +1,345 @@
+{
+  "schema": "b6-puppet/1",
+  "binding_version": 2,
+  "character_id": "maya",
+  "display_name": "Maya - Dawn Tram Commuter",
+  "coordinate_system": {
+    "feet_origin": [
+      0,
+      0
+    ],
+    "x": "right",
+    "y": "down",
+    "units": "local painted stage pixels"
+  },
+  "views": {
+    "three_quarter": {
+      "facing": "left",
+      "sprites": {
+        "body": {
+          "path": "three_quarter/body.png",
+          "sha256": "11f0e50e7bab89b6502c11ff3232d3d11538f0ce2d38d02552954750f438b341",
+          "image_to_local": [
+            [
+              0.47,
+              0.0,
+              -80.83999999999999
+            ],
+            [
+              0.0,
+              0.47,
+              -264.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "head": {
+          "path": "three_quarter/head.png",
+          "sha256": "4d70b5c95d6d97baf1b81dcc572ed6dfafea8fcdf81d0f6f935aee3bec2ffafd",
+          "image_to_local": [
+            [
+              0.4,
+              0.0,
+              -51.0
+            ],
+            [
+              0.0,
+              0.4,
+              -339.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ]
+          ]
+        },
+        "heads": {
+          "neutral": {
+            "path": "three_quarter/head.png",
+            "sha256": "4d70b5c95d6d97baf1b81dcc572ed6dfafea8fcdf81d0f6f935aee3bec2ffafd",
+            "image_to_local": [
+              [
+                0.4,
+                0.0,
+                -51.0
+              ],
+              [
+                0.0,
+                0.4,
+                -339.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "shock": {
+            "path": "three_quarter/head-shock.png",
+            "sha256": "c8faf368dc3761b169ee516093134fb4c71466eeb583bbe660a65bb2daab18e7",
+            "image_to_local": [
+              [
+                0.4,
+                0.0,
+                -51.0
+              ],
+              [
+                0.0,
+                0.4,
+                -339.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          }
+        }
+      },
+      "head_anchor": [
+        1.0,
+        -243.0
+      ],
+      "neck_attachment": {
+        "mount_polygon": [
+          [
+            -6.5,
+            -249.0
+          ],
+          [
+            8.5,
+            -249.0
+          ],
+          [
+            8.5,
+            -241.0
+          ],
+          [
+            -6.5,
+            -241.0
+          ]
+        ],
+        "min_overlap_fraction": 0.56,
+        "min_overlap_thickness": 2.2
+      },
+      "arms": {
+        "left": {
+          "socket": [
+            17.86,
+            -204.78
+          ],
+          "exit_normal": [
+            -0.3,
+            0.954
+          ],
+          "exit_center": [
+            16.06,
+            -199.08
+          ],
+          "outlet_segment": [
+            [
+              23.86,
+              -196.28
+            ],
+            [
+              8.26,
+              -201.88
+            ]
+          ],
+          "lengths": [
+            54.0,
+            50.0
+          ],
+          "pole": -1,
+          "upper_angle_range_deg": [
+            35,
+            220
+          ],
+          "elbow_bend_range_deg": [
+            8,
+            138
+          ],
+          "max_ik_offset": 90.0,
+          "ink_width": 5.2,
+          "hand_radius": 8.6,
+          "layer": "front",
+          "cuff": {
+            "path": "three_quarter/cuff-left.png",
+            "sha256": "0dff8df9f85d8b35cccbdbd26598caff71ee5f1fac130dc6677e9643f2ca58e4",
+            "image_to_local": [
+              [
+                0.47,
+                0.0,
+                -80.83999999999999
+              ],
+              [
+                0.0,
+                0.47,
+                -264.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "ink_path": {
+            "mode": "continuous",
+            "sag": 4.5
+          },
+          "poses": {
+            "rest": [
+              108,
+              22
+            ],
+            "reach": [
+              176,
+              28
+            ],
+            "offer": [
+              165,
+              44
+            ],
+            "receive": [
+              142,
+              66
+            ],
+            "retract": [
+              78,
+              34
+            ]
+          }
+        },
+        "right": {
+          "socket": [
+            -31.49,
+            -216.06
+          ],
+          "exit_normal": [
+            -0.88,
+            0.47
+          ],
+          "exit_center": [
+            -36.69,
+            -213.26
+          ],
+          "outlet_segment": [
+            [
+              -32.89,
+              -205.96
+            ],
+            [
+              -40.49,
+              -220.56
+            ]
+          ],
+          "lengths": [
+            54.0,
+            50.0
+          ],
+          "pole": 1,
+          "upper_angle_range_deg": [
+            110,
+            225
+          ],
+          "elbow_bend_range_deg": [
+            8,
+            138
+          ],
+          "max_ik_offset": 90.0,
+          "ink_width": 5.2,
+          "hand_radius": 8.6,
+          "layer": "back",
+          "cuff": {
+            "path": "three_quarter/cuff-right.png",
+            "sha256": "230193cb287d2a632d18d2fddd9b696a2960a1ba43bc52bdb28a2d2ba16eb24c",
+            "image_to_local": [
+              [
+                0.47,
+                0.0,
+                -80.83999999999999
+              ],
+              [
+                0.0,
+                0.47,
+                -264.0
+              ],
+              [
+                0.0,
+                0.0,
+                1.0
+              ]
+            ]
+          },
+          "ink_path": {
+            "mode": "continuous",
+            "sag": 4.5
+          },
+          "poses": {
+            "rest": [
+              145,
+              20
+            ],
+            "reach": [
+              182,
+              26
+            ],
+            "offer": [
+              168,
+              48
+            ],
+            "receive": [
+              150,
+              66
+            ],
+            "retract": [
+              125,
+              34
+            ]
+          }
+        }
+      },
+      "legs": {
+        "left": {
+          "hip": [
+            18.0,
+            -112.0
+          ],
+          "ankle": [
+            18.0,
+            -4.0
+          ],
+          "ink_width": 5.8,
+          "foot_size": [
+            15.0,
+            5.0
+          ]
+        },
+        "right": {
+          "hip": [
+            -18.0,
+            -112.0
+          ],
+          "ankle": [
+            -22.0,
+            -4.0
+          ],
+          "ink_width": 5.8,
+          "foot_size": [
+            15.0,
+            5.0
+          ]
+        }
+      },
+      "ink_color": "#1F242C"
+    }
+  }
+}

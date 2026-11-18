@@ -23,7 +23,7 @@ const getOpt = (f, fb) => {
 
 const scriptDir = path.dirname(path.resolve(process.argv[1]));
 const APP_ROOT = path.resolve(scriptDir, '..');
-const LOG_DIR = path.join(APP_ROOT, 'docs', 'agent-runs', 'B6-LOCAL-STUDIO-04');
+const LOG_DIR = path.join(APP_ROOT, 'docs', 'agent-runs', 'B6-LOCAL-STUDIO-05');
 fs.mkdirSync(LOG_DIR, { recursive: true });
 
 const TIER = String(getOpt('--tier', 'release')).toLowerCase();
@@ -192,6 +192,13 @@ function buildTasks() {
       heavy: false,
       projectLock: null,
       run: () => spawnAsync(VENV_PY, ['-B', '-W', 'error::DeprecationWarning', '-m', 'unittest', 'discover', '-s', 'editorial_runtime/tests', '-p', 'test_*.py', '-v']),
+    },
+    {
+      id: 'semantic_unit',
+      deps: [],
+      heavy: false,
+      projectLock: null,
+      run: () => spawnAsync(VENV_PY, ['-B', '-W', 'error::DeprecationWarning', '-m', 'unittest', 'discover', '-s', 'semantic_runtime/tests', '-p', 'test_*.py', '-v']),
     },
     {
       id: 'frontend_typecheck',
@@ -438,7 +445,8 @@ print(json.dumps({'randomSeekPass': True, 'geometrySha256': geom_sha}))
             return { ...gitRes, durationMs: Date.now() - t0 };
           }
           const clonedB6 = path.join(cloneDir, 'Skill-B6');
-          // Check clean-clone hydration & preflight + validate for Cowboy, Samurai, and Zombie cleanly!
+          const PURE_CLONE = hasFlag('--pure-clone');
+          // Check clean-clone hydration & preflight + validate for Cowboy, Samurai, Zombie Mirror, and Runaway Head cleanly!
           const stCheck = spawnSync(
             'git',
             [
@@ -446,15 +454,33 @@ print(json.dumps({'randomSeekPass': True, 'geometrySha256': geom_sha}))
               '--porcelain',
               'Skill-B6/workspace/projects/samurai-red-leaf-10s',
               'Skill-B6/workspace/projects/zombie-mirror-10s',
+              'Skill-B6/workspace/projects/zombie-runaway-head-10s',
               'Skill-B6/motion_runtime',
               'Skill-B6/editorial_runtime',
+              'Skill-B6/semantic_runtime',
               'Skill-B6/scripts/hydrate-project.mjs',
             ],
             { cwd: repoTop, encoding: 'utf8', shell: false },
           );
           const hasUncommitted = Boolean((stCheck.stdout || '').trim());
+          if (PURE_CLONE && hasUncommitted) {
+            return {
+              code: 1,
+              durationMs: Date.now() - t0,
+              stdout: stCheck.stdout || '',
+              stderr: 'Pure clean-clone mode (--pure-clone) failed: tracked runtime/project files have uncommitted changes.',
+            };
+          }
           if (hasUncommitted) {
-            const syncDirs = ['motion_runtime', 'editorial_runtime', 'scripts', 'workspace/projects/samurai-red-leaf-10s', 'workspace/projects/zombie-mirror-10s'];
+            const syncDirs = [
+              'motion_runtime',
+              'editorial_runtime',
+              'semantic_runtime',
+              'scripts',
+              'workspace/projects/samurai-red-leaf-10s',
+              'workspace/projects/zombie-mirror-10s',
+              'workspace/projects/zombie-runaway-head-10s',
+            ];
             const skipSegs = new Set(['outputs', 'renders', 'engine', 'fonts', 'reference', 'cache', 'temp']);
             for (const rel of syncDirs) {
               const srcAbs = path.join(APP_ROOT, rel);
@@ -471,15 +497,11 @@ print(json.dumps({'randomSeekPass': True, 'geometrySha256': geom_sha}))
           const cowboyClone = path.join(clonedB6, 'workspace', 'projects', 'cowboy-hat-10s');
           const samuraiClone = path.join(clonedB6, 'workspace', 'projects', 'samurai-red-leaf-10s');
           const zombieClone = path.join(clonedB6, 'workspace', 'projects', 'zombie-mirror-10s');
-          if (
-            fs.existsSync(path.join(cowboyClone, 'engine')) ||
-            fs.existsSync(path.join(cowboyClone, 'fonts')) ||
-            fs.existsSync(path.join(samuraiClone, 'engine')) ||
-            fs.existsSync(path.join(samuraiClone, 'fonts')) ||
-            fs.existsSync(path.join(zombieClone, 'engine')) ||
-            fs.existsSync(path.join(zombieClone, 'fonts'))
-          ) {
-            return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: 'Clean git clone pre-check failed: .gitignored engine/fonts unexpectedly present before hydration.' };
+          const runawayClone = path.join(clonedB6, 'workspace', 'projects', 'zombie-runaway-head-10s');
+          for (const dirCheck of [cowboyClone, samuraiClone, zombieClone, runawayClone]) {
+            if (fs.existsSync(path.join(dirCheck, 'engine')) || fs.existsSync(path.join(dirCheck, 'fonts'))) {
+              return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: `Clean git clone pre-check failed: .gitignored engine/fonts unexpectedly present in ${path.basename(dirCheck)}` };
+            }
           }
           const vendorDir = path.join(APP_ROOT, 'vendor', 'stickman-video-director');
           const h1 = await spawnAsync(process.execPath, [
@@ -501,7 +523,6 @@ print(json.dumps({'randomSeekPass': True, 'geometrySha256': geom_sha}))
             '--verify-only',
           ]);
           if (h2.code !== 0) return { ...h2, durationMs: Date.now() - t0 };
-          // Validate hydrated Cowboy AND preflight+validate hydrated Samurai & Zombie cleanly from clean git clone!
           const v1 = await spawnAsync(VENV_PY, [path.join(cowboyClone, 'run.py'), 'validate', cowboyClone, '--ratio', '9:16'], { cwd: cowboyClone });
           if (v1.code !== 0) return { ...v1, durationMs: Date.now() - t0 };
           const pSam = await spawnAsync(VENV_PY, [path.join(samuraiClone, 'run.py'), 'preflight', samuraiClone, '--ratio', '9:16'], { cwd: samuraiClone });
@@ -511,9 +532,13 @@ print(json.dumps({'randomSeekPass': True, 'geometrySha256': geom_sha}))
           const pZom = await spawnAsync(VENV_PY, [path.join(zombieClone, 'run.py'), 'preflight', zombieClone, '--ratio', '9:16'], { cwd: zombieClone });
           if (pZom.code !== 0) return { ...pZom, durationMs: Date.now() - t0 };
           const vZom = await spawnAsync(VENV_PY, [path.join(zombieClone, 'run.py'), 'validate', zombieClone, '--ratio', '9:16'], { cwd: zombieClone });
+          if (vZom.code !== 0) return { ...vZom, durationMs: Date.now() - t0 };
+          const pRun = await spawnAsync(VENV_PY, [path.join(runawayClone, 'run.py'), 'preflight', runawayClone, '--ratio', '9:16'], { cwd: runawayClone });
+          if (pRun.code !== 0) return { ...pRun, durationMs: Date.now() - t0 };
+          const vRun = await spawnAsync(VENV_PY, [path.join(runawayClone, 'run.py'), 'validate', runawayClone, '--ratio', '9:16'], { cwd: runawayClone });
           return {
-            ...vZom,
-            stdout: `${vSam.stdout}\n${vZom.stdout}\ncleanCloneMode=${hasUncommitted ? 'git_clone_plus_working_tree' : 'pure_committed_git_clone'}`,
+            ...vRun,
+            stdout: `${vSam.stdout}\n${vZom.stdout}\n${vRun.stdout}\ncleanCloneMode=${hasUncommitted ? 'git_clone_plus_working_tree' : 'pure_committed_git_clone'}`,
             durationMs: Date.now() - t0,
           };
         } finally {
@@ -730,18 +755,189 @@ print(json.dumps({'randomSeekPass': True, 'editorialGeometrySha256': geom_sha}))
       },
     },
     {
-      id: 'legacy_regression_roman_cowboy_samurai',
-      deps: ['roman_baseline_sandbox_replay', 'cowboy_regression_slice', 'samurai_motion_qc_determinism'],
+      id: 'zombie_runaway_preflight_validate',
+      deps: ['hydrate_verify_existing', 'semantic_unit'],
+      heavy: false,
+      projectLock: 'zombie-runaway-head-10s',
+      skip: TIER === 'fast',
+      run: async () => {
+        const proj = path.join(APP_ROOT, 'workspace', 'projects', 'zombie-runaway-head-10s');
+        const runPy = path.join(proj, 'run.py');
+        const p1 = await spawnAsync(VENV_PY, ['-B', runPy, 'preflight', proj, '--ratio', '9:16'], { cwd: proj });
+        if (p1.code !== 0) return p1;
+        return spawnAsync(VENV_PY, ['-B', runPy, 'validate', proj, '--ratio', '9:16'], { cwd: proj });
+      },
+    },
+    {
+      id: 'zombie_runaway_draft_smoke',
+      deps: ['zombie_runaway_preflight_validate'],
+      heavy: true,
+      projectLock: 'zombie-runaway-head-10s',
+      skip: TIER === 'fast',
+      run: async () => {
+        const t0 = Date.now();
+        const sandboxRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'b6-runaway-draft-'));
+        try {
+          const srcZ = path.join(APP_ROOT, 'workspace', 'projects', 'zombie-runaway-head-10s');
+          const dstZ = path.join(sandboxRoot, 'zombie-runaway-head-10s');
+          fs.cpSync(srcZ, dstZ, { recursive: true, filter: (src) => !src.includes(`${path.sep}outputs`) });
+          const r = await spawnAsync(VENV_PY, [
+            '-B', path.join(dstZ, 'run.py'), 'draft', dstZ, '--ratio', '9:16',
+            '--start', '4.2', '--seconds', '1.0', '--draft-scale', '0.5',
+            '--trusted-code', '--output', 'outputs/smoke-draft',
+          ], { cwd: dstZ });
+          if (r.code !== 0) return { ...r, durationMs: Date.now() - t0 };
+          const hasMp4 = fs.existsSync(path.join(dstZ, 'outputs', 'smoke-draft', 'preview.mp4'));
+          const hasSheet = fs.existsSync(path.join(dstZ, 'outputs', 'smoke-draft', 'contact-sheet.jpg'));
+          if (!hasMp4 || !hasSheet) {
+            return { code: 1, durationMs: Date.now() - t0, stdout: r.stdout, stderr: 'Runaway zombie draft smoke missing preview.mp4 or contact-sheet.jpg' };
+          }
+          return { code: 0, durationMs: Date.now() - t0, stdout: 'zombie_runaway_draft_smoke=ok', stderr: '' };
+        } finally {
+          fs.rmSync(sandboxRoot, { recursive: true, force: true });
+        }
+      },
+    },
+    {
+      id: 'zombie_runaway_native_qc',
+      deps: ['zombie_runaway_preflight_validate', 'semantic_unit', 'editorial_unit'],
+      heavy: false,
+      projectLock: 'zombie-runaway-head-10s',
+      skip: TIER === 'fast',
+      run: async () => {
+        const t0 = Date.now();
+        const zDir = path.join(APP_ROOT, 'workspace', 'projects', 'zombie-runaway-head-10s');
+        const outDir = path.join(zDir, 'outputs', 'preview-01');
+        const mp4 = path.join(outDir, 'preview.mp4');
+        const edQcPath = path.join(outDir, 'editorial_qc.json');
+        const edRepPath = path.join(outDir, 'editorial-report.json');
+        const mQcPath = path.join(outDir, 'motion_qc.json');
+        const semQcPath = path.join(outDir, 'semantic_qc.json');
+        const semRepPath = path.join(outDir, 'semantic-report.json');
+        const semEvPath = path.join(outDir, 'semantic-evidence.jsonl');
+        if (![mp4, edQcPath, edRepPath, mQcPath, semQcPath, semRepPath, semEvPath].every((p) => fs.existsSync(p))) {
+          return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: 'Missing zombie-runaway-head-10s preview-01 native artifacts' };
+        }
+        const ffprobeBin = BASE_ENV.B6_REAL_FFMPEG.endsWith('ffmpeg')
+          ? BASE_ENV.B6_REAL_FFMPEG.slice(0, -6) + 'ffprobe'
+          : 'ffprobe';
+        const pr = spawnSync(ffprobeBin, ['-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', mp4], { encoding: 'utf8', shell: false });
+        if (pr.status !== 0) {
+          return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: `ffprobe failed: ${pr.stderr}` };
+        }
+        const probe = JSON.parse(pr.stdout);
+        const vStream = (probe.streams || []).find((s) => s.codec_type === 'video');
+        const aStream = (probe.streams || []).find((s) => s.codec_type === 'audio');
+        if (!vStream || Number(vStream.width) !== 720 || Number(vStream.height) !== 1280 || !aStream) {
+          return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: `Unexpected runaway ffprobe geometry/audio: w=${vStream?.width} h=${vStream?.height} audio=${Boolean(aStream)}` };
+        }
+        const edQc = JSON.parse(fs.readFileSync(edQcPath, 'utf8'));
+        const mQc = JSON.parse(fs.readFileSync(mQcPath, 'utf8'));
+        const semQc = JSON.parse(fs.readFileSync(semQcPath, 'utf8'));
+        const semRep = JSON.parse(fs.readFileSync(semRepPath, 'utf8'));
+        if (edQc.status !== 'pass' || mQc.status !== 'pass' || semQc.status !== 'pass' || semQc.pass !== true) {
+          return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: `QC fail: editorial=${edQc.status} motion=${mQc.status} semantic=${semQc.status}/${semQc.pass}` };
+        }
+        if (
+          edQc.audience_retention_estimate !== 'unavailable' ||
+          edQc.human_visual_review !== 'PENDING' ||
+          edQc.user_approval !== 'PENDING' ||
+          semQc.human_visual_review !== 'PENDING' ||
+          semQc.user_approval !== 'PENDING' ||
+          fs.existsSync(path.join(zDir, 'approval-9x16.json'))
+        ) {
+          return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: 'Factual boundary violation: synthetic retention estimate or unapproved sign-off detected' };
+        }
+        return {
+          code: 0,
+          durationMs: Date.now() - t0,
+          stdout: `runaway_qc=pass actions=${semRep.summary?.actions_passed}/${semRep.summary?.actions_total} decoded_binding=${semRep.summary?.decoded_binding_ok}`,
+          stderr: '',
+        };
+      },
+    },
+    {
+      id: 'semantic_determinism_replay',
+      deps: ['zombie_runaway_preflight_validate', 'semantic_unit'],
+      heavy: true,
+      projectLock: 'zombie-runaway-head-10s',
+      skip: TIER !== 'release',
+      run: async () => {
+        const t0 = Date.now();
+        const sandboxRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'b6-semantic-det-'));
+        try {
+          const srcZ = path.join(APP_ROOT, 'workspace', 'projects', 'zombie-runaway-head-10s');
+          const dstZ = path.join(sandboxRoot, 'zombie-runaway-head-10s');
+          fs.cpSync(srcZ, dstZ, { recursive: true, filter: (src) => !src.includes(`${path.sep}outputs`) });
+          const runPy = path.join(dstZ, 'run.py');
+          const d1 = await spawnAsync(VENV_PY, [
+            '-B', runPy, 'draft', dstZ, '--ratio', '9:16', '--start', '6.8', '--seconds', '1.0',
+            '--draft-scale', '0.5', '--trusted-code', '--output', 'outputs/det-slice',
+          ], { cwd: dstZ });
+          if (d1.code !== 0) return { ...d1, durationMs: Date.now() - t0 };
+          const mp4Path = path.join(dstZ, 'outputs', 'det-slice', 'preview.mp4');
+          const rawRes = spawnSync(BASE_ENV.B6_REAL_FFMPEG, ['-v', 'error', '-i', mp4Path, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-'], {
+            encoding: null,
+            maxBuffer: 256 * 1024 * 1024,
+            shell: false,
+          });
+          if (rawRes.status !== 0) {
+            return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: `FFmpeg decode failed: ${rawRes.stderr?.toString()}` };
+          }
+          const decodedPixelsSha256 = crypto.createHash('sha256').update(rawRes.stdout).digest('hex');
+          const pySeek = `
+import hashlib, json, sys
+from pathlib import Path
+sys.path.insert(0, ${JSON.stringify(dstZ)})
+import run, scene
+base = Path(${JSON.stringify(dstZ)}).resolve()
+c = run.load(base, '9:16')
+it = run.workflow_helper(base, 'b6_iteration', run.TRUSTED_ITERATION_SHA256)
+c.actions = run.workflow_helper(base, 'b6_actions', run.TRUSTED_ACTIONS_SHA256)
+c.space = run.module('b6_project_space', run.local(base, 'b6_space.py'))
+c.viewport = it.RenderViewport.from_plan(c.plan, scale=0.5)
+seq_141 = scene._evaluate_frame(141/30.0, c.viewport.size, c)
+res_map = {}
+for idx in [141, 0, 299, 62, 215, 240, 275, 141]:
+  r, mev, eev, sem = scene._evaluate_frame(idx/30.0, c.viewport.size, c)
+  res_map.setdefault(idx, []).append((r.qa['beauty_sha256'], sem['actors'], sem['props'], sem['occlusions']))
+assert len(res_map[141]) == 2 and res_map[141][0][0] == res_map[141][1][0] == seq_141[0].qa['beauty_sha256'], 'Frame 141 random-seek pixel mismatch'
+geom_sha = hashlib.sha256(json.dumps([res_map[k][0][1:] for k in [0, 62, 141, 215, 240, 275, 299]], sort_keys=True).encode()).hexdigest()
+print(json.dumps({'randomSeekPass': True, 'semanticGeometrySha256': geom_sha}))
+`;
+          const s1 = await spawnAsync(VENV_PY, ['-B', '-c', pySeek], { cwd: dstZ });
+          if (s1.code !== 0) return { ...s1, durationMs: Date.now() - t0 };
+          const parsed = JSON.parse(s1.stdout.trim().split(/\r?\n/).pop());
+          return {
+            code: 0,
+            durationMs: Date.now() - t0,
+            stdout: s1.stdout,
+            stderr: s1.stderr,
+            parityMeta: {
+              decodedPixelsSha256,
+              geometrySha256: parsed.semanticGeometrySha256,
+              randomSeekPass: parsed.randomSeekPass,
+            },
+          };
+        } finally {
+          fs.rmSync(sandboxRoot, { recursive: true, force: true });
+        }
+      },
+    },
+    {
+      id: 'legacy_regression_roman_cowboy_samurai_zombiemirror',
+      deps: ['roman_baseline_sandbox_replay', 'cowboy_regression_slice', 'samurai_motion_qc_determinism', 'zombie_native_qc'],
       heavy: false,
       projectLock: null,
       skip: TIER !== 'release',
       run: async () => {
         const t0 = Date.now();
-        const hashFile = path.join(APP_ROOT, 'docs', 'agent-runs', 'B6-LOCAL-STUDIO-04', 'baselines', 'legacy-project-hashes.json');
-        const expected = JSON.parse(fs.readFileSync(hashFile, 'utf8'));
+        const baselineFile = path.join(APP_ROOT, 'docs', 'agent-runs', 'B6-LOCAL-STUDIO-05', 'BASELINE.json');
+        const baseline = JSON.parse(fs.readFileSync(baselineFile, 'utf8'));
+        const expected = baseline.retained_project_hashes || {};
         const mismatches = [];
         for (const [projName, entries] of Object.entries(expected)) {
-          if (projName.startsWith('_') || typeof entries !== 'object' || !entries) continue;
+          if (typeof entries !== 'object' || !entries) continue;
           const baseDir = path.join(APP_ROOT, 'workspace', 'projects', projName);
           for (const [rel, sha] of Object.entries(entries)) {
             const p = path.join(baseDir, rel);
@@ -756,12 +952,20 @@ print(json.dumps({'randomSeekPass': True, 'editorialGeometrySha256': geom_sha}))
         if (mismatches.length > 0) {
           return { code: 1, durationMs: Date.now() - t0, stdout: '', stderr: `Legacy baseline drift detected: ${mismatches.slice(0, 10).join(', ')}` };
         }
-        return { code: 0, durationMs: Date.now() - t0, stdout: 'legacy_hashes=exact_match', stderr: '' };
+        return { code: 0, durationMs: Date.now() - t0, stdout: `legacy_hashes=exact_match(${Object.keys(expected).length}_projects)`, stderr: '' };
       },
     },
     {
       id: 'playwright_e2e',
-      deps: ['workspace_build', 'cowboy_preflight_validate', 'samurai_preflight_validate', 'zombie_preflight_validate', 'zombie_native_qc'],
+      deps: [
+        'workspace_build',
+        'cowboy_preflight_validate',
+        'samurai_preflight_validate',
+        'zombie_preflight_validate',
+        'zombie_native_qc',
+        'zombie_runaway_preflight_validate',
+        'zombie_runaway_native_qc',
+      ],
       heavy: true,
       projectLock: 'playwright-studio',
       skip: hasFlag('--skip-e2e') || TIER !== 'release',
@@ -874,6 +1078,8 @@ async function main() {
     const parDet = par.tasks.find((t) => t.id === 'samurai_motion_qc_determinism')?.parityMeta;
     const seqEdDet = seq.tasks.find((t) => t.id === 'editorial_determinism_replay')?.parityMeta;
     const parEdDet = par.tasks.find((t) => t.id === 'editorial_determinism_replay')?.parityMeta;
+    const seqSemDet = seq.tasks.find((t) => t.id === 'semantic_determinism_replay')?.parityMeta;
+    const parSemDet = par.tasks.find((t) => t.id === 'semantic_determinism_replay')?.parityMeta;
     const samuraiPixelsParity = Boolean(
       !seqDet ||
         (parDet &&
@@ -886,7 +1092,13 @@ async function main() {
           seqEdDet.decodedPixelsSha256 === parEdDet.decodedPixelsSha256 &&
           seqEdDet.geometrySha256 === parEdDet.geometrySha256),
     );
-    const decodedPixelsParity = samuraiPixelsParity && editorialPixelsParity;
+    const semanticPixelsParity = Boolean(
+      !seqSemDet ||
+        (parSemDet &&
+          seqSemDet.decodedPixelsSha256 === parSemDet.decodedPixelsSha256 &&
+          seqSemDet.geometrySha256 === parSemDet.geometrySha256),
+    );
+    const decodedPixelsParity = samuraiPixelsParity && editorialPixelsParity && semanticPixelsParity;
     const containerByteParity = Boolean(!seqDet || (parDet && seqDet.containerMp4Sha256 === parDet.containerMp4Sha256));
     const parityClassification = !decodedPixelsParity
       ? 'decoded_mismatch'

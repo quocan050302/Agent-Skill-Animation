@@ -1,0 +1,15 @@
+{
+  "schema": "b6-studio-meta/1",
+  "id": "zombie-runaway-head-10s",
+  "title": "The Zombie Who Lost His Head",
+  "premise": "A dawn sneeze blows zombie Pip's head loose onto a wet plaza; after a frantic puddle chase past a shocked commuter and safety rail, he slaps it back on backwards and walks straight into a tram pole.",
+  "hook": "At dawn on the tram plaza, one massive sneeze pops Pip's own head clean off his shoulders!",
+  "activeRatio": "9:16",
+  "language": "en",
+  "targetDuration": 10.0,
+  "revision": 1,
+  "lastRenderedRevision": null,
+  "voiceTextSha256": "a5326e8f2ffe0780bc9d0828053eef2f112c0c6d0c01d71e5cfc5ec8df681e65",
+  "createdAt": "2026-11-18T15:52:00Z",
+  "updatedAt": "2026-11-18T15:52:00Z"
+}

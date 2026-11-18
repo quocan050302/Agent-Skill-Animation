@@ -16,6 +16,7 @@ import {
   type DoctorReportDto,
   type EditorBindingStatusDto,
   type EditorialReportResponseDto,
+  type SemanticReportResponseDto,
   type OutputArtifactDto,
   type ProjectDetailDto,
   type ProjectSummaryDto,
@@ -72,6 +73,11 @@ function normalizeShotsFromPlan(plan: Record<string, unknown> | undefined): Shot
     cameraPreset: s.cameraPreset as ShotItem['cameraPreset'],
     visualBeat: s.visualBeat as ShotItem['visualBeat'],
     editorial: s.editorial as ShotItem['editorial'],
+    semanticActions: Array.isArray(s.semanticActions)
+      ? (s.semanticActions as ShotItem['semanticActions'])
+      : Array.isArray(s.semantic_actions)
+      ? (s.semantic_actions as ShotItem['semanticActions'])
+      : undefined,
     transition: String(s.transition ?? 'cut'),
     short_cut_reason: typeof s.short_cut_reason === 'string' ? s.short_cut_reason : undefined,
     asset_inputs: Array.isArray(s.asset_inputs) ? (s.asset_inputs as string[]) : [],
@@ -113,6 +119,7 @@ export function App() {
   const [selectedOutputId, setSelectedOutputId] = useState<string | null>(null);
   const [reviewState, setReviewState] = useState<ReviewStateDto | null>(null);
   const [editorialReport, setEditorialReport] = useState<EditorialReportResponseDto | null>(null);
+  const [semanticReport, setSemanticReport] = useState<SemanticReportResponseDto | null>(null);
   const [editorBinding, setEditorBinding] = useState<EditorBindingStatusDto | null>(null);
   const [trustedCode, setTrustedCode] = useState(false);
   const expectedRevisionRef = useRef<number | undefined>(undefined);
@@ -182,13 +189,14 @@ export function App() {
     setSaveStatus('saved');
     setSaveError(null);
 
-    const [assetsRes, charsRes, outsRes, bindRes, reviewRes, edRepRes, jobsRes] = await Promise.all([
+    const [assetsRes, charsRes, outsRes, bindRes, reviewRes, edRepRes, semRepRes, jobsRes] = await Promise.all([
       api.listAssets(id),
       api.getCharacters(id),
       api.getOutputs(id),
       api.getEditorBinding(id, activeRatio),
       api.getReviewState(id, activeRatio),
       api.getEditorialReport(id, activeRatio).catch(() => null),
+      api.getSemanticReport(id, activeRatio).catch(() => null),
       api.listJobs(id),
     ]);
     setAssets(assetsRes.assets);
@@ -198,6 +206,7 @@ export function App() {
     setOutputs(outsRes.outputs);
     setReviewState(reviewRes.review);
     setEditorialReport(edRepRes);
+    setSemanticReport(semRepRes);
     setEditorBinding(bindRes.binding);
     setJobs(jobsRes.jobs);
     if (switchedProject) {
@@ -334,16 +343,18 @@ export function App() {
         setProject(res.detail);
         setValidationErrors(res.validation.errors);
         setSaveStatus('saved');
-        const [bindRes, reviewRes, outsRes, edRepRes] = await Promise.all([
+        const [bindRes, reviewRes, outsRes, edRepRes, semRepRes] = await Promise.all([
           api.getEditorBinding(activeProjectId, res.detail.meta.activeRatio),
           api.getReviewState(activeProjectId, res.detail.meta.activeRatio),
           api.getOutputs(activeProjectId),
           api.getEditorialReport(activeProjectId, res.detail.meta.activeRatio).catch(() => null),
+          api.getSemanticReport(activeProjectId, res.detail.meta.activeRatio).catch(() => null),
         ]);
         setEditorBinding(bindRes.binding);
         setReviewState(reviewRes.review);
         setOutputs(outsRes.outputs);
         setEditorialReport(edRepRes);
+        setSemanticReport(semRepRes);
         void loadProjectsList();
       } catch (err) {
         setSaveStatus('error');
@@ -630,6 +641,12 @@ export function App() {
               onAnalyzeEditorial={
                 activeProjectId
                   ? () => launchJob(() => api.runAnalyzeEditorial(activeProjectId, { ratio: activeRatio }))
+                  : undefined
+              }
+              semanticReport={semanticReport}
+              onAnalyzeSemantic={
+                activeProjectId
+                  ? () => launchJob(() => api.runAnalyzeSemantic(activeProjectId, { ratio: activeRatio }))
                   : undefined
               }
               activeJob={activeJob}

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SCREENSHOT_DIR = path.resolve(__dirname, '../../../docs/agent-runs/B6-LOCAL-STUDIO-04/screenshots');
+const SCREENSHOT_DIR = path.resolve(__dirname, '../../../docs/agent-runs/B6-LOCAL-STUDIO-05/screenshots');
 fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
 
 test.describe('B6 Local Studio E2E Verification', () => {
@@ -317,6 +317,92 @@ test.describe('B6 Local Studio E2E Verification', () => {
     await expect(page.getByTestId('editorial-shot-size-select')).toHaveValue('extreme_close');
 
     // Cleanup temporary Zombie duplicate
+    await page.getByRole('button', { name: 'Projects' }).click();
+    await copyCard.getByRole('button', { name: /Xóa .*Copy/i }).click();
+    await copyCard.getByRole('button', { name: /Xác nhận xóa/i }).click();
+    await expect(copyCard).toHaveCount(0);
+
+    expect(runtimeErrors).toEqual([]);
+  });
+
+  test('B6-05 Semantic Action Director, Semantic Overlay, QA Separation & Mobile on Runaway Head Zombie', async ({ page }) => {
+    const runtimeErrors = attachRuntimeGuards(page);
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Projects' }).click();
+
+    const zombieCard = page.locator('.card', { hasText: 'The Zombie Who Lost His Head' }).first();
+    await expect(zombieCard).toBeVisible({ timeout: 10_000 });
+    await zombieCard.getByRole('button', { name: /Mở Studio/i }).click();
+
+    await expect(page.getByTestId('editor-sync-badge')).toBeVisible({ timeout: 10_000 });
+    const videoEl = page.locator('video');
+    if ((await videoEl.count()) > 0) {
+      await expect(videoEl.first()).toBeVisible({ timeout: 10_000 });
+    }
+
+    // Toggle motion/editorial/semantic diagnostic overlay & verify active semantic badges
+    await page.getByTestId('toggle-motion-overlay').click();
+    await expect(page.getByTestId('motion-diagnostic-overlay')).toBeVisible();
+    await expect(page.getByTestId('semantic-overlay-actions')).toBeVisible();
+    await page.waitForTimeout(250);
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440-b605-studio.png'), fullPage: false });
+
+    // Open Shot tab & inspect Semantic Action contract controls
+    await page.getByRole('tab', { name: 'Shot' }).click();
+    await expect(page.getByTestId('editorial-role-select')).toBeVisible();
+    await expect(page.getByTestId('semantic-action-type-0')).toBeVisible();
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440-b605-semantic-shot.png'), fullPage: false });
+
+    // Open Export tab: Full MP4 still strictly locked until human visual review + sign-off; Semantic QC badge passes
+    await page.getByRole('tab', { name: 'Export' }).click();
+    await expect(page.getByRole('button', { name: /Xuất Video Full MP4/i })).toBeDisabled();
+    await expect(page.getByText(/PASS Semantic QC/i)).toBeVisible();
+
+    // Open Jobs & QA tab: verify separate Image Residual Flow vs Actor Mask + Semantic Evidence panel
+    await page.getByRole('button', { name: 'Jobs & QA' }).click();
+    await expect(page.getByTestId('editorial-diagnostics-panel')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('editorial-qc-status-badge')).toContainText(/PASS|Đạt/i);
+    await expect(page.getByText('Image Residual Flow')).toBeVisible();
+    await expect(page.getByText(/Actor mask:/i)).toBeVisible();
+    await expect(page.getByText(/Ước lượng retention: Chưa khả dụng/i)).toBeVisible();
+    await expect(page.getByTestId('semantic-evidence-panel')).toBeVisible();
+    await expect(page.getByTestId('semantic-qc-status-badge')).toContainText(/PASS/i);
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440-b605-semantic-qa.png'), fullPage: false });
+
+    // Check mobile 375px zero horizontal overflow across Jobs & QA and Studio
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
+    await page.getByRole('button', { name: 'Studio' }).click();
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)).toBe(false);
+    await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'mobile-375-b605-studio.png'), fullPage: false });
+
+    // Restore desktop viewport & test live Semantic Action edit persistence on isolated duplicate copy
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.getByRole('button', { name: 'Projects' }).click();
+    await zombieCard.getByRole('button', { name: /Nhân bản/i }).click();
+    const copyCard = page.locator('.card', { hasText: 'The Zombie Who Lost His Head (Copy)' }).first();
+    await expect(copyCard).toBeVisible({ timeout: 10_000 });
+    await copyCard.getByRole('button', { name: /Mở Studio/i }).click();
+
+    await page.getByRole('tab', { name: 'Shot' }).click();
+    await expect(page.getByTestId('semantic-action-type-0')).toBeVisible();
+    await page.getByTestId('semantic-action-type-0').selectOption('react');
+    const patchPromise = page.waitForResponse(
+      (res) => res.url().includes('/api/projects/') && res.request().method() === 'PATCH',
+    );
+    await page.getByRole('button', { name: /Lưu \(Ctrl\+S\)/i }).click();
+    expect((await patchPromise).status()).toBe(200);
+    await expect(page.getByText('Đã lưu')).toBeVisible({ timeout: 5_000 });
+    await page.reload();
+    await page.getByRole('button', { name: 'Studio' }).click();
+    await page.getByRole('tab', { name: 'Shot' }).click();
+    await expect(page.getByTestId('semantic-action-type-0')).toHaveValue('react');
+
+    // Cleanup temporary duplicate cleanly
     await page.getByRole('button', { name: 'Projects' }).click();
     await copyCard.getByRole('button', { name: /Xóa .*Copy/i }).click();
     await copyCard.getByRole('button', { name: /Xác nhận xóa/i }).click();

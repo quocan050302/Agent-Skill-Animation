@@ -325,7 +325,7 @@ export class JobQueue extends EventEmitter {
         const parsed = this.extractResultJson(allStdout.join('\n'), job.reportPath);
         job.resultJson = parsed;
         let verificationError: string | null = null;
-        const requiresArtifactCheck = ['draft', 'preview', 'render', 'review-pack', 'analyze-editorial'].includes(job.kind);
+        const requiresArtifactCheck = ['draft', 'preview', 'render', 'review-pack', 'analyze-editorial', 'analyze-semantic'].includes(job.kind);
 
         if (requiresArtifactCheck) {
           if (job.reportPath && !fs.existsSync(job.reportPath)) {
@@ -334,6 +334,11 @@ export class JobQueue extends EventEmitter {
             const reportJsonPath = path.join(path.dirname(job.reportPath), 'editorial-report.json');
             if (!fs.existsSync(reportJsonPath)) {
               verificationError = 'Thiếu tệp editorial-report.json sau khi chạy phân tích Editorial.';
+            }
+          } else if (job.kind === 'analyze-semantic' && job.reportPath) {
+            const reportJsonPath = path.join(path.dirname(job.reportPath), 'semantic-report.json');
+            if (!fs.existsSync(reportJsonPath)) {
+              verificationError = 'Thiếu tệp semantic-report.json sau khi chạy phân tích Semantic.';
             }
           } else if (['draft', 'preview', 'render'].includes(job.kind)) {
             const videoRel = parsed && typeof parsed.video === 'string' ? parsed.video : null;

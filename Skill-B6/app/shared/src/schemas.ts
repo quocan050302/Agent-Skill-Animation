@@ -279,6 +279,71 @@ export const EditorialProfileSchema = z.object({
 });
 export type EditorialProfile = z.infer<typeof EditorialProfileSchema>;
 
+export const SemanticModeSchema = z.enum(['none', 'semantic_v1']);
+export type SemanticMode = z.infer<typeof SemanticModeSchema>;
+
+export const HeadMountStateSchema = z.enum(['attached', 'detaching', 'detached', 'reattaching']);
+export type HeadMountState = z.infer<typeof HeadMountStateSchema>;
+
+export const SemanticEvidenceRequirementsSchema = z
+  .object({
+    minActorVisible: z.number().finite().min(0).max(1).optional(),
+    minPropVisible: z.number().finite().min(0).max(1).optional(),
+    requiresVisibility: z.boolean().optional(),
+    requiresPropVisibility: z.boolean().optional(),
+    requiresTrajectory: z.boolean().optional(),
+    requiresPropTrajectory: z.boolean().optional(),
+    requiresPoseChange: z.boolean().optional(),
+    requiresContact: z.boolean().optional(),
+    requiresOcclusion: z.boolean().optional(),
+    requiresAvoidance: z.boolean().optional(),
+    requiresBounce: z.boolean().optional(),
+    requiresRotation: z.boolean().optional(),
+    requiresDetach: z.boolean().optional(),
+    requiresReattach: z.boolean().optional(),
+    requiresCollision: z.boolean().optional(),
+    requiresReaction: z.boolean().optional(),
+    minDisplacementPx: z.number().finite().min(0).optional(),
+    minPropDisplacementPx: z.number().finite().min(0).optional(),
+    minPropDyPx: z.number().finite().min(0).optional(),
+    minPropRotationDeg: z.number().finite().min(0).optional(),
+    minSpeedPxS: z.number().finite().min(0).optional(),
+    maxContactPx: z.number().finite().min(0).optional(),
+    maxCollisionGapPx: z.number().finite().min(0).optional(),
+    minOcclusionRatio: z.number().finite().min(0).max(1).optional(),
+    minHeadAngleDeltaDeg: z.number().finite().min(0).optional(),
+    minCentroidShiftPx: z.number().finite().min(0).optional(),
+    minCentroidYDropPx: z.number().finite().min(0).optional(),
+    minBboxAspectDelta: z.number().finite().min(0).optional(),
+    minDetachSeparationPx: z.number().finite().min(0).optional(),
+    maxMountGapPx: z.number().finite().min(0).optional(),
+    expectedOrientation: z.string().max(40).optional(),
+    expectedHeadVariant: z.string().max(80).optional(),
+  })
+  .passthrough();
+export type SemanticEvidenceRequirements = z.infer<typeof SemanticEvidenceRequirementsSchema>;
+
+export const SemanticActionSpecSchema = z.object({
+  id: z.string().min(1).max(80).regex(/^[a-zA-Z0-9_:-]+$/),
+  shotId: z.string().max(80).optional(),
+  actionType: z.string().min(1).max(60),
+  actorId: z.string().min(1).max(80),
+  targetPropId: z.string().max(80).optional(),
+  occluderId: z.string().max(80).optional(),
+  partId: z.string().max(60).optional(),
+  startS: z.number().finite().min(0).optional(),
+  endS: z.number().finite().positive().optional(),
+  prerequisiteIds: z.array(z.string().max(80)).default([]),
+  expectedOrientation: z.string().max(40).optional(),
+  expectedHeadVariant: z.string().max(80).optional(),
+  initiallyDetached: z.boolean().optional(),
+  initiallyHeld: z.boolean().optional(),
+  optionalReview: z.boolean().optional(),
+  notes: z.string().max(500).default(''),
+  evidenceRequirements: SemanticEvidenceRequirementsSchema.optional(),
+});
+export type SemanticActionSpec = z.infer<typeof SemanticActionSpecSchema>;
+
 export const ShotItemSchema = z.object({
   id: z.string().min(1).max(80).regex(/^[a-zA-Z0-9_-]+$/),
   start: z.number().finite().min(0),
@@ -304,6 +369,7 @@ export const ShotItemSchema = z.object({
   cameraPreset: CameraPresetSchema.optional(),
   visualBeat: VisualBeatKindSchema.optional(),
   editorial: EditorialShotConfigSchema.optional(),
+  semanticActions: z.array(SemanticActionSpecSchema).optional(),
   transition: z.string().min(1),
   short_cut_reason: z.string().optional(),
   asset_inputs: z.array(z.string()).default([]),
@@ -362,6 +428,8 @@ export const PatchProjectInputSchema = z.object({
   motionMode: MotionModeSchema.optional(),
   editorialMode: EditorialModeSchema.optional(),
   editorialProfile: EditorialProfileSchema.optional(),
+  semanticMode: SemanticModeSchema.optional(),
+  semanticActions: z.array(SemanticActionSpecSchema).optional(),
   shots: z.array(ShotItemSchema).optional(),
   captions: z.array(CaptionCueSchema).optional(),
   castInventory: z.array(CastInventoryItemSchema).optional(),
@@ -420,6 +488,7 @@ export const JobKindSchema = z.enum([
   'draft',
   'preview',
   'analyze-editorial',
+  'analyze-semantic',
   'review-pack',
   'check-review',
   'approve',
@@ -497,6 +566,8 @@ export const CanonicalScenePlanSchema = z.object({
   motionMode: MotionModeSchema.optional(),
   editorialMode: EditorialModeSchema.optional(),
   editorialProfile: EditorialProfileSchema.optional(),
+  semanticMode: SemanticModeSchema.optional(),
+  semanticActions: z.array(SemanticActionSpecSchema).optional(),
   directorBeats: z.array(DirectorBeatSchema).optional(),
   shots: z.array(ShotItemSchema),
   captions: z.array(CaptionCueSchema),
@@ -512,6 +583,8 @@ export const QaEvidenceSummarySchema = z.object({
   motionQcSummary: z.record(z.string(), z.unknown()).optional(),
   editorialQcStatus: QaTechnicalVerdictSchema.optional(),
   editorialQcSummary: z.record(z.string(), z.unknown()).optional(),
+  semanticQcStatus: QaTechnicalVerdictSchema.optional(),
+  semanticQcSummary: z.record(z.string(), z.unknown()).optional(),
   reasonCodes: z.array(z.string()),
   staleReasons: z.array(z.string()),
   blockingReasons: z.array(z.string()),

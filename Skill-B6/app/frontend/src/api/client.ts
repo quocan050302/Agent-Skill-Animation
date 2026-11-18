@@ -149,6 +149,8 @@ export interface ReviewStateDto {
   motionQcSummary?: Record<string, unknown>;
   editorialQcStatus?: QaTechnicalVerdict;
   editorialQcSummary?: Record<string, unknown>;
+  semanticQcStatus?: QaTechnicalVerdict;
+  semanticQcSummary?: Record<string, unknown>;
   reasonCodes: string[];
   staleReasons: string[];
   blockingReasons: string[];
@@ -210,8 +212,40 @@ export interface EditorBindingStatusDto {
   gaitHonestyNote: string;
   editorialMode?: 'none' | 'editorial_v1' | 'editorial_verified';
   editorialQcVerified?: boolean;
+  semanticMode?: 'none' | 'semantic_v1' | 'semantic_verified';
+  semanticQcVerified?: boolean;
+  semanticActionCount?: number;
   shotVarietyWarnings?: string[];
   mappings: FieldRuntimeBindingRowDto[];
+}
+
+export interface SemanticReportResponseDto {
+  projectId: string;
+  ratio: Ratio;
+  available: boolean;
+  stale: boolean;
+  reportPath: string | null;
+  qcPath: string | null;
+  evidencePath: string | null;
+  qcStatus: QaTechnicalVerdict;
+  qc: Record<string, unknown> | null;
+  report: {
+    schema?: string;
+    duration_s?: number;
+    fps?: number;
+    coverage_ratio?: number;
+    decoded_binding?: Record<string, unknown>;
+    summary?: Record<string, unknown>;
+    uncertain_actions?: string[];
+    action_results?: Array<Record<string, unknown>>;
+    errors?: string[];
+    warnings?: string[];
+    reason_codes?: string[];
+    [key: string]: unknown;
+  } | null;
+  debugLinks: Array<{ label: string; url: string; relPath: string }>;
+  evidenceLinks: Array<{ label: string; path: string; status: string }>;
+  statusNote?: string;
 }
 
 export interface EditorialReportResponseDto {
@@ -399,6 +433,16 @@ export const api = {
     ),
   runAnalyzeEditorial: (id: string, payload?: { ratio?: Ratio; reportRel?: string; videoRel?: string }) =>
     req<{ job: JobRecord }>(`/api/projects/${encodeURIComponent(id)}/analyze-editorial`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload ?? {}),
+    }),
+  getSemanticReport: (id: string, ratio: Ratio) =>
+    req<SemanticReportResponseDto>(
+      `/api/projects/${encodeURIComponent(id)}/semantic-report?ratio=${encodeURIComponent(ratio)}`,
+    ),
+  runAnalyzeSemantic: (id: string, payload?: { ratio?: Ratio; reportRel?: string; videoRel?: string; evidenceRel?: string }) =>
+    req<{ job: JobRecord }>(`/api/projects/${encodeURIComponent(id)}/analyze-semantic`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload ?? {}),

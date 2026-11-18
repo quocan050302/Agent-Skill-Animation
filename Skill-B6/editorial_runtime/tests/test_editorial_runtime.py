@@ -322,6 +322,23 @@ class EditorialRuntimeTests(unittest.TestCase):
         self.assertEqual(p1["audienceRetentionPrediction"], "unavailable")
         self.assertTrue(p1["requiresAuthorReview"])
 
+    def test_quarter_second_and_actor_prop_mask_motion_separation(self) -> None:
+        frames = [np.zeros((180, 120, 3), dtype=np.uint8) for _ in range(32)]
+        for i, fr in enumerate(frames):
+            fr[40:90, 20 + i:50 + i] = (40, 210, 180)
+        act = compute_frame_activity(frames, fps=30.0)
+        self.assertIn("per_quarter_second", act)
+        self.assertGreaterEqual(len(act["per_quarter_second"]), 4)
+        from editorial_runtime.b6_editorial_metrics import _summarize_actor_prop_mask_motion
+        ev = [
+            {"actors": {"z": {"centroid_xy": [20.0 + i * 2.5, 60.0]}}, "props": {"head": {"centroid_xy": [50.0, 90.0]}}}
+            for i in range(10)
+        ]
+        m = _summarize_actor_prop_mask_motion(ev)
+        self.assertEqual(m["source"], "semantic_masks")
+        self.assertAlmostEqual(m["actor_mask_motion_mean"], 2.5, places=3)
+        self.assertAlmostEqual(m["prop_mask_motion_mean"], 0.0, places=3)
+
 
 if __name__ == "__main__":
     unittest.main()
