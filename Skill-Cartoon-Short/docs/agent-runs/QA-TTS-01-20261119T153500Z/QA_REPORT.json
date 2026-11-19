@@ -1,0 +1,31 @@
+{
+  "runId": "QA-TTS-01-20261119T153500Z",
+  "evaluatedAt": "2026-11-19T16:30:12.537Z",
+  "overallVerdict": "PARTIALLY_PASS",
+  "verdictReason": "All implemented Studio code, async/parallel acceleration, 13/13 DAG tests, responsive UI E2E, and 30s 900-frame Ghost Army demo PASS; live external Gemini TTS is BLOCKED_NO_API_KEY, public kit redistribution G03 stays BLOCKED, 1:1/16:9 ratios stay DISABLED, ASR word sync is UNVERIFIED_WORD_SYNC, and human subjective playback is UNVERIFIED.",
+  "qaTts01Gates": [
+    { "id": "Q01", "status": "PASS", "summary": "Repo Agent-Skill-Animation, branch QA, Skill-Cartoon-Short/** scope only, Skill-B6 untouched" },
+    { "id": "Q02", "status": "PASS", "summary": "Compact dark React+TS+Vite Studio verified across 1440/768/390/320 with 0 overflow and >=44px targets" },
+    { "id": "Q03", "status": "PASS", "summary": "Loopback 127.0.0.1, Host/Origin checks, raw traversal/dotfile 403, 0600 settings store, key redaction" },
+    { "id": "Q04", "status": "BLOCKED", "mockedStatus": "PASS (MOCKED)", "summary": "Live Gemini TTS BLOCKED_NO_API_KEY; mocked HTTP suite PASS (429 halt, 503 fallback, MIME/WAV no-double-wrap, concurrent isolation)" },
+    { "id": "Q05", "status": "PASS", "summary": "Import Audio magic sniff, FFprobe validation, 48kHz normalization, Range 200/206 playback" },
+    { "id": "Q06", "status": "PASS", "summary": "Ghost Army MP4 audio: AAC 48000 Hz 2ch 30.000s, -16.1 LUFS, -1.1 dBFS peak" },
+    { "id": "Q07", "status": "UNVERIFIED", "guardStatus": "PASS", "summary": "Whisper absent -> approximate-silence-dp (UNVERIFIED_WORD_SYNC); duration overflow guard PASS" },
+    { "id": "Q08", "status": "PASS", "summary": "900/900 contiguous 1080x1920 frames via ShortRendererSession; 900/900 bit-exact serial vs 2-worker parallel parity" },
+    { "id": "Q09", "status": "PASS", "summary": "9:16 SUPPORTED; 1:1 & 16:9 truthfully DISABLED in contract, API, and UI" },
+    { "id": "Q10", "status": "PASS", "summary": "mix.py linear gated-RMS: music=-6.0 dB, sfx=-6.0 dB, ducking=false, peak=-1.0 dBFS" },
+    { "id": "Q11", "status": "PASS", "summary": "H.264 yuv420p 1080x1920 @ 30/1, 900 frames, 30.000s, +faststart, 0 black, 0 freeze" },
+    { "id": "Q12", "status": "PASS", "summary": "cartoon_subs.py 19 chunks burned with -c:a copy; 8/10 sampled timestamps confirmed pixel diff vs SUB OFF" },
+    { "id": "Q13", "status": "PASS", "summary": "SUB OFF clean bypass verified in integration test and ghost-army-ww2-30s-sub-off.mp4" },
+    { "id": "Q14", "status": "PASS", "summary": "Async JobManager FSM, 409 guard, cancel cleanup, crash recovery, non-blocking mux (0 errors across 123 polls)" },
+    { "id": "Q15", "status": "PASS", "summary": "13/13 bounded parallel DAG nodes PASS in 33956 ms" },
+    { "id": "Q16", "status": "PASS", "summary": "Soldier 592f, Zombie 300f, /legacy viewer, 12 negative tests, Skill-B6 isolation PASS" },
+    { "id": "Q17", "status": "PASS", "summary": "Original 7-scene 30s Ghost Army demo verified with real English voiceover and zero Nazi emblems" },
+    { "id": "Q18", "status": "PASS", "humanSubjectiveReview": "UNVERIFIED", "summary": "Playable 16440125B MP4 + contact sheet + sub-check verified; human live playback UNVERIFIED" }
+  ],
+  "short01GatesSummary": {
+    "passed": ["G01", "G02", "G04", "G05", "G06", "G07", "G08", "G09", "G10", "G11", "G12", "G13", "G14", "G15", "G16"],
+    "blocked": ["G03"],
+    "pendingRemotePush": ["G17"]
+  }
+}

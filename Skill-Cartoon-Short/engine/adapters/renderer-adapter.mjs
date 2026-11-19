@@ -34,7 +34,28 @@ const MIME_TYPES = {
 
 // Bounded process-wide concurrency guard to prevent simultaneous uncontrolled Chromium WebGL instances
 let activeRendererCount = 0;
-const maxConcurrentRenderers = () => Math.max(1, Number(process.env.SHORT_MAX_RENDER_WORKERS || 1));
+const maxConcurrentRenderers = () => Math.max(1, Math.min(4, Number(process.env.SHORT_MAX_RENDER_WORKERS || 2)));
+
+export function resolveOptimalRenderWorkers({ frameCount = 1, requestedWorkers } = {}) {
+  if (frameCount < 24) return 1;
+  const totalMemMb = Math.round(os.totalmem() / (1024 * 1024));
+  if (totalMemMb < 4096) return 1;
+  const envCap = Math.max(1, Math.min(4, Number(process.env.SHORT_MAX_RENDER_WORKERS || 2)));
+  const raw = requestedWorkers !== undefined ? Number(requestedWorkers) : envCap;
+  return Math.max(1, Math.min(raw, envCap, Math.max(1, Math.floor(os.cpus().length / 2)), frameCount));
+}
+
+async function writeFileAtomicAsync(destPath, data) {
+  await fs.promises.mkdir(path.dirname(destPath), { recursive: true });
+  const tmpDir = path.join(PROJECT_ROOT, 'workspace', 'cache', 'atomic-tmp');
+  await fs.promises.mkdir(tmpDir, { recursive: true });
+  const tmpPath = path.join(
+    tmpDir,
+    `${path.basename(destPath)}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`
+  );
+  await fs.promises.writeFile(tmpPath, data);
+  await fs.promises.rename(tmpPath, destPath);
+}
 
 function resolveProjectWebDir(project) {
   if (!project) {
@@ -324,8 +345,8 @@ export class ShortRendererSession {
     }
   }
 
-  async renderFrame(frameIndex, options = {}) {
-    if (!this.initialized || this.disposed || !this.page) {
+  async _renderFrameOnPage(targetPage, frameIndex, options = {}) {
+    if (!this.initialized || this.disposed || !targetPage) {
       throw new Error('RENDERER_NOT_INITIALIZED: Call initializeRenderer() before renderFrame().');
     }
     if (!Number.isInteger(frameIndex) || frameIndex < 0) {
@@ -341,7 +362,7 @@ export class ShortRendererSession {
     }
 
     const debugMode = options.debugMode || null;
-    const evalResult = await this.page.evaluate(
+    const evalResult = await targetPage.evaluate(
       ([f, q, dbgMode]) => {
         window.DEBUG_ND = dbgMode === 'nd' ? 1 : 0;
         window.DEBUG_E = dbgMode === 'edge' ? 1 : 0;
@@ -408,7 +429,11 @@ export class ShortRendererSession {
     let outputPath = null;
     if (options.outputPath) {
       const resolvedOut = path.resolve(options.outputPath);
-      writeFileAtomic(resolvedOut, buffer);
+      if (options.asyncWrite) {
+        await writeFileAtomicAsync(resolvedOut, buffer);
+      } else {
+        writeFileAtomic(resolvedOut, buffer);
+      }
       outputPath = resolvedOut;
     }
 
@@ -429,6 +454,10 @@ export class ShortRendererSession {
     };
   }
 
+  async renderFrame(frameIndex, options = {}) {
+    return this._renderFrameOnPage(this.page, frameIndex, options);
+  }
+
   async renderStill(frameIndex, options = {}) {
     return this.renderFrame(frameIndex, { ...options, returnBuffer: options.returnBuffer ?? true });
   }
@@ -446,6 +475,26 @@ export class ShortRendererSession {
     return this.renderFrameList(frames, options);
   }
 
+  async _openWorkerPage() {
+    const context = await this.browser.newContext({
+      viewport: { width: 1080, height: 1920 },
+      deviceScaleFactor: 1,
+    });
+    const page = await context.newPage();
+    page.on('pageerror', (err) => this.pageErrors.push(`WORKER_PAGE_ERROR: ${err.message || String(err)}`));
+    await page.goto(`${this.serverInfo.baseUrl}/index.html`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 120000,
+    });
+    await page.waitForFunction(() => Boolean(window.ready || window.err), null, { timeout: 120000 });
+    const ok = await page.evaluate(() => Boolean(window.ready && !window.err && typeof window.renderFrame === 'function'));
+    if (!ok) {
+      await context.close().catch(() => {});
+      throw new Error('WORKER_RENDERER_NOT_READY');
+    }
+    return { context, page };
+  }
+
   async renderFrameList(frames, options = {}) {
     if (!Array.isArray(frames) || frames.length === 0) {
       throw new Error('INVALID_FRAME_LIST: Expected non-empty array of frame indices.');
@@ -457,7 +506,13 @@ export class ShortRendererSession {
     }
 
     const startedAt = Date.now();
-    const results = [];
+    const workersRequested = options.parallel
+      ? resolveOptimalRenderWorkers({ frameCount: frames.length, requestedWorkers: options.workers })
+      : Math.max(1, Number(options.workers || 1));
+    const effectiveWorkers = Math.min(workersRequested, frames.length);
+
+    const resultsByFrame = new Map();
+    const pendingFrames = [];
     let resumedCount = 0;
 
     for (const f of frames) {
@@ -466,12 +521,11 @@ export class ShortRendererSession {
       }
       const fileName = `f${String(f).padStart(4, '0')}.jpg`;
       const targetPath = outDir ? path.join(outDir, fileName) : null;
-
       if (targetPath && options.resume && fs.existsSync(targetPath)) {
         const existingCheck = inspectJpegFile(targetPath);
         if (existingCheck.valid && existingCheck.width === 1080 && existingCheck.height === 1920) {
           resumedCount++;
-          results.push({
+          resultsByFrame.set(f, {
             frameIndex: f,
             width: existingCheck.width,
             height: existingCheck.height,
@@ -482,33 +536,82 @@ export class ShortRendererSession {
           });
           continue;
         }
-        // Stale/corrupted cached frame: remove and re-render cleanly
         fs.rmSync(targetPath, { force: true });
       }
-
-      const rendered = await this.renderFrame(f, {
-        quality: options.quality ?? 0.96,
-        debugMode: options.debugMode,
-        allowBlack: options.allowBlack,
-        outputPath: targetPath,
-        returnBuffer: false,
-        signal: options.signal,
-      });
-      results.push({ ...rendered, resumed: false });
-      options.onProgress?.({ completed: results.length, total: frames.length, frameIndex: f });
+      pendingFrames.push(f);
     }
 
-    const elapsedMs = Date.now() - startedAt;
-    return {
-      frameCount: results.length,
-      resumedCount,
-      renderedCount: results.length - resumedCount,
-      elapsedMs,
-      msPerFrame: Number((elapsedMs / Math.max(1, results.length)).toFixed(2)),
-      peakRssMb: Number((this.peakRssBytes / (1024 * 1024)).toFixed(2)),
-      outputDir: outDir,
-      frames: results,
-    };
+    let completedCount = resumedCount;
+    const extraWorkers = [];
+
+    try {
+      const workerPages = [this.page];
+      if (effectiveWorkers > 1 && pendingFrames.length >= 8) {
+        const created = await Promise.all(
+          Array.from({ length: effectiveWorkers - 1 }, () => this._openWorkerPage())
+        );
+        for (const w of created) {
+          extraWorkers.push(w);
+          workerPages.push(w.page);
+        }
+      }
+
+      const workerCount = workerPages.length;
+      const chunkSize = Math.ceil(pendingFrames.length / workerCount);
+      const pendingWrites = [];
+
+      await Promise.all(
+        workerPages.map(async (wPage, wi) => {
+          const slice = pendingFrames.slice(wi * chunkSize, (wi + 1) * chunkSize);
+          for (const f of slice) {
+            if (options.signal?.aborted) {
+              throw new Error(`RENDER_CANCELED at frame ${f}`);
+            }
+            const targetPath = outDir ? path.join(outDir, `f${String(f).padStart(4, '0')}.jpg`) : null;
+            const rendered = await this._renderFrameOnPage(wPage, f, {
+              quality: options.quality ?? 0.96,
+              debugMode: options.debugMode,
+              allowBlack: options.allowBlack,
+              outputPath: null,
+              returnBuffer: Boolean(targetPath),
+              signal: options.signal,
+            });
+            if (targetPath && rendered.buffer) {
+              const buf = rendered.buffer;
+              rendered.buffer = undefined;
+              rendered.outputPath = targetPath;
+              pendingWrites.push(writeFileAtomicAsync(targetPath, buf));
+              if (pendingWrites.length >= 24) {
+                await Promise.all(pendingWrites.splice(0, pendingWrites.length));
+              }
+            }
+            resultsByFrame.set(f, { ...rendered, resumed: false });
+            completedCount++;
+            options.onProgress?.({ completed: completedCount, total: frames.length, frameIndex: f });
+          }
+        })
+      );
+
+      if (pendingWrites.length > 0) {
+        await Promise.all(pendingWrites);
+      }
+
+      const orderedResults = frames.map((f) => resultsByFrame.get(f));
+      const elapsedMs = Date.now() - startedAt;
+      return {
+        frameCount: orderedResults.length,
+        resumedCount,
+        renderedCount: orderedResults.length - resumedCount,
+        workersUsed: workerCount,
+        elapsedMs,
+        msPerFrame: Number((elapsedMs / Math.max(1, orderedResults.length)).toFixed(2)),
+        peakRssMb: Number((this.peakRssBytes / (1024 * 1024)).toFixed(2)),
+        outputDir: outDir,
+        frames: orderedResults,
+      };
+    } finally {
+      await Promise.all(extraWorkers.map((w) => w.context.close().catch(() => {})));
+    }
   }
 
   getMetadata() {

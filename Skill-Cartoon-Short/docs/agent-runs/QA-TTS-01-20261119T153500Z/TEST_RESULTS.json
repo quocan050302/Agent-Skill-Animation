@@ -1,0 +1,76 @@
+{
+  "runId": "QA-TTS-01-20261119T153500Z",
+  "ranAt": "2026-11-19T16:30:12.537Z",
+  "repository": "https://github.com/quocan050302/Agent-Skill-Animation.git",
+  "branch": "QA",
+  "baseCommitSha": "c67dbd785c08edb4d824f8036588ce2294b627fe",
+  "dagSummary": {
+    "command": "npm test",
+    "exitCode": 0,
+    "ok": true,
+    "nodesPassed": 13,
+    "nodesTotal": 13,
+    "wallClockMs": 33956,
+    "sequentialSumMs": 42911,
+    "dagSpeedupRatio": 1.26,
+    "resourcesPreflight": {
+      "cpuCores": 8,
+      "totalMemMb": 16384,
+      "freeMemMbAtStart": 84,
+      "freeDiskMb": 14870,
+      "lightConcurrency": 4,
+      "maxWebglWorkers": 2
+    },
+    "nodes": [
+      { "id": "source-audit", "stage": 1, "status": "PASS", "exitCode": 0, "durationMs": 16 },
+      { "id": "hash-verification", "stage": 1, "status": "PASS", "exitCode": 0, "durationMs": 16 },
+      { "id": "dependency-checks", "stage": 1, "status": "PASS", "exitCode": 0, "durationMs": 360 },
+      { "id": "unit-source-motion", "stage": 1, "status": "PASS", "exitCode": 0, "durationMs": 484 },
+      { "id": "frontend-typecheck-build", "stage": 1, "status": "PASS", "exitCode": 0, "durationMs": 3162 },
+      { "id": "unit-tts-studio", "stage": 1, "status": "PASS", "exitCode": 0, "durationMs": 8979 },
+      { "id": "engine-setup", "stage": 2, "status": "PASS", "exitCode": 0, "durationMs": 124 },
+      { "id": "integration-pipeline", "stage": 3, "status": "PASS", "exitCode": 0, "durationMs": 3304 },
+      { "id": "integration-studio-api", "stage": 3, "status": "PASS", "exitCode": 0, "durationMs": 9282 },
+      { "id": "ghost-army-parallel-parity", "stage": 4, "status": "PASS", "exitCode": 0, "durationMs": 937, "detail": { "verifiedFrames": 10, "bitExactMatch": true } },
+      { "id": "regression-backtest-negative", "stage": 4, "status": "PASS", "exitCode": 0, "durationMs": 6660 },
+      { "id": "e2e-legacy-viewer", "stage": 5, "status": "PASS", "exitCode": 0, "durationMs": 3205 },
+      { "id": "e2e-studio-ui", "stage": 5, "status": "PASS", "exitCode": 0, "durationMs": 6382 }
+    ]
+  },
+  "ghostArmy900FrameBenchmark": {
+    "serialBaseline": {
+      "jobId": "job-mwnqyc93-689379",
+      "workersUsed": 1,
+      "frameCount": 900,
+      "renderElapsedMs": 23099,
+      "msPerFrame": 25.67,
+      "fps": 38.96,
+      "subOnSha256": "1a4caf250c769e116800951dda4c7aa59c59b677bd6e4db6fe230002d15711e7"
+    },
+    "parallelOptimized": {
+      "jobId": "job-mwnrkwkn-1eff0c",
+      "workersUsed": 2,
+      "frameCount": 900,
+      "renderElapsedMs": 14181,
+      "msPerFrame": 15.76,
+      "fps": 63.46,
+      "speedupRatio": 1.63,
+      "peakRssMb": 217.28,
+      "endToEndWallMs": 49923,
+      "httpStatusPolls": 123,
+      "httpPollErrors": 0,
+      "verifyingStageMs": 2820,
+      "parityVsSerialFramesChecked": 900,
+      "parityVsSerialMismatches": 0,
+      "subOnByteSize": 16440125,
+      "subOnSha256": "1a4caf250c769e116800951dda4c7aa59c59b677bd6e4db6fe230002d15711e7",
+      "subOffByteSize": 14188724,
+      "subOffSha256": "89d671dc83d1f1910ea2f88dc15d04201ffdde8201e878f43384dd592b907296",
+      "qaOverall": "PASS"
+    }
+  },
+  "liveExternalGeminiTts": {
+    "status": "BLOCKED_NO_API_KEY",
+    "mockedHttpSuiteStatus": "PASS (MOCKED)"
+  }
+}

@@ -114,7 +114,20 @@ test('Negative tests (5-8): invalid audio, missing script without ASR, browser s
   assert.match(mRes.stderr, /AUDIO_DECODE_FAILED/);
 
   // 6. Missing script during required alignment (no Whisper installed)
-  const validVoice = path.join(PROJECT_ROOT, 'workspace/projects/soldier-baseline/work/voice.mp3');
+  let validVoice = path.join(PROJECT_ROOT, 'workspace/projects/soldier-baseline/work/voice.mp3');
+  if (!fs.existsSync(validVoice)) {
+    validVoice = path.join(negDir, 'valid-sample.wav');
+    execFileSync('python3', [
+      '-c',
+      `import math, struct, wave, sys
+sr = 24000
+frames = [int(math.sin(2*math.pi*260*i/sr)*10000) for i in range(sr)]
+with wave.open(sys.argv[1], 'wb') as wf:
+    wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(sr)
+    wf.writeframes(struct.pack('<' + 'h'*len(frames), *frames))`,
+      validVoice,
+    ]);
+  }
   const noScriptRes = spawnSync(
     'python3',
     [path.join(PROJECT_ROOT, 'tools/timing/timing_validator.py'), validVoice, '--out', negDir],

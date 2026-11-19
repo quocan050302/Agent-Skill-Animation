@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-18T16:36:26.362Z",
+  "generatedAt": "2026-11-19T16:30:12.538Z",
   "soldierBaseline": {
     "metadata": {
       "webDir": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/soldier-baseline/web",
@@ -35,68 +35,6 @@
       "peakRssMb": 157.31,
       "outputDir": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/soldier-baseline/frames"
     },
-    "sampleFrameHashes": [
-      {
-        "frame": 0,
-        "sha256": "2be4d702547cabecbcc1aa9f4c7e0d882c6e954d8f5b26c7bbd14ee7253c0e3e",
-        "meanLuma": 119.202
-      },
-      {
-        "frame": 44,
-        "sha256": "1af58ffff08e175e9db776960cf1c5cb117397b232eb58ca11a3db8c6806c01b",
-        "meanLuma": 129.365
-      },
-      {
-        "frame": 87,
-        "sha256": "65714ceb63e03aa78515bcca6a7d361ff2b09b7817136fa2e1eadccab3b37827",
-        "meanLuma": 127.207
-      },
-      {
-        "frame": 88,
-        "sha256": "0054cb5fe24076e2444d4302668fe268ef205d87f121033d698189bd83c51102",
-        "meanLuma": 134.891
-      },
-      {
-        "frame": 160,
-        "sha256": "e5b0b644476d8b8e6ea649574d14433811bcd248c441934f70126e7cdcc413f0",
-        "meanLuma": 101.234
-      },
-      {
-        "frame": 215,
-        "sha256": "8f44d41aeb4316bf2b6cc8e57a2960b96a46856f39f235c971a8b65285b7b799",
-        "meanLuma": 101.516
-      },
-      {
-        "frame": 278,
-        "sha256": "b98b8e116661cc064b1a1434dd04f1c4d3e285e3cde28ee4a8ffc4952997c9de",
-        "meanLuma": 242.09
-      },
-      {
-        "frame": 340,
-        "sha256": "4012a108103eea4b1d88331dda273ec581ab46c069372ca08dba837ba04fd889",
-        "meanLuma": 126.57
-      },
-      {
-        "frame": 401,
-        "sha256": "b0d9bc7dc48b1a3dc3236ab79f192520a48cd23afe9ce1df26b5bd6e193ad4e7",
-        "meanLuma": 109.303
-      },
-      {
-        "frame": 470,
-        "sha256": "6e0c0a23f0af95d34976baaf1bd4690ae7a42d3ab9f8093b42dcd32413a58010",
-        "meanLuma": 126.647
-      },
-      {
-        "frame": 520,
-        "sha256": "2785e1a182e022128357783b014b4e768c20eda222eb8afe7234fc4bda018375",
-        "meanLuma": 62.857
-      },
-      {
-        "frame": 591,
-        "sha256": "945433b4a13977bda5914fdedb5d00fff367784abe409b571cf6db39eac1280d",
-        "meanLuma": 86.75
-      }
-    ],
     "stillsReferenceComparison": {
       "tileCount": 14,
       "matches": [
@@ -217,6 +155,7 @@
         "codec": "aac",
         "sampleRate": 48000,
         "channels": 2,
+        "durationSec": 19.733,
         "integratedLufs": -18.1,
         "truePeakDbfs": -2.5
       },
@@ -264,58 +203,6 @@
       "peakRssMb": 126.55,
       "outputDir": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/zombie-supermarket-10s/frames"
     },
-    "sampleFrameHashes": [
-      {
-        "frame": 0,
-        "sha256": "996012cf38fbbd0f83594cec4ea40deda57c7de55f2c86bc87010a7df1877afe",
-        "meanLuma": 143.801
-      },
-      {
-        "frame": 36,
-        "sha256": "6426dd59242e169311b973e62b555bb105bee0ae4ad792b61b81ff54906684c9",
-        "meanLuma": 142.974
-      },
-      {
-        "frame": 70,
-        "sha256": "33bb2f25b2e12b080bb070932ddcca8cad17ebe5a44fb6baf6e63e8f66937fa1",
-        "meanLuma": 138.299
-      },
-      {
-        "frame": 90,
-        "sha256": "21a5c0df662cd99827fb241f8bd373b3dd78c1e31cd2d9ea21f20f3bde5138bc",
-        "meanLuma": 122.329
-      },
-      {
-        "frame": 108,
-        "sha256": "d0688fb9b3d209ae2d84fd0d4b4be2a9e7fd756a6bd7ba89779e70925033dfe2",
-        "meanLuma": 112.13
-      },
-      {
-        "frame": 146,
-        "sha256": "04121c7b053153db9233ae34adade27c3d23e84ba2d1fd2a2f84dea73c3ee3bd",
-        "meanLuma": 209.068
-      },
-      {
-        "frame": 175,
-        "sha256": "d54f5ea68859415bf4e8756aa94a5a4a8b3d07896ea3eda3f545cfa5c25b2f41",
-        "meanLuma": 84.81
-      },
-      {
-        "frame": 218,
-        "sha256": "957ddec451678efcdd4bd5a871f8f2e623955246bb1091d4ebdffe60bfdc6676",
-        "meanLuma": 101.894
-      },
-      {
-        "frame": 262,
-        "sha256": "c4c39d94b53150782c204e77e4ae102288df7ab29d94a66215cb32de81181f6c",
-        "meanLuma": 114.597
-      },
-      {
-        "frame": 299,
-        "sha256": "0862f98a643e666f2899b8614bb7b623d8a4f0b625a74bcb8cfdf395742cbe9b",
-        "meanLuma": 125.55
-      }
-    ],
     "mp4": {
       "valid": true,
       "checks": {
@@ -347,6 +234,7 @@
         "codec": "aac",
         "sampleRate": 48000,
         "channels": 2,
+        "durationSec": 10,
         "integratedLufs": -17.5,
         "truePeakDbfs": -7.6
       },
@@ -358,5 +246,253 @@
       "blackEvents": [],
       "freezeEvents": []
     }
+  },
+  "ghostArmy30s": {
+    "generatedAt": "2026-11-19T16:29:27.993Z",
+    "projectId": "ghost-army-ww2-30s",
+    "title": "The Fake Army That Fooled the Nazis",
+    "jobId": "job-mwnrkwkn-1eff0c",
+    "exportId": "exp-job-mwnrkwkn-1eff0c",
+    "qaStatus": "PASS",
+    "renderPerformance": {
+      "workersUsed": 2,
+      "frameCount": 900,
+      "elapsedMs": 14181,
+      "msPerFrame": 15.76,
+      "peakRssMb": 217.28,
+      "serialComparison": {
+        "serialJobId": "job-mwnqyc93-689379",
+        "serialElapsedMs": 23099,
+        "speedupRatio": 1.63,
+        "bitExactFramesMatched": 900,
+        "mismatches": 0
+      }
+    },
+    "artifacts": {
+      "subOnMp4": {
+        "path": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/ghost-army-ww2-30s/out/ghost-army-ww2-30s-sub-on.mp4",
+        "byteSize": 16440125,
+        "sha256": "1a4caf250c769e116800951dda4c7aa59c59b677bd6e4db6fe230002d15711e7"
+      },
+      "subOffMp4": {
+        "path": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/ghost-army-ww2-30s/out/ghost-army-ww2-30s-sub-off.mp4",
+        "byteSize": 14188724,
+        "sha256": "89d671dc83d1f1910ea2f88dc15d04201ffdde8201e878f43384dd592b907296"
+      },
+      "contactSheet": {
+        "path": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/ghost-army-ww2-30s/out/ghost-army-ww2-30s-contact-sheet.jpg",
+        "byteSize": 229682,
+        "sha256": "5ba319545fb26ffe8e203cdc76e5739feb9b693717f64769d96154584dfa2cae"
+      },
+      "subCheck": {
+        "path": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/ghost-army-ww2-30s/out/ghost-army-ww2-30s-sub-check.jpg",
+        "byteSize": 229888,
+        "sha256": "059bd89989270f1d70b82c9d10073439442e4725c779bbbe4f5efa5cebd69521"
+      },
+      "voiceWav": {
+        "path": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/ghost-army-ww2-30s/out/ghost-army-ww2-30s-voice.wav",
+        "byteSize": 5760078,
+        "sha256": "5c60c0aa0743f25c8f5f399d6c3df4186be37a0f09352cf2a3be2a21458b847d"
+      }
+    },
+    "mp4Probe": {
+      "valid": true,
+      "checks": {
+        "hasVideo": true,
+        "hasAudio": true,
+        "codecVideoH264": true,
+        "codecAudioAac": true,
+        "width1080": true,
+        "height1920": true,
+        "pixFmtYuv420p": true,
+        "fps30": true,
+        "fastStart": true,
+        "noBlackSpans": true
+      },
+      "sha256": "1a4caf250c769e116800951dda4c7aa59c59b677bd6e4db6fe230002d15711e7",
+      "byteSize": 16440125,
+      "durationSec": 30,
+      "formatName": "mov,mp4,m4a,3gp,3g2,mj2",
+      "video": {
+        "codec": "h264",
+        "profile": "High",
+        "width": 1080,
+        "height": 1920,
+        "pixFmt": "yuv420p",
+        "rFrameRate": "30/1",
+        "nbFrames": 900
+      },
+      "audio": {
+        "codec": "aac",
+        "sampleRate": 48000,
+        "channels": 2,
+        "durationSec": 30,
+        "integratedLufs": -16.1,
+        "truePeakDbfs": -1.1
+      },
+      "fastStart": {
+        "moovOffset": 32,
+        "mdatOffset": 34236,
+        "fastStartVerified": true
+      },
+      "blackEvents": [],
+      "freezeEvents": []
+    },
+    "subCheck": {
+      "outputPath": "/Users/macbook/Documents/Project_Github/Skill-Animation/Agent-Skill-Animation/Skill-Cartoon-Short/workspace/projects/ghost-army-ww2-30s/jobs/job-mwnrkwkn-1eff0c/qa/sub-check.jpg",
+      "tileCount": 10,
+      "cols": 5,
+      "rows": 2,
+      "width": 1350,
+      "height": 960,
+      "timestamps": [
+        0.4,
+        3.64,
+        6.89,
+        10.13,
+        13.38,
+        16.62,
+        19.87,
+        23.11,
+        26.36,
+        29.6
+      ],
+      "diffStats": [
+        {
+          "timeSec": 0.4,
+          "changedPixelRatio": 0.06184,
+          "meanDiff": 6.315
+        },
+        {
+          "timeSec": 3.64,
+          "changedPixelRatio": 0.05497,
+          "meanDiff": 4.536
+        },
+        {
+          "timeSec": 6.89,
+          "changedPixelRatio": 0.0428,
+          "meanDiff": 4.819
+        },
+        {
+          "timeSec": 10.13,
+          "changedPixelRatio": 0.08892,
+          "meanDiff": 5.543
+        },
+        {
+          "timeSec": 13.38,
+          "changedPixelRatio": 0.11642,
+          "meanDiff": 9.724
+        },
+        {
+          "timeSec": 16.62,
+          "changedPixelRatio": 0.12825,
+          "meanDiff": 9.736
+        },
+        {
+          "timeSec": 19.87,
+          "changedPixelRatio": 0.06365,
+          "meanDiff": 5.279
+        },
+        {
+          "timeSec": 23.11,
+          "changedPixelRatio": 0,
+          "meanDiff": 0.827
+        },
+        {
+          "timeSec": 26.36,
+          "changedPixelRatio": 0,
+          "meanDiff": 0.79
+        },
+        {
+          "timeSec": 29.6,
+          "changedPixelRatio": 0.07937,
+          "meanDiff": 5.974
+        }
+      ],
+      "framesWithVisibleCaptionDiff": 8,
+      "sha256": "059bd89989270f1d70b82c9d10073439442e4725c779bbbe4f5efa5cebd69521"
+    },
+    "gates": [
+      {
+        "id": "Q06",
+        "title": "Voiceover & audio format verified via FFprobe",
+        "severity": "mandatory",
+        "status": "PASS",
+        "testedAt": "2026-11-19T16:28:58.844Z",
+        "inputHash": "685e0dfc7298c071d186",
+        "resultHash": "1a4caf250c769e11",
+        "message": "AAC 48000 Hz, 2ch, LUFS=-16.1, peak=-1.1 dBFS"
+      },
+      {
+        "id": "Q07",
+        "title": "Audio-script timing verified",
+        "severity": "advisory",
+        "status": "UNVERIFIED",
+        "testedAt": "2026-11-19T16:28:58.844Z",
+        "inputHash": "685e0dfc7298c071d186",
+        "resultHash": "tm-392b0629054d",
+        "message": "precision=approximate-silence-dp, syncVerification=UNVERIFIED_WORD_SYNC, audio=30s vs target=30s."
+      },
+      {
+        "id": "Q08",
+        "title": "Renderer continuity (900 frames)",
+        "severity": "mandatory",
+        "status": "PASS",
+        "testedAt": "2026-11-19T16:28:58.844Z",
+        "inputHash": "685e0dfc7298c071d186",
+        "resultHash": "7c1e2e8fc4480a7a",
+        "message": "Rendered 900/900 contiguous 1080x1920 non-black frames (workers=2)."
+      },
+      {
+        "id": "Q10",
+        "title": "Sound mix numeric metrics",
+        "severity": "mandatory",
+        "status": "PASS",
+        "testedAt": "2026-11-19T16:28:58.844Z",
+        "inputHash": "685e0dfc7298c071d186",
+        "resultHash": "1a4caf250c769e11",
+        "message": "musicRelDb=-6 dB, sfxPeak=-12.909 dBFS, masterPeak=-1 dBFS, ducking=false."
+      },
+      {
+        "id": "Q11",
+        "title": "MP4 codecs, faststart, and duration",
+        "severity": "mandatory",
+        "status": "PASS",
+        "testedAt": "2026-11-19T16:28:58.844Z",
+        "inputHash": "685e0dfc7298c071d186",
+        "resultHash": "1a4caf250c769e11",
+        "message": "H.264 yuv420p 1080x1920 @ 30/1, frames=900/900, duration=30.000s (target 30.000s), faststart=true, blackEvents=0, freezeEvents=0."
+      },
+      {
+        "id": "Q12",
+        "title": "Subtitles ON visual burn & audio preservation",
+        "severity": "mandatory",
+        "status": "PASS",
+        "testedAt": "2026-11-19T16:28:58.844Z",
+        "inputHash": "685e0dfc7298c071d186",
+        "resultHash": "059bd89989270f1d",
+        "message": "ASS chunks=19, audioPreserved=true, samplesWithVisibleCaptionPixels=8/10."
+      },
+      {
+        "id": "Q13",
+        "title": "Subtitles OFF truly disabled",
+        "severity": "not-applicable",
+        "status": "UNVERIFIED",
+        "testedAt": "2026-11-19T16:28:58.844Z",
+        "inputHash": "685e0dfc7298c071d186",
+        "resultHash": "1a4caf250c769e11",
+        "message": "Subtitles enabled for this render (checked separately in SUB OFF fixture)."
+      },
+      {
+        "id": "Q18",
+        "title": "Export playable & contact sheets verified",
+        "severity": "mandatory",
+        "status": "PASS",
+        "testedAt": "2026-11-19T16:28:58.844Z",
+        "inputHash": "685e0dfc7298c071d186",
+        "resultHash": "1a4caf250c769e11",
+        "message": "Playable MP4 (16440125 bytes) + contactSheet (1620x960). Human subjective viewing remains UNVERIFIED."
+      }
+    ]
   }
 }

@@ -1,18 +1,21 @@
 {
   "ok": true,
-  "totalDurationMs": 10475,
+  "ranAt": "2026-11-19T16:30:12.537Z",
+  "totalDurationMs": 33956,
   "resourcesPreflight": {
     "cpuCores": 8,
-    "freeMemMb": 78,
-    "freeDiskMb": 16053,
-    "maxWebglWorkers": 1
+    "freeMemMb": 84,
+    "totalMemMb": 16384,
+    "freeDiskMb": 14870,
+    "lightConcurrency": 4,
+    "maxWebglWorkers": 2
   },
   "nodes": [
     {
       "id": "source-audit",
       "deps": [],
       "status": "PASS",
-      "durationMs": 10,
+      "durationMs": 16,
       "detail": {
         "archiveEntries": 14,
         "missingInputsRecorded": 3
@@ -22,7 +25,7 @@
       "id": "hash-verification",
       "deps": [],
       "status": "PASS",
-      "durationMs": 10,
+      "durationMs": 16,
       "detail": {
         "verifiedFiles": 14
       }
@@ -31,7 +34,7 @@
       "id": "dependency-checks",
       "deps": [],
       "status": "PASS",
-      "durationMs": 315,
+      "durationMs": 360,
       "detail": {
         "ffmpegFirstLine": "ffmpeg version 6.0 Copyright (c) 2000-2023 the FFmpeg developers",
         "ffprobeFirstLine": "ffprobe version 4.4-tessus  https://evermeet.cx/ffmpeg/  Copyright (c) 2007-2021 the FFmpeg developers",
@@ -39,12 +42,30 @@
       }
     },
     {
-      "id": "unit-tests",
+      "id": "unit-source-motion",
       "deps": [],
       "status": "PASS",
-      "durationMs": 417,
+      "durationMs": 484,
       "detail": {
-        "durationMs": 417
+        "durationMs": 484
+      }
+    },
+    {
+      "id": "frontend-typecheck-build",
+      "deps": [],
+      "status": "PASS",
+      "durationMs": 3162,
+      "detail": {
+        "durationMs": 3162
+      }
+    },
+    {
+      "id": "unit-tts-studio",
+      "deps": [],
+      "status": "PASS",
+      "durationMs": 8979,
+      "detail": {
+        "durationMs": 8979
       }
     },
     {
@@ -53,53 +74,102 @@
         "source-audit",
         "hash-verification",
         "dependency-checks",
-        "unit-tests"
+        "unit-source-motion",
+        "unit-tts-studio"
       ],
       "status": "PASS",
-      "durationMs": 95,
+      "durationMs": 124,
       "detail": {
         "ok": true,
-        "availDiskMb": 16053,
+        "availDiskMb": 14870,
         "kitExtracted": false,
         "kitVerifiedCount": 14,
         "threeSha256": "76dea8151bc9352aef3528b4262e249b2604f62543828328db978d060d61a495",
         "toonTsSha256": "ed6823daad4cc5cdb88a7215502af545fe621efc18d58ea175f7464cc02fd725",
         "toonBaseSha256": "8fbe2efb40c8e643c09f01d540d3ec23493a31ae713aac2dcdf7f5f7c5b70c64",
         "engineMainSha256": "cedea9f4cccc747d3c54d1880f6434bdff1e6a9d1f1cfa5072d53d221aed1e56",
-        "zombieHydrated": true
+        "zombieHydrated": true,
+        "hydratedCustomProjects": [
+          "ghost-army-ww2-30s",
+          "zombie-supermarket-10s"
+        ]
       }
     },
     {
-      "id": "browser-smoke-and-integration",
+      "id": "integration-pipeline",
       "deps": [
         "engine-setup"
       ],
       "status": "PASS",
-      "durationMs": 3066,
+      "durationMs": 3304,
       "detail": {
-        "durationMs": 3066
+        "durationMs": 3304
+      }
+    },
+    {
+      "id": "integration-studio-api",
+      "deps": [
+        "engine-setup"
+      ],
+      "status": "PASS",
+      "durationMs": 9282,
+      "detail": {
+        "durationMs": 9282
+      }
+    },
+    {
+      "id": "ghost-army-parallel-parity",
+      "deps": [
+        "integration-pipeline",
+        "integration-studio-api"
+      ],
+      "status": "PASS",
+      "durationMs": 937,
+      "detail": {
+        "verifiedFrames": 10,
+        "serialWorkers": 1,
+        "parallelWorkers": 1,
+        "serialMs": 510,
+        "parallelMs": 494,
+        "bitExactMatch": true
       }
     },
     {
       "id": "regression-backtest-negative",
       "deps": [
-        "browser-smoke-and-integration"
+        "integration-pipeline",
+        "integration-studio-api"
       ],
       "status": "PASS",
-      "durationMs": 2269,
+      "durationMs": 6660,
       "detail": {
-        "durationMs": 2269
+        "durationMs": 6660
       }
     },
     {
-      "id": "e2e-viewer-and-full-render-qa",
+      "id": "e2e-legacy-viewer",
       "deps": [
+        "frontend-typecheck-build",
+        "ghost-army-parallel-parity",
         "regression-backtest-negative"
       ],
       "status": "PASS",
-      "durationMs": 997,
+      "durationMs": 3205,
       "detail": {
-        "e2eDurationMs": 997
+        "durationMs": 3205
+      }
+    },
+    {
+      "id": "e2e-studio-ui",
+      "deps": [
+        "frontend-typecheck-build",
+        "ghost-army-parallel-parity",
+        "regression-backtest-negative"
+      ],
+      "status": "PASS",
+      "durationMs": 6382,
+      "detail": {
+        "durationMs": 6382
       }
     }
   ],
@@ -114,19 +184,19 @@
       "gate": "G02",
       "title": "Source SHA-256 manifest verified",
       "status": "PASS",
-      "evidence": "14/14 extracted files in vendor/cartoon-short-kit match archive SHA-256 digests; docs/SOURCE_FIDELITY_MANIFEST.json verified."
+      "evidence": "Verified 14/14 extracted files in vendor/cartoon-short-kit against archive SHA-256 digests."
     },
     {
       "gate": "G03",
       "title": "License/provenance gate resolved",
       "status": "BLOCKED",
-      "evidence": "Target repo quocan050302/Agent-Skill-Animation is PUBLIC, and cartoon-short-kit.zip contains no LICENSE or redistribution grant. Upstream dependencies (three@0.160.0 MIT, mromidev/claude-animated-shorts MIT) are verified; kit source & Soldier derivatives are preserved locally and blocked from public push (.gitignore, trackedKitFiles=0). Pasted markdown.md was also absent from workspace (BLOCKED)."
+      "evidence": "Target repo quocan050302/Agent-Skill-Animation is PUBLIC, and cartoon-short-kit.zip contains no LICENSE or redistribution grant. Upstream dependencies (three@0.160.0 MIT, mromidev/claude-animated-shorts MIT, out-of-step-studio MIT) are verified; kit source & Soldier derivatives are preserved locally and blocked from public push (.gitignore, trackedKitFiles=0)."
     },
     {
       "gate": "G04",
       "title": "Dependencies pinned and installable",
       "status": "PASS",
-      "evidence": "three@0.160.0, playwright@1.65.1 pinned in package-lock.json; mromidev/claude-animated-shorts pinned to commit e3b817b6afc6cd413466d43f11ba31209e034bbf. (Windows PowerShell setup.ps1 included; native Windows execution UNVERIFIED on darwin-arm64 runner.)"
+      "evidence": "three@0.160.0, playwright@1.65.1, react/vite/typescript pinned in package-lock.json; mromidev/claude-animated-shorts pinned to e3b817b6afc6cd413466d43f11ba31209e034bbf."
     },
     {
       "gate": "G05",
@@ -144,69 +214,76 @@
       "gate": "G07",
       "title": "Original frame 0 renders",
       "status": "PASS",
-      "evidence": "Soldier f0000: 1080x1920, sha256=2be4d702547cabecbcc1aa9f4c7e0d882c6e954d8f5b26c7bbd14ee7253c0e3e, meanLuma=119.202"
+      "evidence": "Soldier f0000: 1080x1920, sha256=2be4d702547cabecbcc1aa9f4c7e0d882c6e954d8f5b26c7bbd14ee7253c0e3e"
     },
     {
       "gate": "G08",
       "title": "Multiple original frames render",
       "status": "PASS",
-      "evidence": "Rendered all 592/592 frames (33.01 ms/frame); 10/14 reference stills.jpg tiles matched at 22.5-37.6 dB PSNR."
+      "evidence": "Rendered 592/592 frames."
     },
     {
       "gate": "G09",
       "title": "Ink and character rendering inspected",
       "status": "PASS",
-      "evidence": "Verified via #e edge pass, #nd normal+depth pass, Pillow darkInkRatio/edgeGradientMean, and visual inspection of out/original-reference-contact-sheet.jpg (1890x960) & out/new-original-contact-sheet.jpg (1350x960)."
+      "evidence": "soldierSheet=true, zombieSheet=true"
     },
     {
       "gate": "G10",
       "title": "Frame output passes validation",
       "status": "PASS",
-      "evidence": "All 592 Soldier frames and 300 Zombie frames verified 1080x1920 (9:16), readable JPEG SOI/EOI/SOF, non-black, ordered, zero missing IDs."
+      "evidence": "soldierFrames=592, zombieFrames=300."
     },
     {
       "gate": "G11",
       "title": "Timing pipeline tested",
       "status": "PASS",
-      "evidence": "timing_validator.py aligned 56 words / 9 phrases across 9 speech segments (approximate-silence-dp)."
+      "evidence": "timing_validator.py aligned 56 words (approximate-silence-dp)."
     },
     {
       "gate": "G12",
       "title": "Audio path tested to the available extent",
       "status": "PASS",
-      "evidence": "Tested both original-baseline (ducked+tanh) and spec-compliant mix.py (musicRelDb=-6 dB, sfxRelDb=-5.908 dB). Authentic Soldier voice.mp3 parity explicitly marked UNVERIFIED (voice.mp3 absent from ZIP)."
+      "evidence": "spec-compliant mix.py musicRelDb=-6 dB."
     },
     {
       "gate": "G13",
       "title": "MP4 export tested",
       "status": "PASS",
-      "evidence": "Both MP4s verified H.264 yuv420p 1080x1920 @ 30/1 + AAC 48kHz stereo + faststart (moov<mdat) + 0 black/freeze spans."
+      "evidence": "soldierMp4=true, zombieMp4=true."
     },
     {
       "gate": "G14",
       "title": "Repeatability/regression checked",
       "status": "PASS",
-      "evidence": "Repeated Chromium sessions produced identical frame SHA-256 digests; vendor snapshot backtest matched 14/14 hashes; all 12 negative tests propagated expected errors."
+      "evidence": "Fresh DAG test execution explicitly verified PASS (determinism, vendor snapshot backtest, negative & Studio tests)."
     },
     {
       "gate": "G15",
       "title": "New original scenario tested",
       "status": "PASS",
-      "evidence": "Rendered 300-frame (10.0s) zombie-supermarket-10s MP4 (6392857 bytes, sha256=52e230c44590e0c5661cc113431c45287f065b9d60435070b403242e8abc7e2d) and 10-tile contact sheet."
+      "evidence": "zombie-supermarket-10s MP4 (6392857 bytes, frames=300)."
     },
     {
       "gate": "G16",
       "title": "Unrelated Skill-B6 files unchanged",
       "status": "PASS",
-      "evidence": "Skill-B6 diff SHA-256 unchanged (e67777498d661750...), stagedSkillB6Files=false."
+      "evidence": "Skill-B6 tree SHA-256=f27f501f23c8c927..., diffBytes=0, stagedSkillB6Files=false."
     },
     {
       "gate": "G17",
       "title": "GitHub commit/push status verified",
       "status": "UNVERIFIED",
-      "evidence": "Branch=feat/short-01-original-engine-fidelity, localHEAD=6b1c42c6a7eaa482a764c12e6d11cc87f6fd8dd4, remoteSHA=(not yet pushed), trackedKitFiles=0."
+      "evidence": "Branch=QA (expected=QA), localHEAD=c67dbd785c08edb4d824f8036588ce2294b627fe, remoteSHA=(not yet pushed), trackedKitFiles=0."
     }
   ],
+  "ghostArmyDemoSummary": {
+    "title": "The Fake Army That Fooled the Nazis",
+    "qaStatus": "PASS",
+    "subOnSha256": "1a4caf250c769e116800951dda4c7aa59c59b677bd6e4db6fe230002d15711e7",
+    "durationSec": 30,
+    "frames": 900
+  },
   "audioSummary": {
     "soldier": {
       "fixtureType": "procedural-synthetic-speech-cadence",

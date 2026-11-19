@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { startViewerServer } from '../../app/server/viewer-server.mjs';
 
-test('E2E: Loopback 9:16 real-engine test viewer renders both Soldier baseline and Zombie 10s proof', async () => {
+test('E2E: Legacy loopback 9:16 real-engine test viewer (/legacy) renders Soldier baseline and Zombie 10s proof', async () => {
   const srv = await startViewerServer({ port: 0, host: '127.0.0.1' });
   const browser = await chromium.launch({
     headless: true,
@@ -11,7 +11,7 @@ test('E2E: Loopback 9:16 real-engine test viewer renders both Soldier baseline a
   });
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
-    await page.goto(srv.url, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${srv.url}/legacy`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.__viewerReady === true, null, { timeout: 60000 });
 
     const badgeText = await page.locator('.badge').textContent();
@@ -22,7 +22,7 @@ test('E2E: Loopback 9:16 real-engine test viewer renders both Soldier baseline a
     assert.equal(statusSoldier.totalFrames, 592);
     assert.equal(statusSoldier.canvas, '1080x1920');
 
-    // Switch to new 10s Zombie Supermarket project in viewer
+    // Switch to new 10s Zombie Supermarket project in legacy viewer
     await page.selectOption('#projectSelect', 'zombie-supermarket-10s');
     await page.waitForFunction(
       () => {

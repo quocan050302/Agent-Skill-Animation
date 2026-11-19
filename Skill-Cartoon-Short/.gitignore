@@ -21,17 +21,31 @@ __pycache__/
 **/__pycache__/
 *.pyc
 
-# Isolated runtime workspaces, caches, jobs, and rendered frame sequences
+# Isolated runtime workspaces, caches, jobs, settings, and rendered frame sequences
 workspace/cache/
 workspace/jobs/
 workspace/temp/
+workspace/settings/
+workspace/studio-projects/
 workspace/projects/soldier-baseline/
 workspace/projects/*/frames/
 workspace/projects/*/work/
 workspace/projects/*/out/
 workspace/projects/*/web/
+workspace/projects/*/generated/
+workspace/projects/*/jobs/
+workspace/projects/*/timing/
+workspace/projects/*/final/
+workspace/projects/*/temp/
+workspace/projects/*/artifacts/
 workspace/projects/*/input/*.wav
 workspace/projects/*/input/*.mp3
+workspace/projects/*/input/*.m4a
+workspace/projects/*/input/*.json
+workspace/projects/*/project.json
+
+# Built frontend production bundle (reproducible via npm run build)
+app/frontend/dist/
 
 # Local rendered media outputs (unverified Soldier derivatives & large binaries)
 out/*.mp4

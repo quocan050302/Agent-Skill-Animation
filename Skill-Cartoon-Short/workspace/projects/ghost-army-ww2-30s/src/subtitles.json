@@ -1,0 +1,134 @@
+{
+  "title": "The Fake Army That Fooled the Nazis",
+  "width": 1080,
+  "height": 1920,
+  "font": "Arial Black",
+  "fontSize": 74,
+  "heroFontSize": 90,
+  "marginV": 330,
+  "baseColor": "#FFFBF0",
+  "activeColor": "#FFE055",
+  "punchColor": "#FF6347",
+  "inkColor": "#241726",
+  "chunks": [
+    {
+      "s": 0.21,
+      "e": 1.15,
+      "lines": ["During World War II,"],
+      "punchWords": ["WORLD", "WAR", "II"]
+    },
+    {
+      "s": 1.16,
+      "e": 2.25,
+      "lines": ["the Americans built", "an entire army"],
+      "punchWords": ["ENTIRE", "ARMY"]
+    },
+    {
+      "s": 2.26,
+      "e": 3.24,
+      "hero": true,
+      "lines": ["that wasn't real."],
+      "punchWords": ["WASN'T", "REAL"]
+    },
+    {
+      "s": 3.35,
+      "e": 4.18,
+      "lines": ["From a distance,"],
+      "punchWords": []
+    },
+    {
+      "s": 4.60,
+      "e": 6.18,
+      "lines": ["German soldiers saw", "rows of tanks"],
+      "punchWords": ["TANKS"]
+    },
+    {
+      "s": 6.19,
+      "e": 7.86,
+      "lines": ["preparing for battle."],
+      "punchWords": ["BATTLE"]
+    },
+    {
+      "s": 8.25,
+      "e": 9.28,
+      "lines": ["But those tanks", "were made of"],
+      "punchWords": ["TANKS"]
+    },
+    {
+      "s": 9.29,
+      "e": 10.35,
+      "hero": true,
+      "lines": ["inflatable rubber."],
+      "punchWords": ["INFLATABLE", "RUBBER"]
+    },
+    {
+      "s": 10.81,
+      "e": 11.94,
+      "lines": ["And that was just", "the beginning."],
+      "punchWords": ["BEGINNING"]
+    },
+    {
+      "s": 12.05,
+      "e": 13.72,
+      "lines": ["Hidden speakers blasted", "the sounds of"],
+      "punchWords": ["HIDDEN", "SPEAKERS"]
+    },
+    {
+      "s": 13.73,
+      "e": 15.69,
+      "lines": ["thousands of troops", "and armored vehicles."],
+      "punchWords": ["THOUSANDS", "ARMORED"]
+    },
+    {
+      "s": 15.96,
+      "e": 17.28,
+      "lines": ["Fake radio messages", "made the illusion"],
+      "punchWords": ["FAKE", "RADIO"]
+    },
+    {
+      "s": 17.29,
+      "e": 18.56,
+      "lines": ["even more convincing."],
+      "punchWords": ["CONVINCING"]
+    },
+    {
+      "s": 18.86,
+      "e": 20.48,
+      "hero": true,
+      "lines": ["Just 1,100 men"],
+      "punchWords": ["1,100", "MEN"]
+    },
+    {
+      "s": 20.49,
+      "e": 22.96,
+      "lines": ["could impersonate a force", "many times their size,"],
+      "punchWords": ["IMPERSONATE"]
+    },
+    {
+      "s": 23.21,
+      "e": 24.85,
+      "lines": ["drawing German attention", "away from"],
+      "punchWords": ["ATTENTION"]
+    },
+    {
+      "s": 24.86,
+      "e": 26.35,
+      "lines": ["real American troops."],
+      "punchWords": ["REAL"]
+    },
+    {
+      "s": 26.75,
+      "e": 28.52,
+      "lines": ["Their deadliest weapon", "wasn't a gun."],
+      "punchWords": ["DEADLIEST", "GUN"]
+    },
+    {
+      "s": 28.95,
+      "e": 29.88,
+      "hero": true,
+      "holdUntil": 29.95,
+      "lines": ["It was deception."],
+      "punchWords": ["DECEPTION"]
+    }
+  ]
+}

@@ -1,8 +1,15 @@
 #!/usr/bin/env node
 /**
- * 17-Gate Quality & Truthfulness Verifier (SHORT-01 Section 13)
+ * 17-Gate Quality & Truthfulness Verifier (SHORT-01 + QA-TTS-01 Section 13)
  * Reports strictly: PASS | FAIL | BLOCKED | UNVERIFIED.
- * Never converts BLOCKED or UNVERIFIED into PASS.
+ *
+ * QA-TTS-01 Fixes:
+ * - G14: Requires EXPLICIT `options.dagTestsPassed === true` with fresh evidence;
+ *   returns `FAIL` when `false` and `UNVERIFIED` when omitted/undefined (NO false PASS!).
+ * - G16: Verifies `Skill-B6` has 0 diff, 0 staged files, and exact tracked Git tree SHA-256.
+ * - G17: Branch-aware via `options.expectedBranch` (defaults to current branch or 'QA')
+ *   and verifies local HEAD === origin/<expectedBranch> with 0 tracked kit files.
+ * - G03: Preserves honest `BLOCKED` status for unlicensed public redistribution of cartoon-short-kit.
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -15,6 +22,8 @@ import { inspectJpegFile } from './image-inspector.mjs';
 import { probeMp4 } from '../render/mux-mp4.mjs';
 
 const REPO_ROOT = path.resolve(PROJECT_ROOT, '..');
+export const EXPECTED_SKILL_B6_TREE_SHA256 =
+  'f27f501f23c8c927a5ccf50f9bd6dcd63d90bc0e9fa01649fc73f7a508eea4ed';
 
 function runGit(args) {
   return execFileSync('git', args, { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
@@ -62,39 +71,55 @@ export function evaluateAllGates(options = {}) {
 
   const soldierProbe = fs.existsSync(soldierMp4Path) ? probeMp4(soldierMp4Path) : null;
   const zombieProbe = fs.existsSync(zombieMp4Path) ? probeMp4(zombieMp4Path) : null;
-  const soldierSheetCheck = inspectJpegFile(soldierSheetPath);
-  const zombieSheetCheck = inspectJpegFile(zombieSheetPath);
+  const soldierSheetCheck = fs.existsSync(soldierSheetPath) ? inspectJpegFile(soldierSheetPath) : { valid: false, missing: true };
+  const zombieSheetCheck = fs.existsSync(zombieSheetPath) ? inspectJpegFile(zombieSheetPath) : { valid: false, missing: true };
 
-  // Check Skill-B6 untouched state
+  // Check Skill-B6 untouched state (working tree diff, staged index, and committed tree SHA)
   const skillB6Diff = execFileSync('git', ['diff', '--', 'Skill-B6'], { cwd: REPO_ROOT });
-  const skillB6DiffSha = crypto.createHash('sha256').update(skillB6Diff).digest('hex');
+  const skillB6TreeListing = execFileSync('git', ['ls-tree', '-r', 'HEAD', '--', 'Skill-B6'], { cwd: REPO_ROOT });
+  const skillB6TreeSha = crypto.createHash('sha256').update(skillB6TreeListing).digest('hex');
   const stagedFiles = runGit(['diff', '--cached', '--name-only']);
   const skillB6Staged = stagedFiles
     .split('\n')
     .filter(Boolean)
     .some((p) => p.startsWith('Skill-B6/'));
 
-  const expectedB6DiffSha =
-    options.expectedSkillB6DiffSha || 'e67777498d661750ac6b971b40d4597fa663148fc11a3a854ebf32384bb2cbc8';
-  const skillB6Untouched = !skillB6Staged && skillB6DiffSha === expectedB6DiffSha;
+  const expectedB6TreeSha = options.expectedSkillB6TreeSha || EXPECTED_SKILL_B6_TREE_SHA256;
+  const skillB6Untouched =
+    !skillB6Staged && skillB6Diff.length === 0 && skillB6TreeSha === expectedB6TreeSha;
 
-  // Check Git branch & remote push status
+  // Check Git branch & remote push status (branch-aware, defaults to QA)
   let currentBranch = '';
   let headSha = '';
   let remoteBranchSha = '';
+  let originUrl = '';
+  const expectedBranch = options.expectedBranch || 'QA';
   try {
     currentBranch = runGit(['rev-parse', '--abbrev-ref', 'HEAD']);
     headSha = runGit(['rev-parse', 'HEAD']);
-    const lsRemote = runGit(['ls-remote', '--heads', 'origin', 'feat/short-01-original-engine-fidelity']);
+    originUrl = runGit(['remote', 'get-url', 'origin']);
+    const lsRemote = runGit(['ls-remote', '--heads', 'origin', expectedBranch]);
     remoteBranchSha = lsRemote ? lsRemote.split(/\s+/)[0] : '';
   } catch {
     // ignore if offline
   }
 
-  // Verify no restricted cartoon-short-kit files are tracked in git
   const trackedKitFiles = runGit(['ls-files', 'Skill-Cartoon-Short/vendor/cartoon-short-kit'])
     .split('\n')
     .filter(Boolean);
+
+  // Strict G14 evaluation: NEVER false-PASS on undefined!
+  let g14Status = 'UNVERIFIED';
+  let g14Evidence =
+    'dagTestsPassed was not explicitly supplied (undefined); refusing false PASS without fresh test execution evidence.';
+  if (options.dagTestsPassed === true) {
+    g14Status = 'PASS';
+    g14Evidence =
+      'Fresh DAG test execution explicitly verified PASS (determinism, vendor snapshot backtest, negative & Studio tests).';
+  } else if (options.dagTestsPassed === false) {
+    g14Status = 'FAIL';
+    g14Evidence = 'DAG test execution explicitly reported FAIL.';
+  }
 
   const gates = [
     {
@@ -108,17 +133,16 @@ export function evaluateAllGates(options = {}) {
       gate: 'G02',
       title: 'Source SHA-256 manifest verified',
       status: snapshotCheck.allMatched && snapshotCheck.checkedCount === 14 ? 'PASS' : 'FAIL',
-      evidence:
-        '14/14 extracted files in vendor/cartoon-short-kit match archive SHA-256 digests; docs/SOURCE_FIDELITY_MANIFEST.json verified.',
+      evidence: `Verified ${snapshotCheck.checkedCount}/14 extracted files in vendor/cartoon-short-kit against archive SHA-256 digests.`,
     },
     {
       gate: 'G03',
       title: 'License/provenance gate resolved',
       status: 'BLOCKED',
       evidence:
-        'Target repo quocan050302/Agent-Skill-Animation is PUBLIC, and cartoon-short-kit.zip contains no LICENSE or redistribution grant. Upstream dependencies (three@0.160.0 MIT, mromidev/claude-animated-shorts MIT) are verified; kit source & Soldier derivatives are preserved locally and blocked from public push (.gitignore, trackedKitFiles=' +
+        'Target repo quocan050302/Agent-Skill-Animation is PUBLIC, and cartoon-short-kit.zip contains no LICENSE or redistribution grant. Upstream dependencies (three@0.160.0 MIT, mromidev/claude-animated-shorts MIT, out-of-step-studio MIT) are verified; kit source & Soldier derivatives are preserved locally and blocked from public push (.gitignore, trackedKitFiles=' +
         trackedKitFiles.length +
-        '). Pasted markdown.md was also absent from workspace (BLOCKED).',
+        ').',
     },
     {
       gate: 'G04',
@@ -130,118 +154,156 @@ export function evaluateAllGates(options = {}) {
           ? 'PASS'
           : 'FAIL',
       evidence:
-        'three@0.160.0, playwright@1.65.1 pinned in package-lock.json; mromidev/claude-animated-shorts pinned to commit e3b817b6afc6cd413466d43f11ba31209e034bbf. (Windows PowerShell setup.ps1 included; native Windows execution UNVERIFIED on darwin-arm64 runner.)',
+        'three@0.160.0, playwright@1.65.1, react/vite/typescript pinned in package-lock.json; mromidev/claude-animated-shorts pinned to e3b817b6afc6cd413466d43f11ba31209e034bbf.',
     },
     {
       gate: 'G05',
       title: 'Chromium starts successfully',
-      status: Boolean(soldierRender?.metadata?.chromiumVersion) ? 'PASS' : 'FAIL',
-      evidence: `Chromium ${soldierRender?.metadata?.chromiumVersion || 'N/A'} launched headlessly over loopback 127.0.0.1.`,
+      status: soldierRender ? (soldierRender.metadata?.chromiumVersion ? 'PASS' : 'FAIL') : 'UNVERIFIED',
+      evidence: soldierRender
+        ? `Chromium ${soldierRender.metadata?.chromiumVersion || 'N/A'} launched headlessly over loopback 127.0.0.1.`
+        : 'Soldier baseline render-manifest.json not present in fresh worktree (UNVERIFIED).',
     },
     {
       gate: 'G06',
       title: 'WebGL renderer initializes',
-      status:
-        Boolean(soldierRender?.metadata?.glRenderer) && (soldierRender?.metadata?.pageErrors?.length ?? 1) === 0
+      status: soldierRender
+        ? soldierRender.metadata?.glRenderer && (soldierRender.metadata?.pageErrors?.length ?? 1) === 0
           ? 'PASS'
-          : 'FAIL',
-      evidence: `${soldierRender?.metadata?.glVersion} | ${soldierRender?.metadata?.glRenderer} | pageErrors=0`,
+          : 'FAIL'
+        : 'UNVERIFIED',
+      evidence: soldierRender
+        ? `${soldierRender.metadata?.glVersion} | ${soldierRender.metadata?.glRenderer} | pageErrors=0`
+        : 'No fresh soldier-baseline render manifest present (UNVERIFIED).',
     },
     {
       gate: 'G07',
       title: 'Original frame 0 renders',
-      status:
-        soldierRender?.frames?.[0]?.frameIndex === 0 &&
-        soldierRender?.frames?.[0]?.width === 1080 &&
-        soldierRender?.frames?.[0]?.height === 1920 &&
-        soldierRender?.frames?.[0]?.nonBlackRatio > 0.95
+      status: soldierRender
+        ? soldierRender.frames?.[0]?.frameIndex === 0 &&
+          soldierRender.frames?.[0]?.width === 1080 &&
+          soldierRender.frames?.[0]?.height === 1920 &&
+          soldierRender.frames?.[0]?.nonBlackRatio > 0.95
           ? 'PASS'
-          : 'FAIL',
-      evidence: `Soldier f0000: 1080x1920, sha256=${soldierRender?.frames?.[0]?.sha256}, meanLuma=${soldierRender?.frames?.[0]?.meanLuma}`,
+          : 'FAIL'
+        : 'UNVERIFIED',
+      evidence: soldierRender
+        ? `Soldier f0000: 1080x1920, sha256=${soldierRender.frames?.[0]?.sha256}`
+        : 'No soldier-baseline render manifest in this worktree (UNVERIFIED).',
     },
     {
       gate: 'G08',
       title: 'Multiple original frames render',
-      status: soldierRender?.summary?.frameCount === 592 ? 'PASS' : 'FAIL',
-      evidence: `Rendered all 592/592 frames (${soldierRender?.summary?.msPerFrame} ms/frame); 10/14 reference stills.jpg tiles matched at 22.5-37.6 dB PSNR.`,
+      status: soldierRender ? (soldierRender.summary?.frameCount === 592 ? 'PASS' : 'FAIL') : 'UNVERIFIED',
+      evidence: soldierRender
+        ? `Rendered ${soldierRender.summary?.frameCount}/592 frames.`
+        : 'No full 592-frame soldier-baseline manifest present in this worktree (UNVERIFIED).',
     },
     {
       gate: 'G09',
       title: 'Ink and character rendering inspected',
-      status: soldierSheetCheck.valid && zombieSheetCheck.valid ? 'PASS' : 'FAIL',
-      evidence: `Verified via #e edge pass, #nd normal+depth pass, Pillow darkInkRatio/edgeGradientMean, and visual inspection of out/original-reference-contact-sheet.jpg (${soldierSheetCheck.width}x${soldierSheetCheck.height}) & out/new-original-contact-sheet.jpg (${zombieSheetCheck.width}x${zombieSheetCheck.height}).`,
+      status:
+        soldierSheetCheck.missing && zombieSheetCheck.missing
+          ? 'UNVERIFIED'
+          : soldierSheetCheck.valid && zombieSheetCheck.valid
+            ? 'PASS'
+            : 'FAIL',
+      evidence:
+        soldierSheetCheck.missing && zombieSheetCheck.missing
+          ? 'Baseline contact sheets absent in fresh worktree (UNVERIFIED).'
+          : `soldierSheet=${soldierSheetCheck.valid}, zombieSheet=${zombieSheetCheck.valid}`,
     },
     {
       gate: 'G10',
       title: 'Frame output passes validation',
       status:
-        soldierRender?.summary?.frameCount === 592 &&
-        zombieRender?.summary?.frameCount === 300 &&
-        soldierRender.frames.every((f) => f.width === 1080 && f.height === 1920 && f.nonBlackRatio > 0.5) &&
-        zombieRender.frames.every((f) => f.width === 1080 && f.height === 1920 && f.nonBlackRatio > 0.5)
-          ? 'PASS'
-          : 'FAIL',
+        !soldierRender && !zombieRender
+          ? 'UNVERIFIED'
+          : soldierRender?.summary?.frameCount === 592 &&
+              zombieRender?.summary?.frameCount === 300 &&
+              soldierRender.frames.every((f) => f.width === 1080 && f.height === 1920 && f.nonBlackRatio > 0.5) &&
+              zombieRender.frames.every((f) => f.width === 1080 && f.height === 1920 && f.nonBlackRatio > 0.5)
+            ? 'PASS'
+            : 'FAIL',
       evidence:
-        'All 592 Soldier frames and 300 Zombie frames verified 1080x1920 (9:16), readable JPEG SOI/EOI/SOF, non-black, ordered, zero missing IDs.',
+        !soldierRender && !zombieRender
+          ? 'Baseline manifests absent in fresh worktree (UNVERIFIED).'
+          : `soldierFrames=${soldierRender?.summary?.frameCount ?? 0}, zombieFrames=${zombieRender?.summary?.frameCount ?? 0}.`,
     },
     {
       gate: 'G11',
       title: 'Timing pipeline tested',
-      status: Boolean(soldierTiming?.valid) ? 'PASS' : 'FAIL',
-      evidence: `timing_validator.py aligned ${soldierTiming?.wordCount} words / ${soldierTiming?.phraseCount} phrases across ${soldierTiming?.segmentCount} speech segments (${soldierTiming?.alignmentPrecision}).`,
+      status: soldierTiming ? (soldierTiming.valid ? 'PASS' : 'FAIL') : 'UNVERIFIED',
+      evidence: soldierTiming
+        ? `timing_validator.py aligned ${soldierTiming.wordCount} words (${soldierTiming.alignmentPrecision}).`
+        : 'No soldier-baseline timing-validation.json in this worktree (UNVERIFIED).',
     },
     {
       gate: 'G12',
       title: 'Audio path tested to the available extent',
-      status:
-        Boolean(soldierAudio?.specCompliant?.specificationCompliant) &&
-        Math.abs((soldierAudio?.specCompliant?.measuredMusicRelDb ?? 0) - -6.0) < 0.25
+      status: soldierAudio
+        ? Boolean(soldierAudio.specCompliant?.specificationCompliant) &&
+          Math.abs((soldierAudio.specCompliant?.measuredMusicRelDb ?? 0) - -6.0) < 0.25
           ? 'PASS'
-          : 'FAIL',
-      evidence: `Tested both original-baseline (ducked+tanh) and spec-compliant mix.py (musicRelDb=${soldierAudio?.specCompliant?.measuredMusicRelDb} dB, sfxRelDb=${soldierAudio?.specCompliant?.measuredSfxRelDb} dB). Authentic Soldier voice.mp3 parity explicitly marked UNVERIFIED (voice.mp3 absent from ZIP).`,
+          : 'FAIL'
+        : 'UNVERIFIED',
+      evidence: soldierAudio
+        ? `spec-compliant mix.py musicRelDb=${soldierAudio.specCompliant?.measuredMusicRelDb} dB.`
+        : 'No soldier-baseline audio-modes-report.json in this worktree (UNVERIFIED).',
     },
     {
       gate: 'G13',
       title: 'MP4 export tested',
-      status: Boolean(soldierProbe?.valid && zombieProbe?.valid) ? 'PASS' : 'FAIL',
+      status:
+        !soldierProbe && !zombieProbe
+          ? 'UNVERIFIED'
+          : Boolean(soldierProbe?.valid && zombieProbe?.valid)
+            ? 'PASS'
+            : 'FAIL',
       evidence:
-        'Both MP4s verified H.264 yuv420p 1080x1920 @ 30/1 + AAC 48kHz stereo + faststart (moov<mdat) + 0 black/freeze spans.',
+        !soldierProbe && !zombieProbe
+          ? 'Baseline MP4 artifacts absent in fresh worktree (UNVERIFIED).'
+          : `soldierMp4=${soldierProbe?.valid}, zombieMp4=${zombieProbe?.valid}.`,
     },
     {
       gate: 'G14',
       title: 'Repeatability/regression checked',
-      status: options.dagTestsPassed === false ? 'FAIL' : 'PASS',
-      evidence:
-        'Repeated Chromium sessions produced identical frame SHA-256 digests; vendor snapshot backtest matched 14/14 hashes; all 12 negative tests propagated expected errors.',
+      status: g14Status,
+      evidence: g14Evidence,
     },
     {
       gate: 'G15',
       title: 'New original scenario tested',
-      status: Boolean(zombieProbe?.valid && zombieProbe?.video?.nbFrames === 300 && zombieSheetCheck.valid)
-        ? 'PASS'
-        : 'FAIL',
-      evidence: `Rendered 300-frame (10.0s) zombie-supermarket-10s MP4 (${zombieProbe?.byteSize} bytes, sha256=${zombieProbe?.sha256}) and 10-tile contact sheet.`,
+      status: !zombieProbe
+        ? 'UNVERIFIED'
+        : Boolean(zombieProbe?.valid && zombieProbe?.video?.nbFrames === 300 && zombieSheetCheck.valid)
+          ? 'PASS'
+          : 'FAIL',
+      evidence: zombieProbe
+        ? `zombie-supermarket-10s MP4 (${zombieProbe.byteSize} bytes, frames=${zombieProbe.video?.nbFrames}).`
+        : 'No zombie-supermarket-10s MP4 in this worktree (UNVERIFIED).',
     },
     {
       gate: 'G16',
       title: 'Unrelated Skill-B6 files unchanged',
       status: skillB6Untouched ? 'PASS' : 'FAIL',
-      evidence: `Skill-B6 diff SHA-256 unchanged (${skillB6DiffSha.slice(0, 16)}...), stagedSkillB6Files=false.`,
+      evidence: `Skill-B6 tree SHA-256=${skillB6TreeSha.slice(0, 16)}..., diffBytes=${skillB6Diff.length}, stagedSkillB6Files=${skillB6Staged}.`,
     },
     {
       gate: 'G17',
       title: 'GitHub commit/push status verified',
       status:
-        currentBranch === 'feat/short-01-original-engine-fidelity' &&
-        remoteBranchSha &&
+        /quocan050302\/Agent-Skill-Animation(?:\.git)?$/i.test(originUrl) &&
+        currentBranch === expectedBranch &&
+        Boolean(remoteBranchSha) &&
         remoteBranchSha === headSha &&
         trackedKitFiles.length === 0
           ? 'PASS'
           : 'UNVERIFIED',
       evidence:
-        remoteBranchSha && remoteBranchSha === headSha
-          ? `Branch ${currentBranch} pushed and verified on origin at commit ${headSha} with 0 restricted kit files tracked.`
-          : `Branch=${currentBranch}, localHEAD=${headSha}, remoteSHA=${remoteBranchSha || '(not yet pushed)'}, trackedKitFiles=${trackedKitFiles.length}.`,
+        remoteBranchSha && remoteBranchSha === headSha && currentBranch === expectedBranch
+          ? `Branch ${currentBranch} pushed & verified on ${originUrl} at ${headSha} (trackedKitFiles=0).`
+          : `Branch=${currentBranch} (expected=${expectedBranch}), localHEAD=${headSha}, remoteSHA=${remoteBranchSha || '(not yet pushed)'}, trackedKitFiles=${trackedKitFiles.length}.`,
     },
   ];
 
@@ -249,6 +311,10 @@ export function evaluateAllGates(options = {}) {
     evaluatedAt: new Date().toISOString(),
     hostPlatform: `${os.platform()}-${os.arch()}`,
     nodeVersion: process.version,
+    expectedBranch,
+    currentBranch,
+    headSha,
+    remoteBranchSha,
     gates,
     soldierMp4Probe: soldierProbe,
     zombieMp4Probe: zombieProbe,
@@ -258,6 +324,14 @@ export function evaluateAllGates(options = {}) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const res = evaluateAllGates();
+  const args = process.argv.slice(2);
+  let expectedBranch = 'QA';
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--branch' && args[i + 1]) {
+      expectedBranch = args[i + 1];
+      i++;
+    }
+  }
+  const res = evaluateAllGates({ expectedBranch });
   console.log(JSON.stringify(res, null, 2));
 }
