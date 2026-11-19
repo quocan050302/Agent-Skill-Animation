@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError, studioApi } from './api/client';
+import { NewProjectDialog } from './components/NewProjectDialog';
 import { ProjectLibrary } from './components/ProjectLibrary';
 import { SettingsDialog } from './components/SettingsDialog';
 import { StagePreview } from './components/StagePreview';
@@ -29,6 +30,7 @@ export function App() {
   const [statusNotice, setStatusNotice] = useState<string>('');
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
 
   // Step 1: Script & Voice
   const [previewAudio, setPreviewAudio] = useState<AudioArtifactMeta | null>(null);
@@ -341,6 +343,13 @@ export function App() {
         <nav className="topbar-nav" aria-label="Primary studio navigation">
           <button
             type="button"
+            className="btn btn-primary"
+            onClick={() => setNewProjectOpen(true)}
+          >
+            + New Project
+          </button>
+          <button
+            type="button"
             className={`btn ${surface === 'library' ? 'btn-active' : ''}`}
             onClick={() => setSurface('library')}
           >
@@ -380,6 +389,7 @@ export function App() {
           <ProjectLibrary
             projects={projects}
             busy={ttsBusy || uploadBusy}
+            onOpenNewProjectDialog={() => setNewProjectOpen(true)}
             onOpenProject={async (p) => {
               await openProjectById(p.projectId);
               setSurface('studio');
@@ -957,6 +967,21 @@ export function App() {
           </div>
         )}
       </main>
+
+      <NewProjectDialog
+        open={newProjectOpen}
+        onClose={() => setNewProjectOpen(false)}
+        contract={contract}
+        existingProjects={projects}
+        onCreate={async (payload) => {
+          const created = await studioApi.createProject(payload);
+          await refreshSystem();
+          await openProjectById(created.projectId);
+          setSurface('studio');
+          setActiveStep(1);
+          setStatusNotice(`Created new project "${created.title}".`);
+        }}
+      />
 
       <SettingsDialog
         open={settingsOpen}

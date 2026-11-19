@@ -4,6 +4,7 @@ import type { StudioProject } from '../types';
 interface ProjectLibraryProps {
   projects: StudioProject[];
   onOpenProject: (project: StudioProject) => void;
+  onOpenNewProjectDialog: () => void;
   onCreateProject: (template: { title: string; storyId: string; scriptText: string; captionsEnabled: boolean }) => Promise<void>;
   onDuplicateProject: (project: StudioProject) => Promise<void>;
   onDeleteProject: (project: StudioProject) => Promise<void>;
@@ -34,6 +35,7 @@ const TEMPLATES = [
 export function ProjectLibrary({
   projects,
   onOpenProject,
+  onOpenNewProjectDialog,
   onCreateProject,
   onDuplicateProject,
   onDeleteProject,
@@ -80,11 +82,19 @@ export function ProjectLibrary({
           </div>
         </div>
         <div className="row">
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={busy}
+            onClick={onOpenNewProjectDialog}
+          >
+            + New Custom Project
+          </button>
           {TEMPLATES.map((tpl) => (
             <button
               key={tpl.id}
               type="button"
-              className="btn btn-primary"
+              className="btn"
               disabled={busy}
               onClick={() =>
                 onCreateProject({
@@ -95,7 +105,7 @@ export function ProjectLibrary({
                 })
               }
             >
-              + {tpl.label}
+              Quick: {tpl.label}
             </button>
           ))}
         </div>

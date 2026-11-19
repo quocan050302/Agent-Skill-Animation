@@ -76,9 +76,32 @@ test('E2E Studio UI: 5-step dark Studio works across 1440/768/390/320 with zero 
     await page.keyboard.press('Escape');
     await dlg.waitFor({ state: 'hidden', timeout: 5000 });
 
-    // Check Project Library view & capture screenshot
+    // Check New Project native <dialog> flow end-to-end (create -> open in Studio -> cleanup delete)
+    await page.getByRole('button', { name: '+ New Project' }).click();
+    const newProjDlg = page.locator('dialog[open]', { hasText: 'New Cartoon Short Project' });
+    await newProjDlg.waitFor({ state: 'visible', timeout: 5000 });
+    await page.locator('#new-proj-title').fill('E2E Custom Short');
+    await page.locator('#new-proj-story').selectOption('zombie-supermarket-10s');
+    await page.locator('#new-proj-script').fill('A brand new custom script created from the New Project dialog.');
+    await page.locator('#new-proj-punch').fill('CUSTOM, NEW');
+    await page.getByRole('button', { name: 'Create & Open Project' }).click();
+    await newProjDlg.waitFor({ state: 'hidden', timeout: 5000 });
+    await page.waitForFunction(
+      () => document.querySelector('#project-title-input')?.value === 'E2E Custom Short',
+      { timeout: 5000 }
+    );
+    // Clean up temporary E2E project via Library delete confirmation modal
     await page.getByRole('button', { name: /Projects \(/ }).click();
     await page.getByRole('heading', { name: 'Start From Template' }).waitFor({ state: 'visible', timeout: 5000 });
+    const e2eCard = page.locator('article.project-card', { hasText: 'E2E Custom Short' });
+    await e2eCard.getByRole('button', { name: 'Delete' }).click();
+    const delDlg = page.locator('dialog[open]', { hasText: 'Delete project?' });
+    await delDlg.waitFor({ state: 'visible', timeout: 5000 });
+    await delDlg.getByRole('button', { name: 'Delete Permanently' }).click();
+    await delDlg.waitFor({ state: 'hidden', timeout: 5000 });
+    await e2eCard.waitFor({ state: 'hidden', timeout: 5000 });
+
+    // Capture Project Library screenshot (clean state)
     await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'desktop-1440x900-library.png'), fullPage: false });
 
     // Return to Studio Workspace & verify reload persistence

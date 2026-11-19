@@ -374,7 +374,10 @@ export function createJobManager({
       const mixedWavPath = path.join(tempDir, 'mixed_48k.wav');
       const customStemsPy = path.join(projectsRoot, project.storyId, 'src', 'audio_stems.py');
       const mixPy = path.join(projectRoot, 'tools', 'audio', 'mix.py');
-      const curatedCuesCandidate = path.join(projectsRoot, project.storyId, 'src', 'subtitles.json');
+      const curatedCuesCandidate =
+        project.projectId === project.storyId
+          ? path.join(projectsRoot, project.projectId, 'src', 'subtitles.json')
+          : null;
 
       const renderTask = (async () => {
         const session = new ShortRendererSession();
@@ -424,7 +427,9 @@ export function createJobManager({
         title: project.title,
         words: timing.words,
         curatedCuesPath:
-          !options.allowShortFrameTest && fs.existsSync(curatedCuesCandidate) ? curatedCuesCandidate : null,
+          !options.allowShortFrameTest && curatedCuesCandidate && fs.existsSync(curatedCuesCandidate)
+            ? curatedCuesCandidate
+            : null,
         punchWords: project.punchWords,
         outDir: tempDir,
       });

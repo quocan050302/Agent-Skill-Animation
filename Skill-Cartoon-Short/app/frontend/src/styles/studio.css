@@ -678,6 +678,35 @@ dialog::backdrop {
   padding: 18px;
 }
 
+.field-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.checkbox-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-block-size: 44px;
+  cursor: pointer;
+  margin: 0;
+  color: var(--text);
+}
+
+.checkbox-row input[type='checkbox'] {
+  inline-size: 18px;
+  block-size: 18px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .field-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Responsive (Tablet 768px & Mobile 390px / 320px — zero horizontal overflow) */
 @media (max-width: 960px) {
   .studio-grid {

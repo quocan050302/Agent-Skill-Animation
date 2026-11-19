@@ -489,14 +489,17 @@ export function createApiRouter({
             return sendJson(res, 200, { ok: true, captionsEnabled: false, cue: { active: false, words: [] } });
           }
           let cuesSpec = null;
-          const curatedPath = path.join(projectRoot, 'workspace', 'projects', project.storyId, 'src', 'subtitles.json');
+          const curatedPath =
+            project.projectId === project.storyId
+              ? path.join(projectRoot, 'workspace', 'projects', project.projectId, 'src', 'subtitles.json')
+              : null;
           if (project.latestTiming?.words?.length > 0) {
             cuesSpec = buildCuesSpecFromWords({
               title: project.title,
               words: project.latestTiming.words,
               punchWords: project.punchWords,
             });
-          } else if (fs.existsSync(curatedPath)) {
+          } else if (curatedPath && fs.existsSync(curatedPath)) {
             cuesSpec = JSON.parse(fs.readFileSync(curatedPath, 'utf8'));
           } else {
             // Synthesize evenly distributed preview cues from scriptText so Step 3 overlay always reflects script before timing
@@ -516,7 +519,11 @@ export function createApiRouter({
             captionsEnabled: true,
             timeSec,
             cue,
-            source: project.latestTiming?.words?.length ? 'aligned-timing' : fs.existsSync(curatedPath) ? 'curated-story' : 'script-estimate',
+            source: project.latestTiming?.words?.length
+              ? 'aligned-timing'
+              : curatedPath && fs.existsSync(curatedPath)
+                ? 'curated-story'
+                : 'script-estimate',
           });
         }
 
