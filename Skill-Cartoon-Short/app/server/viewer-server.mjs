@@ -22,28 +22,23 @@ const MIME = {
 };
 
 export function listHydratedProjects() {
-  const candidates = [
-    {
-      id: 'soldier-baseline',
-      title: 'The Soldier Who Never Left (Original Baseline)',
-      webDir: path.join(PROJECT_ROOT, 'workspace', 'projects', 'soldier-baseline', 'web'),
-      parityBaseline: true,
-    },
-    {
-      id: 'zombie-supermarket-10s',
-      title: 'Sold Out at Fresh-Mart (New 10s Proof)',
-      webDir: path.join(PROJECT_ROOT, 'workspace', 'projects', 'zombie-supermarket-10s', 'web'),
-      parityBaseline: false,
-    },
-  ];
-  return candidates
-    .filter((c) => fs.existsSync(path.join(c.webDir, 'index.html')))
-    .map((c) => ({
-      id: c.id,
-      title: c.title,
-      parityBaseline: c.parityBaseline,
-      engineUrl: `/engine/${c.id}/index.html`,
+  const projectsRoot = path.join(PROJECT_ROOT, 'workspace', 'projects');
+  const titles = {
+    'soldier-baseline': 'The Soldier Who Never Left (Original Baseline)',
+    'zombie-supermarket-10s': 'Sold Out at Fresh-Mart (New 10s Proof)',
+  };
+  if (!fs.existsSync(projectsRoot)) return [];
+  const entries = fs
+    .readdirSync(projectsRoot, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && fs.existsSync(path.join(projectsRoot, d.name, 'web', 'index.html')))
+    .map((d) => ({
+      id: d.name,
+      title: titles[d.name] || d.name,
+      parityBaseline: d.name === 'soldier-baseline',
+      engineUrl: `/engine/${d.name}/index.html`,
     }));
+  entries.sort((a, b) => (a.parityBaseline ? -1 : b.parityBaseline ? 1 : a.id.localeCompare(b.id)));
+  return entries;
 }
 
 export function startViewerServer({ port = 0, host = '127.0.0.1' } = {}) {

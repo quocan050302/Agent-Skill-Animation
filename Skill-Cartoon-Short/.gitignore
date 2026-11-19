@@ -30,6 +30,8 @@ workspace/projects/*/frames/
 workspace/projects/*/work/
 workspace/projects/*/out/
 workspace/projects/*/web/
+workspace/projects/*/input/*.wav
+workspace/projects/*/input/*.mp3
 
 # Local rendered media outputs (unverified Soldier derivatives & large binaries)
 out/*.mp4
@@ -40,7 +42,9 @@ docs/agent-runs/*/evidence/soldier-*
 docs/agent-runs/*/*.mp4
 docs/agent-runs/*/original-*
 
-# Logs & Playwright artifacts
+# Logs, OS clutter & Playwright artifacts
+.DS_Store
+**/.DS_Store
 *.log
 npm-debug.log*
 playwright-report/

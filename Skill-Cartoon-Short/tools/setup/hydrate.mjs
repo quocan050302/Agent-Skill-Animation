@@ -273,40 +273,46 @@ export function hydrateAll(options = {}) {
     fs.readFileSync(path.join(engineWebDir, 'lib', 'three.module.js'))
   );
 
-  // 3. Hydrate workspace/projects/zombie-supermarket-10s/web/ if authored src exists
-  const zombieProjectDir = path.join(PROJECT_ROOT, 'workspace', 'projects', 'zombie-supermarket-10s');
-  const zombieSrcDir = path.join(zombieProjectDir, 'src');
-  let zombieHydrated = false;
-  if (fs.existsSync(path.join(zombieSrcDir, 'story.js'))) {
-    const zombieWebDir = path.join(zombieProjectDir, 'web');
+  // 3. Hydrate all custom authored modular-world projects under workspace/projects/*/src/story.js
+  const projectsRoot = path.join(PROJECT_ROOT, 'workspace', 'projects');
+  const hydratedCustomProjects = [];
+  if (fs.existsSync(projectsRoot)) {
     const origMain = fs.readFileSync(path.join(vendorKitDir, 'engine', 'main.js'), 'utf8');
     if (sha256Buffer(Buffer.from(origMain, 'utf8')) !== EXPECTED_MAIN_JS_SHA256) {
       throw new Error('Unexpected main.js SHA-256 before applying modular world patch.');
     }
     const patchedMain = applyModularWorldPatch(origMain);
-    writeFileAtomic(path.join(zombieWebDir, 'index.html'), fs.readFileSync(path.join(engineWebDir, 'index.html')));
-    writeFileAtomic(path.join(zombieWebDir, 'main.js'), Buffer.from(patchedMain, 'utf8'));
-    writeFileAtomic(path.join(zombieWebDir, 'motion.js'), fs.readFileSync(path.join(engineWebDir, 'motion.js')));
-    writeFileAtomic(path.join(zombieWebDir, 'paint.js'), fs.readFileSync(path.join(engineWebDir, 'paint.js')));
-    writeFileAtomic(
-      path.join(zombieWebDir, 'lib', 'three.module.js'),
-      fs.readFileSync(path.join(engineWebDir, 'lib', 'three.module.js'))
-    );
-    writeFileAtomic(path.join(zombieWebDir, 'toonbase.js'), Buffer.from(toonStatus.toonBaseJs, 'utf8'));
 
-    const zombieCastPath = path.join(zombieSrcDir, 'zombie-cast.js');
-    const zombieCast = fs.existsSync(zombieCastPath) ? fs.readFileSync(zombieCastPath, 'utf8') : '';
-    writeFileAtomic(
-      path.join(zombieWebDir, 'toon.js'),
-      Buffer.from(`${toonStatus.toonBaseJs}\n${romanBuf}\n${zombieCast}`, 'utf8')
-    );
+    for (const entry of fs.readdirSync(projectsRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name === 'soldier-baseline') continue;
+      const projSrcDir = path.join(projectsRoot, entry.name, 'src');
+      if (!fs.existsSync(path.join(projSrcDir, 'story.js'))) continue;
 
-    for (const file of fs.readdirSync(zombieSrcDir)) {
-      if (file.endsWith('.js')) {
-        writeFileAtomic(path.join(zombieWebDir, file), fs.readFileSync(path.join(zombieSrcDir, file)));
+      const projWebDir = path.join(projectsRoot, entry.name, 'web');
+      writeFileAtomic(path.join(projWebDir, 'index.html'), fs.readFileSync(path.join(engineWebDir, 'index.html')));
+      writeFileAtomic(path.join(projWebDir, 'main.js'), Buffer.from(patchedMain, 'utf8'));
+      writeFileAtomic(path.join(projWebDir, 'motion.js'), fs.readFileSync(path.join(engineWebDir, 'motion.js')));
+      writeFileAtomic(path.join(projWebDir, 'paint.js'), fs.readFileSync(path.join(engineWebDir, 'paint.js')));
+      writeFileAtomic(
+        path.join(projWebDir, 'lib', 'three.module.js'),
+        fs.readFileSync(path.join(engineWebDir, 'lib', 'three.module.js'))
+      );
+      writeFileAtomic(path.join(projWebDir, 'toonbase.js'), Buffer.from(toonStatus.toonBaseJs, 'utf8'));
+
+      const srcFiles = fs.readdirSync(projSrcDir).filter((f) => f.endsWith('.js')).sort();
+      const castChunks = srcFiles
+        .filter((f) => f.endsWith('-cast.js'))
+        .map((f) => fs.readFileSync(path.join(projSrcDir, f), 'utf8'));
+      writeFileAtomic(
+        path.join(projWebDir, 'toon.js'),
+        Buffer.from([toonStatus.toonBaseJs, romanBuf, ...castChunks].join('\n'), 'utf8')
+      );
+
+      for (const file of srcFiles) {
+        writeFileAtomic(path.join(projWebDir, file), fs.readFileSync(path.join(projSrcDir, file)));
       }
+      hydratedCustomProjects.push(entry.name);
     }
-    zombieHydrated = true;
   }
 
   return {
@@ -318,7 +324,8 @@ export function hydrateAll(options = {}) {
     toonTsSha256: manifest.upstreamDependencies.claudeAnimatedShorts.toonTsSha256,
     toonBaseSha256: toonStatus.toonBaseSha256,
     engineMainSha256: sha256File(path.join(engineWebDir, 'main.js')),
-    zombieHydrated,
+    zombieHydrated: hydratedCustomProjects.includes('zombie-supermarket-10s'),
+    hydratedCustomProjects,
   };
 }
 
